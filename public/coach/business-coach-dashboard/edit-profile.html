@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - PlannIT Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-page: #e0f2ff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #334155;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            outline: none;
+            color: #1e293b;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .profile-upload-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        #profilePreview {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        #profilePreview.active {
+            display: block;
+        }
+
+        .upload-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            border: 2px dashed #818cf8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-placeholder:hover {
+            background: #c7d2fe;
+            transform: scale(1.05);
+        }
+
+        .edit-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #4f46e5;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .edit-overlay:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body class="py-8 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <a href="index.html"
+                    class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white shadow-sm transition-all">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Edit Coach Profile</h1>
+                    <p class="text-slate-500 text-sm">Update your public information</p>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('editProfileForm').requestSubmit()"
+                class="hidden md:flex px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all items-center gap-2">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+
+        <form id="editProfileForm" class="space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Left Column: Identity -->
+                <div class="md:col-span-1 space-y-6">
+                    <div class="section-card text-center">
+                        <div class="profile-upload-container mb-4 group">
+                            <img id="profilePreview" src="" alt="Profile Preview">
+                            <div class="upload-placeholder" id="placeholderIcon">
+                                <i class="fas fa-camera text-3xl"></i>
+                            </div>
+                            <div class="edit-overlay" onclick="document.getElementById('profilePhoto').click()">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </div>
+                            <input type="file" id="profilePhoto" class="hidden" accept="image/*">
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-lg">Profile Photo</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">Allowed *.jpeg, *.jpg, *.png, *.gif</p>
+                    </div>
+
+                    <!-- Stats Card Small -->
+                    <div class="section-card bg-indigo-600 text-white border-none">
+                        <h4 class="font-semibold text-indigo-100 mb-4 text-sm uppercase tracking-wider">Quick Stats</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-xs text-indigo-200">Total Hours</p>
+                                <p class="text-2xl font-bold">1,250+</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-indigo-200">Rating</p>
+                                <div class="flex items-center gap-1 text-yellow-300">
+                                    <i class="fas fa-star"></i>
+                                    <span class="font-bold text-white">4.9</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Details -->
+                <div class="md:col-span-2 space-y-6">
+
+                    <!-- Basic Info Card -->
+                    <div class="section-card">
+                        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                            <i class="fas fa-user-circle text-indigo-500"></i>
+                            <h3 class="font-bold text-lg text-slate-800">Professional Details</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                            <div class="form-group">
+                                <label for="yearsExperience" class="form-label">Years of Experience</label>
+                                <div class="relative">
+                                    <input type="number" id="yearsExperience" class="form-control" placeholder="0">
+                                    <span
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">years</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="hoursCoached" class="form-label">Hours Coached</label>
+                                <div class="relative">
+                                    <input type="number" id="hoursCoached" class="form-control" placeholder="0">
+                                    <span
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">hrs</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bio" class="form-label">Professional Bio</label>
+                            <textarea id="bio" class="form-control h-32 resize-none"
+                                placeholder="Share your journey, expertise, and what students can expect..."></textarea>
+                            <p class="text-xs text-slate-400 mt-2 text-right">Max 500 characters</p>
+                        </div>
+                    </div>
+
+                    <!-- Pricing & Earnings Card -->
+                    <div class="section-card border-indigo-100 relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
+                        </div>
+
+                        <div class="flex items-center gap-2 mb-6 border-b border-indigo-50 pb-4">
+                            <i class="fas fa-wallet text-indigo-500"></i>
+                            <h3 class="font-bold text-lg text-slate-800">Pricing & Earnings</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div class="form-group">
+                                <label for="hourlyRate" class="form-label">Hourly Rate (₹)</label>
+                                <div class="relative group">
+                                    <span
+                                        class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">₹</span>
+                                    <input type="number" id="hourlyRate"
+                                        class="form-control pl-8 text-lg font-bold text-indigo-900" placeholder="0.00">
+                                </div>
+                                <p class="text-xs text-slate-500 mt-2">Rate students pay per hour</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-slate-500">Platform Fee (20%)</span>
+                                    <span class="text-red-500 font-medium" id="feeDisplay">-₹0.00</span>
+                                </div>
+                                <div class="flex justify-between items-end border-t border-slate-200 pt-2">
+                                    <span class="text-slate-700 font-semibold">You Earn</span>
+                                    <span class="text-2xl font-bold text-green-600" id="earningsDisplay">₹0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certifications Card -->
+                    <div class="section-card">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-certificate text-indigo-500"></i>
+                                <h3 class="font-bold text-lg text-slate-800">Certifications</h3>
+                            </div>
+                            <button type="button" id="addCertification"
+                                class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Add New
+                            </button>
+                        </div>
+                        <div id="certificationsContainer" class="space-y-4">
+                            <!-- Certifications will be dynamic -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Mobile Save Button -->
+            <button type="submit" class="md:hidden btn-primary w-full shadow-xl" id="saveBtn">
+                Save All Changes
+            </button>
+        </form>
+
+        <div id="successToast"
+            class="fixed top-8 left-1/2 -translate-x-1/2 bg-white text-slate-800 px-6 py-4 rounded-xl shadow-2xl transition-all duration-300 transform -translate-y-32 opacity-0 pointer-events-none flex items-center gap-3 border border-green-100 z-50">
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <i class="fas fa-check"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">Success</h4>
+                <p class="text-xs text-slate-500">Profile updated successfully!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const form = document.getElementById('editProfileForm');
+            const certificationsContainer = document.getElementById('certificationsContainer');
+            const addCertificationBtn = document.getElementById('addCertification');
+            const hourlyRateInput = document.getElementById('hourlyRate');
+            const feeDisplay = document.getElementById('feeDisplay');
+            const earningsDisplay = document.getElementById('earningsDisplay');
+            const profilePhotoInput = document.getElementById('profilePhoto');
+            const profilePreview = document.getElementById('profilePreview');
+            const placeholderIcon = document.getElementById('placeholderIcon');
+            const toast = document.getElementById('successToast');
+
+            let coachData = {};
+
+            // Initial fetch
+            try {
+                const res = await fetch('/api/coach/me', { credentials: 'include' });
+                if (!res.ok) throw new Error('Not logged in');
+                coachData = await res.json();
+                prefillForm(coachData);
+            } catch (err) {
+                console.error(err);
+                window.location.href = '../../coach-login.html';
+            }
+
+            function prefillForm(coach) {
+                document.getElementById('bio').value = coach.bio || '';
+                document.getElementById('yearsExperience').value = coach.years_experience || '';
+                document.getElementById('hoursCoached').value = coach.hours_coached || '';
+                document.getElementById('hourlyRate').value = coach.hourly_rate || '';
+
+                if (coach.profile_photo) {
+                    profilePreview.src = coach.profile_photo;
+                    profilePreview.classList.add('active');
+                    placeholderIcon.style.display = 'none';
+                }
+
+                // Certs
+                const certs = coach.certifications || [];
+                const certsArray = Array.isArray(certs) ? certs : (typeof certs === 'string' ? JSON.parse(certs) : []);
+                certsArray.forEach(cert => addCertRow(cert));
+
+                // Trigger pricing calculation
+                calculateEarnings();
+            }
+
+            function addCertRow(data = {}) {
+                const row = document.createElement('div');
+                row.className = 'p-4 bg-gray-50 border rounded-lg relative';
+                row.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="certName[]" class="form-control" placeholder="Certification Name" value="${data.name || ''}">
+                        <input type="text" name="certOrg[]" class="form-control" placeholder="Issuing Org" value="${data.org || ''}">
+                        <input type="number" name="certYear[]" class="form-control" placeholder="Year" value="${data.year || ''}">
+                        <input type="text" name="certId[]" class="form-control" placeholder="Credential ID" value="${data.id || ''}">
+                    </div>
+                    <button type="button" class="remove-cert absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs shadow-md">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                certificationsContainer.appendChild(row);
+
+                row.querySelector('.remove-cert').addEventListener('click', () => row.remove());
+            }
+
+            addCertificationBtn.addEventListener('click', () => addCertRow());
+
+            function calculateEarnings() {
+                const rate = parseFloat(hourlyRateInput.value) || 0;
+                const fee = rate * 0.20;
+                const net = rate - fee;
+                feeDisplay.textContent = `-₹${fee.toFixed(2)}`;
+                earningsDisplay.textContent = `₹${net.toFixed(2)}`;
+            }
+
+            hourlyRateInput.addEventListener('input', calculateEarnings);
+
+            placeholderIcon.addEventListener('click', () => profilePhotoInput.click());
+            profilePreview.addEventListener('click', () => profilePhotoInput.click());
+
+            profilePhotoInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        profilePreview.src = e.target.result;
+                        profilePreview.classList.add('active');
+                        placeholderIcon.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const saveBtn = document.getElementById('saveBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+                try {
+                    const certNames = document.getElementsByName('certName[]');
+                    const certOrgs = document.getElementsByName('certOrg[]');
+                    const certYears = document.getElementsByName('certYear[]');
+                    const certIds = document.getElementsByName('certId[]');
+
+                    const certifications = [];
+                    for (let i = 0; i < certNames.length; i++) {
+                        if (certNames[i].value.trim()) {
+                            certifications.push({
+                                name: certNames[i].value,
+                                org: certOrgs[i].value,
+                                year: certYears[i].value,
+                                id: certIds[i].value
+                            });
+                        }
+                    }
+
+                    const payload = {
+                        bio: document.getElementById('bio').value,
+                        yearsExperience: document.getElementById('yearsExperience').value,
+                        hoursCoached: document.getElementById('hoursCoached').value,
+                        hourlyRate: document.getElementById('hourlyRate').value,
+                        certifications
+                    };
+
+                    const file = profilePhotoInput.files[0];
+                    if (file) {
+                        payload.profilePhoto = profilePreview.src;
+                    }
+
+                    const res = await fetch('/api/coach-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) throw new Error('Failed to save');
+
+                    // Show toast
+                    toast.classList.remove('translate-y-20', 'opacity-0');
+                    toast.classList.add('translate-y-0', 'opacity-100');
+                    setTimeout(() => {
+                        toast.classList.add('translate-y-20', 'opacity-0');
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                    }, 3000);
+
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

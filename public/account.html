@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Account Settings — PlannIt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="./css/styles.css?v=role1">
+    <script src="/js/auth-helper.js"></script>
+    <script>
+        // APPLY THEME
+        (function () {
+            const savedTheme = localStorage.getItem('planner.theme');
+            if (savedTheme) {
+                const theme = JSON.parse(savedTheme);
+                const root = document.documentElement;
+                Object.keys(theme).forEach(key => {
+                    root.style.setProperty(key, theme[key]);
+                });
+            }
+        })();
+    </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-3xl mx-auto px-4 py-4 flex items-center">
+            <a href="app.html#profile" class="flex items-center text-gray-500 hover:text-gray-700 transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                <span class="font-medium">Back to App</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span id="avatar-initial" class="text-3xl font-bold text-indigo-600">?</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Account Settings</h2>
+                <p class="text-gray-500 mt-2">Manage your account details and preferences.</p>
+            </div>
+
+            <div class="space-y-6 max-w-lg mx-auto">
+                <!-- User Info -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <div class="flex gap-2 items-center">
+                            <div id="display-username"
+                                class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
+                                Loading...
+                            </div>
+                            <button id="edit-username-btn"
+                                class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                                title="Change Username">
+                                <i data-lucide="edit-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <!-- Hidden Edit Form -->
+                        <div id="edit-username-form" class="hidden mt-3">
+                            <div class="flex gap-2">
+                                <input id="new-username-input" type="text"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="New username">
+                                <button id="save-username-btn"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                                    Save
+                                </button>
+                                <button id="cancel-username-btn"
+                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <div id="display-email"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100 my-8">
+
+                <!-- Danger Zone -->
+                <div class="space-y-4 pt-4">
+                    <h3 class="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+
+                    <button onclick="alert('Feature coming soon: Deactivate Account')"
+                        class="w-full flex items-center justify-center px-4 py-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium">
+                        <i data-lucide="pause-circle" class="w-5 h-5 mr-2"></i>
+                        Deactivate Account
+                    </button>
+
+                    <button onclick="deleteAccount()"
+                        class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm hover:shadow">
+                        <i data-lucide="trash-2" class="w-5 h-5 mr-2"></i>
+                        Delete Account
+                    </button>
+
+                    <p class="text-xs text-center text-gray-400 mt-4">
+                        Deactivating will pause your account. Deleting is permanent.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // Load User Data
+            const rawUser = localStorage.getItem('planner.user');
+            if (!rawUser) {
+                window.location.href = 'login-fixed.html';
+                return;
+            }
+
+            try {
+                const session = JSON.parse(rawUser);
+                const user = session.user || session; // Handle {user: ...} or direct user object
+
+                const usernameEl = document.getElementById('display-username');
+                const emailEl = document.getElementById('display-email');
+                const avatarEl = document.getElementById('avatar-initial');
+
+                if (user) {
+                    usernameEl.textContent = user.username || 'N/A';
+                    emailEl.textContent = user.email || 'N/A';
+
+                    const initial = (user.username?.[0] || user.email?.[0] || '?').toUpperCase();
+                    avatarEl.textContent = initial;
+                }
+            } catch (e) {
+                console.error("Error parsing user data", e);
+                window.location.href = 'login-fixed.html';
+            }
+
+            // --- CHANGE USERNAME LOGIC ---
+            const editUserBtn = document.getElementById('edit-username-btn');
+            const editUserForm = document.getElementById('edit-username-form');
+            const cancelUserBtn = document.getElementById('cancel-username-btn');
+            const saveUserBtn = document.getElementById('save-username-btn');
+            const newUserInput = document.getElementById('new-username-input');
+            const displayUsername = document.getElementById('display-username');
+
+            editUserBtn?.addEventListener('click', () => {
+                editUserForm.classList.remove('hidden');
+                editUserBtn.classList.add('hidden');
+                newUserInput.value = displayUsername.textContent.trim();
+                newUserInput.focus();
+            });
+
+            cancelUserBtn?.addEventListener('click', () => {
+                editUserForm.classList.add('hidden');
+                editUserBtn.classList.remove('hidden');
+            });
+
+            saveUserBtn?.addEventListener('click', async () => {
+                const newUsername = newUserInput.value.trim();
+                if (!newUsername) return alert("Username cannot be empty");
+                if (newUsername.length < 3) return alert("Username must be at least 3 characters");
+
+                const originalText = saveUserBtn.innerText;
+                saveUserBtn.innerText = "Saving...";
+                saveUserBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/me/username', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ username: newUsername })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        alert("Username updated successfully!");
+
+                        // Update UI
+                        displayUsername.textContent = data.username;
+
+                        // Update LocalStorage
+                        try {
+                            const raw = localStorage.getItem('planner.user');
+                            if (raw) {
+                                const parsed = JSON.parse(raw);
+                                if (parsed.user) parsed.user.username = data.username;
+                                else parsed.username = data.username;
+                                localStorage.setItem('planner.user', JSON.stringify(parsed));
+                            }
+                        } catch (e) { }
+
+                        // Close form
+                        editUserForm.classList.add('hidden');
+                        editUserBtn.classList.remove('hidden');
+                    } else {
+                        alert(data.error || "Failed to update username");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Network error occurred");
+                } finally {
+                    saveUserBtn.innerText = originalText;
+                    saveUserBtn.disabled = false;
+                }
+            });
+
+        });
+
+        async function deleteAccount() {
+            if (!confirm("Are you sure you want to PERMANENTLY delete your account? This action cannot be undone and all your data will be lost.")) {
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="deleteAccount()"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Deleting...";
+            }
+
+            try {
+                const response = await fetch('/api/me', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include' // Important for session
+                });
+
+                if (response.ok) {
+                    alert("Your account has been deleted.");
+                    localStorage.removeItem('planner.user');
+                    localStorage.removeItem('planner.theme');
+                    localStorage.removeItem('planner.themeId');
+                    window.location.href = 'landing.html';
+                } else {
+                    const data = await response.json();
+                    alert("Failed to delete account: " + (data.error || "Unknown error"));
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5 mr-2"></i> Delete Account';
+                        lucide.createIcons();
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert("An error occurred while deleting your account.");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5 mr-2"></i> Delete Account';
+                    lucide.createIcons();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

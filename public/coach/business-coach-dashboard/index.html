@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach Portal | Planexa</title>
+  <meta name="description" content="Coach Dashboard for managing clients and business" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/js/auth-helper.js"></script>
+
+  <!-- Import Main Styles to match App exactly -->
+  <link rel="stylesheet" href="../../css/styles.css?v=role1" />
+
+  <style>
+    /* Tab System matching app.html */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block !important;
+    }
+
+    /* Animation matching app.html/styles.css */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fade-in 0.3s ease-in-out;
+    }
+  </style>
+</head>
+
+<body style="background-color: #e0f2ff;"> <!-- Exact User App BG -->
+
+  <!-- HEADER: Exact replica of app.html header structure -->
+  <header class="sticky top-0 z-10 header-dark">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+
+      <!-- Brand -->
+      <a href="#" onclick="event.preventDefault(); window.location.replace('#');" class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+          <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+        </div>
+        <span
+          class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+      </a>
+
+      <!-- Nav Tabs -->
+      <nav class="ml-auto">
+        <ul class="flex gap-2 items-center" id="tabs">
+          <li><button data-tab="users" class="tab-btn active">Users</button></li>
+          <li><button data-tab="analytics" class="tab-btn">Analytics</button></li>
+          <li><button data-tab="payments" class="tab-btn">Payments</button></li>
+          <li><button data-tab="approvals" class="tab-btn flex items-center gap-1">Approvals <span id="approval-count"
+                class="hidden bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span></button></li>
+          <li><button data-tab="profile" class="tab-btn">Profile</button></li>
+          <li><button data-tab="create" class="tab-btn">Create</button></li>
+          <li><button data-tab="settings" class="tab-btn">Settings</button></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- TAB: USERS -->
+    <section id="tab-users" class="tab-panel active fade-in">
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div class="card p-5">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Total Clients</p>
+              <h3 class="text-2xl font-bold text-gray-800 mt-1">0</h3>
+            </div>
+            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="users" class="w-5 h-5"></i></div>
+          </div>
+          <div class="mt-2 text-xs text-gray-500 flex items-center gap-1">No active clients</div>
+        </div>
+
+        <div class="card p-5">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Revenue</p>
+              <h3 class="text-2xl font-bold text-gray-800 mt-1">₹0</h3>
+            </div>
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="dollar-sign" class="w-5 h-5"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clients List -->
+      <div class="card p-0 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+          <h2 class="text-lg font-bold text-gray-800">My Clients</h2>
+        </div>
+
+        <div class="overflow-x-auto bg-white">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+              <tr>
+                <th class="px-6 py-4">Client</th>
+                <th class="px-6 py-4">Status</th>
+                <th class="px-6 py-4">Plan</th>
+                <th class="px-6 py-4">Progress</th>
+                <th class="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+              <!-- Empty State -->
+              <tr id="no-clients-msg">
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                  <div class="flex flex-col items-center justify-center">
+                    <i data-lucide="users" class="w-12 h-12 text-gray-300 mb-3"></i>
+                    <p>No clients found.</p>
+                    <p class="text-xs text-gray-400 mt-1">Add your first client to get started.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: ANALYTICS -->
+    <section id="tab-analytics" class="tab-panel fade-in">
+      <div
+        class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Performance Tracking</h2>
+          <p class="text-sm text-gray-500">Analyze overall growth or individual student progress</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <label for="analytics-filter" class="text-sm font-medium text-gray-600">View For:</label>
+          <select id="analytics-filter" onchange="handleAnalyticsFilterChange()"
+            class="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 bg-gray-50 border">
+            <option value="overall">Overall Workspace</option>
+            <!-- Students populated via JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- OVERALL VIEW -->
+      <div id="overall-analytics-view" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="card p-6 bg-white">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Student Activity Overview</h3>
+            <canvas id="activityChart" height="200"></canvas>
+          </div>
+          <div class="card p-6 bg-white">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Client Acquisition</h3>
+            <canvas id="growthChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- INDIVIDUAL STUDENT VIEW -->
+      <div id="student-analytics-view" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Main Chart -->
+          <div class="lg:col-span-2 card p-6 bg-white">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="activity" class="w-5 h-5 text-indigo-600"></i> Task Completion Trend
+              </h3>
+              <div id="student-productivity-badge"
+                class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold font-mono">
+                Productivity: --%
+              </div>
+            </div>
+            <canvas id="individualTaskChart" height="250"></canvas>
+          </div>
+
+          <!-- Goal Stats -->
+          <div class="card p-6 bg-white">
+            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <i data-lucide="target" class="w-5 h-5 text-orange-500"></i> Active Goals
+            </h3>
+            <div id="individual-goals-list" class="space-y-5">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="card p-6 bg-white">
+          <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-5 h-5 text-green-600"></i> Recently Completed Tasks
+          </h3>
+          <div id="individual-recent-tasks" class="space-y-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: PAYMENTS -->
+    <section id="tab-payments" class="tab-panel fade-in">
+      <!-- Payment Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="card p-6 bg-white border-l-4 border-green-500">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Earnings</p>
+          <div class="flex items-baseline gap-2 mt-2">
+            <h3 class="text-3xl font-bold text-gray-900">₹0.00</h3>
+            <span class="text-sm text-gray-600 font-medium">No earnings yet</span>
+          </div>
+        </div>
+        <div class="card p-6 bg-white border-l-4 border-yellow-500">
+          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Pending Payouts</p>
+          <div class="flex items-baseline gap-2 mt-2">
+            <h3 class="text-3xl font-bold text-gray-900">₹0.00</h3>
+            <span class="text-sm text-gray-500">No pending payouts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="card p-0 overflow-hidden bg-white">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+          <h2 class="text-lg font-bold text-gray-800">Transaction History</h2>
+          <button class="btn btn-outline btn-sm">
+            <i data-lucide="download" class="w-4 h-4"></i> Export
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+              <tr>
+                <th class="px-6 py-4">Date</th>
+                <th class="px-6 py-4">Client</th>
+                <th class="px-6 py-4">Amount</th>
+                <th class="px-6 py-4">Status</th>
+                <th class="px-6 py-4 text-right">Invoice</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No transactions found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: APPROVALS -->
+    <section id="tab-approvals" class="tab-panel">
+      <!-- New Coaching Requests -->
+      <div class="card p-0 overflow-hidden mb-8 bg-white">
+        <div class="p-6 border-b border-gray-100 bg-white">
+          <div class="flex items-center gap-2">
+            <div class="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></div>
+            <h2 class="text-lg font-bold text-gray-800">New Coaching Requests</h2>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Review and approve new potential clients</p>
+        </div>
+
+        <div class="overflow-x-auto bg-white">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+              <tr>
+                <th class="px-6 py-4">User</th>
+                <th class="px-6 py-4">Goal / Interest</th>
+                <th class="px-6 py-4">Requested</th>
+                <th class="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+              <!-- Request 1 -->
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">No new requests</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section id="tab-profile" class="tab-panel">
+      <div class="max-w-2xl mx-auto card p-0 overflow-hidden bg-white">
+        <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+        <div class="px-8 pb-8">
+          <div class="relative flex justify-between items-end -mt-12 mb-6">
+            <img id="profile-img" src="https://ui-avatars.com/api/?name=Coach&background=random"
+              class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-white">
+            <a href="edit-profile.html"
+              class="btn btn-sm bg-black text-white hover:bg-gray-800 border-none flex items-center gap-2">
+              <i data-lucide="edit-2" class="w-4 h-4"></i> Edit Profile
+            </a>
+          </div>
+
+          <div>
+            <h2 id="profile-name" class="text-2xl font-bold text-gray-900">Loading...</h2>
+            <p id="profile-email" class="text-gray-500">...</p>
+          </div>
+
+          <div class="mt-8 space-y-6 divide-y divide-gray-100">
+            <!-- Bio -->
+            <div class="pt-4">
+              <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">About</h3>
+              <p id="profile-bio" class="text-gray-600 leading-relaxed">
+                ...
+              </p>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase">Category</p>
+                <p id="profile-category" class="text-gray-900 font-medium mt-1">Business</p>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase">Years Experience</p>
+                <p id="profile-experience" class="text-gray-900 font-medium mt-1">...</p>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-500 uppercase">Hours Coached</p>
+                <p id="profile-hours" class="text-gray-900 font-medium mt-1">0 hrs</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: CREATE ARTICLE -->
+    <section id="tab-create" class="tab-panel">
+      <div class="max-w-4xl mx-auto card p-0 overflow-hidden bg-white">
+        <div class="p-6 border-b border-gray-100 bg-white">
+          <h2 class="text-xl font-bold text-gray-800">Create New Article</h2>
+          <p class="text-sm text-gray-500">Fill in the details below to create a new article for your business coaching
+            blog.</p>
+        </div>
+
+        <div class="p-8">
+          <form id="articleForm" class="space-y-8">
+            <!-- Title & Description -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                <i data-lucide="heading" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-semibold text-gray-800">Title & Description</h3>
+              </div>
+
+              <div class="grid gap-4">
+                <div>
+                  <label for="articleTitle" class="block text-sm font-medium text-gray-700 mb-1">Title Tag*</label>
+                  <input type="text" id="articleTitle"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="Enter article title" required>
+                </div>
+
+                <div>
+                  <label for="articleDescription" class="block text-sm font-medium text-gray-700 mb-1">Meta
+                    Description*</label>
+                  <textarea id="articleDescription" rows="3"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="Enter a brief description for search engines (150-160 characters)" required></textarea>
+                  <p class="text-xs text-gray-500 mt-1">This helps with SEO and appears in search results.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content Section -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-semibold text-gray-800">Article Content</h3>
+              </div>
+
+              <div class="grid gap-4">
+                <div>
+                  <label for="articleContent" class="block text-sm font-medium text-gray-700 mb-1">Content*</label>
+                  <textarea id="articleContent" rows="10"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="Write your article content here..." required></textarea>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
+                  <div
+                    class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer relative overflow-hidden"
+                    id="imageUpload">
+                    <div id="image-placeholder">
+                      <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mx-auto mb-2"></i>
+                      <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                      <p class="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                    <div id="image-preview-container"
+                      class="hidden absolute inset-0 bg-white flex items-center justify-center">
+                      <img id="image-preview" src="" class="max-h-full max-w-full object-contain">
+                      <button type="button" id="remove-image"
+                        class="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-md">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                    <input type="file" id="featuredImage" accept="image/*" class="hidden">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEO & Technical -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                <i data-lucide="search" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-semibold text-gray-800">SEO & Technical Details</h3>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">URL Slug*</label>
+                  <input type="text" id="slug"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="custom-url-slug" required>
+                  <p class="text-xs text-gray-500 mt-1">Part of the article URL.</p>
+                </div>
+                <div>
+                  <label for="keywords" class="block text-sm font-medium text-gray-700 mb-1">Focus Keywords</label>
+                  <input type="text" id="keywords"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="business, coaching, strategy">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Meta Robots</label>
+                <div class="space-y-2">
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" id="indexPage" checked
+                      class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    <span class="text-sm text-gray-700">Allow search engines to index this page</span>
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" id="followLinks" checked
+                      class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    <span class="text-sm text-gray-700">Allow search engines to follow links on this page</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categorization -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-semibold text-gray-800">Categorization</h3>
+              </div>
+
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                  <select id="category"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    required>
+                    <option value="">Select a category</option>
+                    <option value="business-strategy">Business Strategy</option>
+                    <option value="leadership">Leadership</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="productivity">Productivity</option>
+                    <option value="career-growth">Career Growth</option>
+                    <option value="entrepreneurship">Entrepreneurship</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                  <input type="text" id="tags"
+                    class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border"
+                    placeholder="Add tags separated by commas">
+                </div>
+              </div>
+              <div>
+                <label class="flex items-center gap-2 mt-2">
+                  <input type="checkbox" id="featured"
+                    class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                  <span class="text-sm text-gray-700 font-medium">Mark as featured article</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+              <button type="button"
+                class="btn btn-outline text-gray-600 border-gray-300 hover:bg-gray-50 flex items-center gap-2">
+                <i data-lucide="x" class="w-4 h-4"></i> Cancel
+              </button>
+              <button type="submit"
+                class="btn btn-primary bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 px-6">
+                <i data-lucide="save" class="w-4 h-4"></i> Publish Article
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB: SETTINGS -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="max-w-2xl mx-auto card p-0 overflow-hidden bg-white">
+        <div class="p-6 border-b border-gray-100">
+          <h2 class="text-xl font-bold text-gray-800">Settings</h2>
+          <p class="text-gray-500 text-sm">Manage your account preferences</p>
+        </div>
+
+        <div class="divide-y divide-gray-100">
+          <!-- Danger Zone -->
+          <div class="p-6 bg-red-50/30">
+            <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide mb-4">Danger Zone</h3>
+
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="font-medium text-gray-800">Deactivate Account</p>
+                <p class="text-xs text-gray-500">Hide your profile and pause client interactions</p>
+              </div>
+              <button id="deactivateAccBtn"
+                class="px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200 rounded-lg transition-colors">
+                Deactivate
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-red-700">Delete Account</p>
+                <p class="text-xs text-gray-500">Permanently remove your account and data</p>
+              </div>
+              <button id="deleteAccBtn"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                Delete Account
+              </button>
+            </div>
+          </div>
+
+          <div class="p-6 mt-4">
+            <button id="logoutBtn"
+              class="w-full btn bg-red-50 text-red-600 hover:bg-red-100 border-red-200 justify-center">
+              <i data-lucide="log-out" class="w-5 h-5"></i> Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+  <!-- Floating Chat Button -->
+  <button id="coach-chat-fab"
+    class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 group hidden">
+    <i data-lucide="message-square" class="w-8 h-8 group-hover:rotate-12 transition-transform"></i>
+    <span id="coach-chat-notif-dot"
+      class="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full hidden"></span>
+  </button>
+
+  <!-- Coach Chat Overlay Container -->
+  <div id="coach-chat-overlay"
+    class="fixed bottom-28 right-8 w-[700px] h-[800px] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 origin-bottom-right">
+    <div class="flex h-full">
+      <!-- Sidebar: User List -->
+      <div id="coach-chat-sidebar" class="w-[220px] border-r border-slate-100 flex flex-col bg-slate-50">
+        <div class="p-4 border-b border-slate-100 bg-white">
+          <h3 class="font-extrabold text-slate-800 text-base">Clients</h3>
+        </div>
+        <div id="chat-user-list" class="flex-1 overflow-y-auto custom-scrollbar">
+          <!-- Users populate here -->
+        </div>
+      </div>
+
+      <!-- Main: Chat Window -->
+      <div class="flex-1 flex flex-col bg-white">
+        <!-- Header -->
+        <div class="p-4 border-b border-slate-100 bg-white flex items-center justify-between sticky top-0 z-10">
+          <div class="flex items-center gap-2">
+            <div id="active-user-status" class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+            <h3 id="active-user-name" class="font-extrabold text-slate-800 text-sm">Select Client</h3>
+          </div>
+          <button id="close-coach-chat" class="p-1 text-slate-400 hover:text-slate-600 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="coach-messages"
+          class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50/20 to-white/20 custom-scrollbar">
+          <div id="coach-chat-empty" class="flex flex-col items-center justify-center h-full text-center space-y-3 p-4">
+            <div class="w-12 h-12 bg-white/80 rounded-xl shadow-lg flex items-center justify-center text-indigo-500">
+              <i data-lucide="message-circle" class="w-6 h-6"></i>
+            </div>
+            <p class="text-xs font-bold text-slate-800">Communication Hub</p>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div id="coach-chat-input-container" class="p-4 border-t border-slate-100 bg-white hidden">
+          <form id="coach-chat-form"
+            class="flex gap-2 items-center bg-slate-50 p-2 rounded-2xl border border-slate-200">
+            <input id="coach-chat-input" type="text" autocomplete="off" placeholder="Write a message..."
+              class="flex-1 bg-transparent border-none py-2 px-4 text-sm text-slate-800 focus:ring-0 outline-none font-medium">
+            <button type="submit"
+              class="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors shadow-md">
+              <i data-lucide="send-horizontal" class="w-4 h-4"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initTabs();
+      initCharts();
+      fetchProfile();
+      fetchStudents();
+      fetchRequests();
+      initArticleForm();
+      initArticleImageUpload();
+
+      // Chat specific listeners
+      const chatForm = document.getElementById('coach-chat-form');
+      if (chatForm) {
+        chatForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = document.getElementById('coach-chat-input');
+          const content = input?.value.trim();
+          if (!content || !activeChatUser || !chatSocket) return;
+
+          appendCoachMessage({
+            content,
+            sender_id: Number(coachInfo.id),
+            sender_type: 'coach',
+            created_at: new Date()
+          }, 'outgoing');
+
+          chatSocket.emit('send_message', { receiverId: Number(activeChatUser.id), content });
+          if (input) input.value = '';
+        });
+      }
+
+      const coachChatFab = document.getElementById('coach-chat-fab');
+      const coachChatOverlay = document.getElementById('coach-chat-overlay');
+      const closeCoachChat = document.getElementById('close-coach-chat');
+
+      if (coachChatFab && coachChatOverlay && closeCoachChat) {
+        coachChatFab.addEventListener('click', toggleCoachChat);
+        closeCoachChat.addEventListener('click', toggleCoachChat);
+      }
+
+      initCoachChat();
+      initAccountManagement();
+    });
+
+    function initAccountManagement() {
+      const deactivateBtn = document.getElementById('deactivateAccBtn');
+      const deleteBtn = document.getElementById('deleteAccBtn');
+
+      if (deactivateBtn) {
+        deactivateBtn.addEventListener('click', async () => {
+          if (!confirm("Are you sure you want to deactivate your account? Your profile will be hidden and interactions will be paused. You can log back in later to reactivate.")) return;
+
+          try {
+            const res = await fetch('/api/coach/deactivate', { method: 'POST' });
+            if (!res.ok) throw new Error(await res.text());
+            alert("Account deactivated. You will now be logged out.");
+            window.location.replace('/landing.html');
+          } catch (e) {
+            alert("Error: " + e.message);
+          }
+        });
+      }
+
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+          if (!confirm("CRITICAL: Are you sure you want to DELETE your account? This action is permanent and you will not be able to log back in. Your data will be preserved for administrative purposes but your access will be revoked.")) return;
+
+          try {
+            const res = await fetch('/api/coach/delete', { method: 'POST' });
+            if (!res.ok) throw new Error(await res.text());
+            alert("Account deleted. Thank you for using PlannIt.");
+            window.location.replace('/landing.html');
+          } catch (e) {
+            alert("Error: " + e.message);
+          }
+        });
+      }
+    }
+
+    async function fetchRequests() {
+      try {
+        const res = await fetch('/api/coach/requests');
+        if (!res.ok) throw new Error('Failed to fetch requests');
+        const requests = await res.json();
+
+        // Update Badge
+        const badge = document.getElementById('approval-count');
+        if (badge) {
+          if (requests.length > 0) {
+            badge.textContent = requests.length;
+            badge.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+          }
+        }
+
+        const tbody = document.querySelector('#tab-approvals table tbody');
+
+        if (requests.length === 0) {
+          tbody.innerHTML = `
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">No pending requests</td>
+              </tr>`;
+        } else {
+          tbody.innerHTML = requests.map(req => `
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold text-xs uppercase">
+                      ${req.username.substring(0, 2)}
+                    </div>
+                    <div>
+                      <div class="font-medium text-gray-900">${req.username}</div>
+                      <div class="text-xs text-gray-500">${req.email}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-gray-900">Coaching Session</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-sm text-gray-500">${new Date(req.created_at).toLocaleDateString()}</span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <button onclick="rejectRequest(${req.id})" class="btn btn-sm btn-outline text-red-600 border-red-200 hover:bg-red-50">Reject</button>
+                    <button onclick="approveRequest(${req.id})" class="btn btn-sm btn-primary bg-indigo-600 hover:bg-indigo-700">Approve</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('');
+        }
+      } catch (e) {
+        console.error("Error loading requests:", e);
+      }
+    }
+
+    async function approveRequest(userId) {
+      if (!confirm("Approve this student? They will be added to your client list.")) return;
+      try {
+        const res = await fetch(`/api/coach/requests/${userId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'active' })
+        });
+        if (!res.ok) throw new Error("Failed to approve");
+        // Refresh
+        fetchRequests();
+        fetchStudents();
+        initCharts(); // Update charts to reflect new data
+        alert("Student approved!");
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function rejectRequest(userId) {
+      if (!confirm("Reject this request?")) return;
+      try {
+        const res = await fetch(`/api/coach/requests/${userId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'rejected' })
+        });
+        if (!res.ok) throw new Error("Failed to reject");
+        fetchRequests();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function fetchStudents() {
+      try {
+        const res = await fetch('/api/coach/students');
+        if (!res.ok) throw new Error('Failed to fetch students');
+        const students = await res.json();
+
+        // Update Stats
+        const totalClientsEl = document.querySelector('.card h3');
+        if (totalClientsEl) totalClientsEl.textContent = students.length;
+
+        const statsHint = document.querySelector('.card .text-xs');
+        if (statsHint) statsHint.textContent = students.length > 0 ? `${students.length} active students` : 'No active students';
+
+        // Update Table
+        const tbody = document.querySelector('table tbody');
+        const noClientsMsg = document.getElementById('no-clients-msg');
+        const filterSelect = document.getElementById('analytics-filter');
+
+        // Reset filter select to just "Overall"
+        if (filterSelect) {
+          filterSelect.innerHTML = '<option value="overall">Overall Workspace</option>';
+        }
+
+        if (students.length > 0) {
+          if (noClientsMsg) noClientsMsg.style.display = 'none';
+
+          tbody.innerHTML = ''; // Clear old rows
+          students.forEach(student => {
+            const progress = student.totalTasks > 0 ? Math.round((student.tasksDone / student.totalTasks) * 100) : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs uppercase">
+                    ${student.username.substring(0, 2)}
+                  </div>
+                  <div>
+                    <div class="font-medium text-gray-900">${student.username}</div>
+                    <div class="text-xs text-gray-500">${student.email}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100 italic">Active</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-gray-900">${student.totalGoals} Goals</div>
+              </td>
+              <td class="px-6 py-4 w-48">
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-indigo-600 h-full rounded-full" style="width: ${progress}%"></div>
+                  </div>
+                  <span class="text-xs font-bold text-gray-600">${progress}%</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-3">
+                  <button onclick="openChatWithStudent(${student.id}, '${student.username}')" class="text-indigo-600 hover:text-indigo-900 p-2 bg-indigo-50 rounded-lg transition-colors">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="viewStudentDetails(${student.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Analysis</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Add to dropdown
+            if (filterSelect) {
+              const opt = document.createElement('option');
+              opt.value = student.id;
+              opt.textContent = student.username;
+              filterSelect.appendChild(opt);
+            }
+          });
+        }
+
+        // Show FAB only if there are active students
+        const coachChatFab = document.getElementById('coach-chat-fab');
+        if (coachChatFab) {
+          if (students.length > 0) {
+            coachChatFab.classList.remove('hidden');
+          } else {
+            coachChatFab.classList.add('hidden');
+          }
+        }
+      } catch (err) {
+        console.error('Fetch students error:', err);
+      }
+    }
+
+    let studentChart = null;
+
+    async function handleAnalyticsFilterChange() {
+      const val = document.getElementById('analytics-filter').value;
+      const overallView = document.getElementById('overall-analytics-view');
+      const studentView = document.getElementById('student-analytics-view');
+
+      if (val === 'overall') {
+        overallView.classList.remove('hidden');
+        studentView.classList.add('hidden');
+        initCharts(); // Refresh aggregate charts
+      } else {
+        overallView.classList.add('hidden');
+        studentView.classList.remove('hidden');
+        loadStudentAnalytics(val);
+      }
+    }
+
+    async function loadStudentAnalytics(studentId) {
+      try {
+        const res = await fetch(`/api/coach/student/${studentId}/analytics`);
+        if (!res.ok) throw new Error('Failed to fetch student details');
+        const data = await res.json();
+
+        // 1. Productivity Score
+        const productivity = data.totalTasks > 0 ? Math.round((data.tasksCompleted / data.totalTasks) * 100) : 0;
+        document.getElementById('student-productivity-badge').textContent = `Productivity: ${productivity}%`;
+
+        // 2. Goal Progress Bars
+        const goalsList = document.getElementById('individual-goals-list');
+        goalsList.innerHTML = '';
+        if (data.goals.length === 0) {
+          goalsList.innerHTML = '<p class="text-gray-500 text-sm italic">No goals set yet.</p>';
+        } else {
+          data.goals.forEach(goal => {
+            const prog = goal.total > 0 ? Math.round((goal.spent / goal.total) * 100) : 0;
+            goalsList.insertAdjacentHTML('beforeend', `
+              <div>
+                <div class="flex justify-between mb-1.5">
+                  <span class="text-sm font-semibold text-gray-700">${goal.title || goal.category}</span>
+                  <span class="text-sm font-bold text-indigo-600">${prog}%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${prog}%"></div>
+                </div>
+                <div class="flex justify-between mt-1">
+                  <span class="text-[10px] text-gray-400">Budget: ₹${goal.spent} / ₹${goal.total}</span>
+                </div>
+              </div>
+            `);
+          });
+        }
+
+        // 3. Activity Chart
+        const ctx = document.getElementById('individualTaskChart').getContext('2d');
+        if (studentChart) studentChart.destroy();
+
+        const labels = data.taskHistory.map(h => {
+          const d = new Date(h.date);
+          return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        });
+        const values = data.taskHistory.map(h => h.count);
+
+        studentChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels.length > 0 ? labels : ['No Data'],
+            datasets: [{
+              label: 'Daily Tasks Completed',
+              data: values.length > 0 ? values : [0],
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.05)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#fff',
+              pointBorderColor: '#4f46e5',
+              pointBorderWidth: 2,
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                padding: 10,
+                displayColors: false
+              }
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+
+        // 4. Recent Tasks
+        const tasksDiv = document.getElementById('individual-recent-tasks');
+        tasksDiv.innerHTML = `
+          <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
+             <i data-lucide="info" class="w-4 h-4"></i>
+             <span>Client has completed <strong class="text-indigo-600">${data.tasksCompleted}</strong> tasks in total.</span>
+          </div>
+        `;
+        lucide.createIcons();
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function viewStudentDetails(studentId) {
+      // Switch to Analytics Tab
+      const analyticsBtn = document.querySelector('[data-tab="analytics"]');
+      if (analyticsBtn) analyticsBtn.click();
+
+      // Set filter and trigger change
+      const filter = document.getElementById('analytics-filter');
+      if (filter) {
+        filter.value = studentId;
+        handleAnalyticsFilterChange();
+      }
+    }
+    function openChatWithStudent(id, name) {
+      const overlay = document.getElementById('coach-chat-overlay');
+      if (overlay && !overlay.classList.contains('opacity-100')) {
+        toggleCoachChat();
+      }
+      selectChatUser({ id, username: name });
+    }
+
+    // ARTICLE FORM LOGIC
+    function initArticleForm() {
+      const form = document.getElementById('articleForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="animate-spin" data-lucide="loader"></i> Publishing...';
+        lucide.createIcons();
+
+        const imgPreview = document.getElementById('image-preview');
+        const imageUrl = imgPreview && imgPreview.src.startsWith('data:') ? imgPreview.src : null;
+
+        // Basic data collection
+        const data = {
+          title: document.getElementById('articleTitle').value,
+          description: document.getElementById('articleDescription').value,
+          content: document.getElementById('articleContent').value,
+          slug: document.getElementById('slug').value,
+          category: document.getElementById('category').value,
+          imageUrl: imageUrl || `https://source.unsplash.com/random/800x600/?${document.getElementById('category').value}`,
+          status: 'published' // Auto-publish for now
+        };
+
+        try {
+          const res = await fetch('/api/articles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to publish');
+          }
+
+          const result = await res.json();
+          alert('Article published successfully!');
+          const removeBtn = document.getElementById('remove-image');
+          if (removeBtn) removeBtn.click();
+          form.reset();
+        } catch (err) {
+          console.error(err);
+          alert('Error: ' + err.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+          lucide.createIcons();
+        }
+      });
+    }
+
+    function initArticleImageUpload() {
+      const dropZone = document.getElementById('imageUpload');
+      const fileInput = document.getElementById('featuredImage');
+      const placeholder = document.getElementById('image-placeholder');
+      const previewContainer = document.getElementById('image-preview-container');
+      const previewImg = document.getElementById('image-preview');
+      const removeBtn = document.getElementById('remove-image');
+
+      if (!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('click', (e) => {
+        if (e.target.closest('#remove-image')) return;
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleImageFile(file);
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('bg-indigo-50', 'border-indigo-400');
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, () => {
+          dropZone.classList.remove('bg-indigo-50', 'border-indigo-400');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          handleImageFile(file);
+        }
+      });
+
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        previewImg.src = '';
+        previewContainer.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      });
+
+      function handleImageFile(file) {
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image too large. Max 5MB.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          placeholder.classList.add('hidden');
+          previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // CLIENT VIEW LOGIC
+    function viewClient(name, imgSrc) {
+      // Hide all main tab panels
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      // Hide Tabs Nav to focus on client view (optional, but cleaner)
+      // document.getElementById('tabs').style.display = 'none'; 
+
+      // Show Detail View
+      const view = document.getElementById('client-detail-view');
+      view.classList.remove('hidden');
+
+      // Populate Data
+      document.getElementById('detail-client-name').textContent = name;
+      if (imgSrc) document.getElementById('detail-client-img').src = imgSrc;
+
+      // Re-run icons for new content if needed (though static here)
+      lucide.createIcons();
+    }
+
+    function closeClientView() {
+      // Hide Detail View
+      document.getElementById('client-detail-view').classList.add('hidden');
+
+      // Show Active Tab (Users by default or last active)
+      // Simplest: Just trigger click on active tab button
+      const activeBtn = document.querySelector('.tab-btn.active');
+      if (activeBtn) {
+        // Restore display check handled by initTabs click logic? 
+        // Actually our initTabs toggles class 'active', but we manually set style.display='none' above.
+        // Let's reset styles:
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = '');
+        // Display the active one
+        document.querySelectorAll('.tab-panel').forEach(p => {
+          p.classList.remove('active'); // reset
+        });
+        const targetId = `tab-${activeBtn.dataset.tab}`;
+        document.getElementById(targetId).classList.add('active');
+      }
+    }
+
+    // AUTH CHECK - Removed inline checkAuth as auth-helper.js now handles this globally.
+
+    // TAB LOGIC matching app.html
+    function initTabs() {
+      const btns = document.querySelectorAll('.tab-btn');
+      const panels = document.querySelectorAll('.tab-panel');
+
+      // Helper to show/hide
+      const updateVisibility = (targetId) => {
+        panels.forEach(p => {
+          if (p.id === `tab-${targetId}`) {
+            p.style.display = 'block';
+            p.classList.add('active');
+          } else {
+            p.style.display = 'none';
+            p.classList.remove('active');
+          }
+        });
+      };
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.tab;
+
+          // Update Buttons
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          // Update Panels
+          updateVisibility(target);
+        });
+      });
+
+      // Initialize state based on active button
+      const activeBtn = document.querySelector('.tab-btn.active');
+      if (activeBtn) {
+        updateVisibility(activeBtn.dataset.tab);
+      }
+    }
+
+    // PROFILE FETCH
+    async function fetchProfile() {
+      try {
+        const res = await fetch('/api/coach/me', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        const data = await res.json();
+
+        // Status-based logic
+        if (data.status === 'pending_onboarding') {
+          window.location.replace('onboarding.html');
+          return;
+        }
+
+        if (data.status === 'pending') {
+          // Show overlay or message? 
+          // For now, let's just add a notice bar at the top
+          const notice = document.createElement('div');
+          notice.className = 'bg-yellow-100 border-b border-yellow-200 text-yellow-800 px-4 py-2 text-center text-sm font-medium';
+          notice.innerHTML = '<i class="fas fa-clock mr-2"></i> Your profile is currently pending admin approval. Some features may be limited.';
+          document.body.prepend(notice);
+        }
+
+        document.getElementById('profile-name').textContent = data.name || data.email;
+        document.getElementById('profile-email').textContent = data.email;
+        document.getElementById('profile-bio').textContent = data.bio || 'Professional Coach';
+        document.getElementById('profile-category').textContent = data.coach_type || 'General';
+        document.getElementById('profile-experience').textContent = data.years_experience ? `${data.years_experience} Years` : 'Not specified';
+        document.getElementById('profile-hours').textContent = data.hours_coached ? `${Number(data.hours_coached).toLocaleString()} hrs` : '0 hrs';
+
+        if (data.profile_photo) {
+          document.getElementById('profile-img').src = data.profile_photo;
+        } else {
+          document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Coach')}&background=random`;
+        }
+
+        // Update coachInfo if missing (for chat identification)
+        if (!coachInfo || !coachInfo.id) {
+          coachInfo = data;
+          if (chatSocket && chatSocket.connected) {
+            const idToIdentify = coachInfo.id || coachInfo.userId;
+            chatSocket.emit('identify', { coachId: idToIdentify, userType: 'coach' });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        window.location.replace('../../coach-login.html');
+      }
+    }
+
+    // LOGOUT
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      AuthHelper.logout();
+    });
+
+    // CHARTS (Real Data)
+    async function initCharts() {
+      // Defaults to match app style
+      Chart.defaults.font.family = "'Inter', sans-serif";
+      Chart.defaults.color = '#64748b';
+
+      try {
+        const res = await fetch('/api/coach/analytics');
+        if (!res.ok) throw new Error('Failed to fetch coach analytics');
+        const data = await res.json();
+
+        const actCtx = document.getElementById('activityChart')?.getContext('2d');
+        if (actCtx) {
+          // Merge labels from both datasets to ensure coverage
+          const taskMonths = data.performance.map(p => p.month);
+          const goalMonths = data.goalPerformance ? data.goalPerformance.map(p => p.month) : [];
+          const allMonths = [...new Set([...taskMonths, ...goalMonths])].sort((a, b) => {
+            // Simple sort for months (Jan, Feb...) might be tricky. 
+            // Assuming API returns sorted by time, but standard sort is alphabetical.
+            // Let's just trust performance for now or use a mapping if needed.
+            // For robustness, let's just use what we have.
+            return 0;
+          });
+          // Actually, let's just use performance labels for simplicity as it's the primary metric.
+          const labels = data.performance.map(p => p.month);
+
+          new Chart(actCtx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Tasks Completed',
+                data: data.performance.map(p => p.count),
+                backgroundColor: '#6366f1',
+                borderRadius: 4
+              },
+              {
+                label: 'Goals Active',
+                data: data.goalPerformance ? data.goalPerformance.map(p => p.count) : [],
+                backgroundColor: '#10b981',
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true, position: 'bottom' },
+                tooltip: { mode: 'index', intersect: false }
+              },
+              scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+              }
+            }
+          });
+        }
+
+        const growthCtx = document.getElementById('growthChart')?.getContext('2d');
+        if (growthCtx) {
+          new Chart(growthCtx, {
+            type: 'line',
+            data: {
+              labels: data.growth.map(g => g.month),
+              datasets: [{
+                label: 'New Clients',
+                data: data.growth.map(g => g.count),
+                borderColor: '#22c55e',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(34, 197, 94, 0.1)'
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing charts:', err);
+      }
+    }
+
+    /* ---------------- COACH CHAT LOGIC ---------------- */
+    // Article Image Validation
+    const featuredImageInput = document.getElementById('featuredImage');
+    const articleImagePreview = document.getElementById('articleImagePreview');
+    const articleImageValue = document.getElementById('articleImageValue');
+    const uploadPlaceholder = document.querySelector('.upload-placeholder');
+
+    if (featuredImageInput) {
+      featuredImageInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          if (file.size > 500 * 1024) {
+            alert("Image must be less than 500KB.");
+            this.value = '';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            if (articleImagePreview) {
+              articleImagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview" class="w-full h-full object-cover">`;
+              articleImagePreview.classList.remove('hidden');
+            }
+            if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
+            if (articleImageValue) articleImageValue.value = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    let chatSocket;
+    let activeChatUser = null;
+    let coachInfo = JSON.parse(localStorage.getItem('planner.user') || '{}');
+    if (coachInfo.user) coachInfo = coachInfo.user;
+
+    function getBackendUrl() {
+      const { hostname, port } = window.location;
+      if (port === '5500' || port === '5501' || port === '3000') {
+        return `http://${hostname}:3000`;
+      }
+      return '../..';
+    }
+
+    function toggleCoachChat() {
+      const coachChatOverlay = document.getElementById('coach-chat-overlay');
+      if (!coachChatOverlay) return;
+      const isOpen = coachChatOverlay.classList.contains('opacity-100');
+      if (isOpen) {
+        coachChatOverlay.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+        coachChatOverlay.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+      } else {
+        coachChatOverlay.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+        coachChatOverlay.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+        if (!chatSocket) initCoachChat();
+      }
+    }
+
+    async function initCoachChat() {
+      if (chatSocket) return;
+      chatSocket = io(getBackendUrl(), { withCredentials: true });
+
+      chatSocket.on('connect', () => {
+        const idToIdentify = Number(coachInfo.id || coachInfo.userId);
+        if (idToIdentify) {
+          chatSocket.emit('identify', { coachId: idToIdentify, userType: 'coach' });
+        }
+        loadChatUsers();
+      });
+
+      chatSocket.on('new_message', (msg) => {
+        if (activeChatUser && Number(msg.sender_id) === Number(activeChatUser.id) && msg.sender_type === 'user') {
+          appendCoachMessage(msg, 'incoming');
+        } else {
+          loadChatUsers();
+          document.getElementById('coach-chat-notif-dot')?.classList.remove('hidden');
+        }
+      });
+    }
+
+    async function loadChatUsers() {
+      try {
+        const res = await fetch(getBackendUrl() + '/api/coach/students');
+        const students = await res.json();
+        const list = document.getElementById('chat-user-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (students.length === 0) {
+          list.innerHTML = '<div class="p-4 text-center text-gray-400 text-[10px]">No students.</div>';
+          return;
+        }
+
+        students.forEach(student => {
+          const div = document.createElement('div');
+          div.className = `p-3 flex items-center gap-2 cursor-pointer hover:bg-white/40 transition-colors ${activeChatUser?.id === student.id ? 'bg-white/60 shadow-sm' : ''}`;
+          div.innerHTML = `
+            <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              ${student.username.charAt(0)}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-gray-800 truncate text-xs">${student.username}</h4>
+            </div>
+          `;
+          div.onclick = () => selectChatUser(student);
+          list.appendChild(div);
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    async function selectChatUser(user) {
+      activeChatUser = user;
+      document.getElementById('coach-chat-empty')?.classList.add('hidden');
+      const nameEl = document.getElementById('active-user-name');
+      if (nameEl) nameEl.textContent = user.username;
+      const statusEl = document.getElementById('active-user-status');
+      if (statusEl) statusEl.className = 'w-2 h-2 rounded-full bg-green-500';
+      document.getElementById('coach-chat-input-container')?.classList.remove('hidden');
+
+      loadChatUsers();
+
+      try {
+        const res = await fetch(getBackendUrl() + `/api/messages/${user.id}`);
+        const messages = await res.json();
+        const msgContainer = document.getElementById('coach-messages');
+        if (msgContainer) {
+          msgContainer.innerHTML = '';
+          messages.forEach(msg => {
+            const myId = Number(coachInfo.id);
+            const type = (Number(msg.sender_id) === myId && msg.sender_type === 'coach') ? 'outgoing' : 'incoming';
+            appendCoachMessage(msg, type);
+          });
+          msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function appendCoachMessage(msg, type) {
+      const msgContainer = document.getElementById('coach-messages');
+      if (!msgContainer) return;
+      const div = document.createElement('div');
+      div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in`;
+      const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      div.innerHTML = `
+        <div class="max-w-[85%]">
+          <div class="px-4 py-3 rounded-2xl text-sm shadow-sm font-medium ${type === 'outgoing'
+          ? 'bg-indigo-500 text-white rounded-tr-none'
+          : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'
+        }">${msg.content}</div>
+          <p class="text-[10px] text-slate-400 mt-1.5 ${type === 'outgoing' ? 'text-right' : 'text-left'} font-semibold">${time}</p>
+        </div>
+      `;
+      msgContainer.appendChild(div);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+      const coachOverlay = document.getElementById('coach-chat-overlay');
+      if (coachOverlay && !coachOverlay.classList.contains('opacity-100')) {
+        document.getElementById('coach-chat-notif-dot')?.classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+
+</html>

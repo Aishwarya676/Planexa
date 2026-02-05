@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach Profile | Planexa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .coach-img {
+      transition: transform 0.3s ease;
+    }
+
+    .coach-img:hover {
+      transform: scale(1.05);
+    }
+
+    .plan-card {
+      transition: all 0.3s ease;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  <!-- Navigation -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <a href="landing.html" class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+              <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+            </div>
+            <span
+              class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+          </a>
+        </div>
+        <div class="flex items-center">
+          <a href="login-fixed.html" class="text-gray-900 hover:text-indigo-600 px-4 py-2 text-sm font-medium">Sign
+            In</a>
+          <a href="get-started.html"
+            class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Coach Profile Section -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <!-- Coach Header -->
+      <div class="md:flex">
+        <div
+          class="md:flex-shrink-0 md:w-1/3 bg-gradient-to-br from-indigo-50 to-purple-50 p-8 flex flex-col items-center justify-center">
+          <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg mb-6">
+            <img id="coachImage" src="" alt="Coach" class="w-full h-full object-cover coach-img">
+          </div>
+          <h1 id="coachName" class="text-2xl font-bold text-gray-900 text-center"></h1>
+          <p id="coachTitle" class="text-indigo-600 font-medium mt-2"></p>
+
+          <div class="mt-6 w-full space-y-3">
+            <div class="flex items-center text-gray-700 bg-white/50 px-4 py-2 rounded-lg">
+              <i data-lucide="briefcase" class="w-5 h-5 mr-3 text-indigo-500"></i>
+              <span id="experience" class="font-medium"></span>
+            </div>
+            <div class="flex items-center text-gray-700 bg-white/50 px-4 py-2 rounded-lg">
+              <i data-lucide="clock" class="w-5 h-5 mr-3 text-indigo-500"></i>
+              <span id="clients" class="font-medium"></span>
+            </div>
+            <div class="flex items-center text-indigo-700 bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-100">
+              <i data-lucide="banknote" class="w-6 h-6 mr-3 text-indigo-600"></i>
+              <div class="flex flex-col">
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Coaching Rate</span>
+                <span id="languages" class="text-xl font-bold"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 md:w-2/3">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">About Me</h2>
+          <p id="aboutMe" class="text-gray-600 mb-8 leading-relaxed"></p>
+
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Specializations</h3>
+            <div id="specializations" class="flex flex-wrap gap-2">
+              <!-- Specializations will be added by JavaScript -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Booking CTA Only -->
+      <div class="bg-gray-50 border-t border-gray-200 p-8 flex flex-col items-center">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center max-w-md w-full">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Connect with Coach</h3>
+          <p class="text-gray-600 mb-6">Start your journey by connecting with this coach. Your goals and tasks will be
+            shared for better guidance.</p>
+          <div class="mb-6">
+            <span id="mainPriceDisplay" class="text-4xl font-bold text-indigo-600">₹0/hr</span>
+          </div>
+          <button id="mainBookBtn"
+            class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all duration-300">
+            Book Now
+          </button>
+          <p id="bookingMessage" class="mt-4 text-sm font-medium text-green-600 hidden">
+            <i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> Coach Booked! Redirecting to your
+            dashboard...
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- PlanIt Info -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+              <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+            </div>
+            <span
+              class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+          </div>
+          <p class="text-gray-400">Helping you organize your life and achieve your goals with powerful planning tools
+            and expert guidance.</p>
+        </div>
+
+        <!-- Explore -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Explore</h3>
+          <ul class="space-y-2">
+            <li><a href="landing.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+            <li><a href="blogmain.html" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+            <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Podcasts</a></li>
+            <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Videos</a></li>
+          </ul>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Company</h3>
+          <ul class="space-y-2">
+            <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+            <li><a href="pricing.html" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+            <li><a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+            <li><a href="faq.html" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Connect</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-gray-400 mb-2">Subscribe to our Podcast</p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <a href="#"
+                  class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                  <span>Apple Podcasts</span>
+                </a>
+                <a href="#"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                  <span>Spotify</span>
+                </a>
+              </div>
+            </div>
+            <div class="pt-4 border-t border-gray-800">
+              <div class="flex space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="twitter" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="facebook" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="instagram" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="linkedin" class="w-5 h-5"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-16 pt-8 border-t border-gray-800">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+            <span class="hidden md:inline text-gray-600">|</span>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+            <span class="hidden md:inline text-gray-600">|</span>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+          </div>
+          <p class="mt-4 md:mt-0 text-gray-400 text-sm">
+            &copy; 2025 Planexa. All rights reserved.
+            <span class="block md:inline mt-1 md:mt-0">Designed &amp; Powered by
+              <a href="https://purplehuetechnosoft.com" target="_blank" rel="noopener"
+                class="text-indigo-400 hover:text-white transition-colors">
+                Purple Hue Technosoft Pvt. Ltd.
+              </a>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Get coach data from server
+    document.addEventListener('DOMContentLoaded', async function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const coachId = urlParams.get('id');
+
+      if (!coachId) {
+        window.location.href = 'coaches.html';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/public/coaches/${coachId}`);
+        if (!response.ok) throw new Error('Coach not found');
+        const coach = await response.json();
+
+        // Update the page with coach data
+        document.getElementById('coachName').textContent = coach.name;
+        document.getElementById('coachTitle').textContent = coach.coach_type || 'Expert Coach';
+
+        const photo = coach.profile_photo || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE5IDIxdi0yYTQgNCAwIDAgMC00LTRIOWE0IDQgMCAwIDAgLTQgNHYyIj48L3BhdGg+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ij48L2NpcmNsZT48L3N2Zz4=';
+        document.getElementById('coachImage').src = photo;
+        document.getElementById('coachImage').alt = coach.name;
+
+        document.getElementById('experience').textContent = coach.years_experience + ' Years Experience';
+        document.getElementById('clients').textContent = (coach.hours_coached || '0') + '+ Hours Coached';
+        document.getElementById('languages').textContent = '₹' + (coach.hourly_rate || '0') + '/hr';
+
+        // Update main pricing display
+        const price = coach.hourly_rate || '0';
+        document.getElementById('mainPriceDisplay').textContent = `₹${price}/hr`;
+
+        // Update booking button logic
+        const mainBookBtn = document.getElementById('mainBookBtn');
+        const bookingMessage = document.getElementById('bookingMessage');
+
+        if (mainBookBtn) {
+          mainBookBtn.addEventListener('click', async () => {
+            mainBookBtn.disabled = true;
+            mainBookBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
+
+            try {
+              const res = await fetch('/api/book-coach', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coachId: coach.id })
+              });
+
+              if (res.status === 401) {
+                // Not logged in
+                window.location.href = 'get-started.html';
+                return;
+              }
+
+              const data = await res.json();
+
+              if (!res.ok) throw new Error(data.error || 'Booking failed');
+
+              // Success handling based on status
+              bookingMessage.classList.remove('hidden');
+
+              if (data.status === 'pending') {
+                mainBookBtn.innerHTML = '<i class="fas fa-clock mr-1"></i> Request Sent';
+                mainBookBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                mainBookBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); // Yellow for pending
+                bookingMessage.innerHTML = '<i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i> Request sent! Waiting for coach approval.';
+              } else if (data.status === 'active') {
+                mainBookBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Connected';
+                mainBookBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                mainBookBtn.classList.add('bg-green-600');
+                bookingMessage.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> You are connected! Redirecting...';
+                setTimeout(() => {
+                  window.location.href = 'app.html';
+                }, 2000);
+              }
+              lucide.createIcons();
+
+            } catch (err) {
+              alert('Error: ' + err.message);
+              mainBookBtn.disabled = false;
+              mainBookBtn.textContent = 'Book Now';
+            }
+          });
+        }
+
+        document.getElementById('aboutMe').textContent = coach.bio || 'Professional coach dedicated to personal and professional excellence.';
+
+        // Add specializations
+        const specializationsContainer = document.getElementById('specializations');
+        specializationsContainer.innerHTML = '';
+
+        let specs = [];
+        if (Array.isArray(coach.specialties)) {
+          specs = coach.specialties;
+        } else if (typeof coach.specialties === 'string') {
+          try {
+            specs = JSON.parse(coach.specialties);
+          } catch (e) {
+            specs = coach.specialties.split(',').map(s => s.trim());
+          }
+        }
+
+        if (specs.length === 0) specs = ['Personal Coaching', 'Goal Setting'];
+
+        specs.forEach(spec => {
+          if (!spec) return;
+          const tag = document.createElement('span');
+          tag.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800';
+          tag.textContent = spec;
+          specializationsContainer.appendChild(tag);
+        });
+
+        // Update page title
+        document.title = `${coach.name} - ${coach.coach_type || 'Coach'} | Planexa`;
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading coach details:', err);
+        document.body.innerHTML = `
+          <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+            <div class="text-center">
+              <h1 class="text-4xl font-bold text-gray-900 mb-4">Coach Not Found</h1>
+              <p class="text-gray-600 mb-8">Sorry, the coach you are looking for does not exist or is no longer available.</p>
+              <a href="coaches.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Back to Coaches
+              </a>
+            </div>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+
+</html>

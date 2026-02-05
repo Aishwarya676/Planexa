@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Planexa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            min-height: 100vh;
+        }
+
+        .pricing-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: rgba(199, 210, 254, 0.5);
+        }
+
+        .pricing-card:hover::before {
+            opacity: 1;
+        }
+
+        .popular {
+            position: relative;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+            transform: scale(1.02);
+        }
+
+        .popular:hover {
+            transform: scale(1.03) translateY(-8px);
+        }
+
+        .popular-tag {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .feature-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .feature-table th,
+        .feature-table td {
+            padding: 1rem 1.5rem;
+        }
+
+        .feature-table tbody tr:nth-child(odd) {
+            background-color: rgba(249, 250, 251, 0.8);
+        }
+
+        .feature-table tbody tr:hover {
+            background-color: rgba(243, 244, 246, 0.8);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100">
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="landing.html" class="flex items-center gap-2">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                </div>
+                <span
+                    class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+            </a>
+            <nav>
+                <ul class="flex items-center space-x-6">
+                    <li><a href="app.html#profile"
+                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition">Get
+                            Started</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center mb-16 transform hover:scale-[1.01] transition-all duration-300">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Choose the perfect plan for your needs. Start with a
+                7-day free trial, no credit card required.</p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center mt-8 space-y-4 sm:space-y-0 sm:space-x-4">
+                <span class="text-gray-700">Billed Monthly</span>
+                <label class="relative inline-flex items-center cursor-pointer mx-2">
+                    <input type="checkbox" class="sr-only peer" id="billing-toggle">
+                    <div
+                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                    </div>
+                </label>
+                <span class="text-gray-700">Billed Annually <span class="text-purple-600 font-medium">(Save
+                        20%)</span></span>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Free Plan -->
+            <div class="pricing-card bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Free</h3>
+                <p class="text-gray-600 mb-6">Perfect for getting started</p>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">₹0</span>
+                    <span class="text-gray-500">/month</span>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Up to 5 tasks</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Basic reminders</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Local storage</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>For individual usage</span>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>For limited tasks</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Cloud Sync</span>
+                    </li>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                    Get Started
+                </button>
+            </div>
+
+            <!-- Pro Plan -->
+            <div
+                class="pricing-card rounded-2xl p-8 shadow-xl popular transform hover:shadow-2xl transition-all duration-300">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Pro</h3>
+                <p class="text-gray-600 mb-6">For individuals and small teams</p>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">₹999</span>
+                    <span class="text-gray-500">/month</span>
+                    <p class="text-sm text-gray-500 mt-1">Billed as ₹11,988 per year</p>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Unlimited tasks</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Advanced reminders</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Cloud sync</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Priority support</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Custom categories</span>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition">
+                    Start Free Trial
+                </button>
+            </div>
+
+            <!-- Team Plan -->
+            <div class="pricing-card bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Team</h3>
+                <p class="text-gray-600 mb-6">For growing teams</p>
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-gray-900">₹1499</span>
+                    <span class="text-gray-500">/user/month</span>
+                    <p class="text-sm text-gray-500 mt-1">Billed annually, min 3 users</p>
+                </div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Everything in Pro</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Team workspaces</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Admin controls</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Advanced analytics</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                        <span>Single sign-on (SSO)</span>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                    Get Started
+                </button>
+            </div>
+        </div>
+
+        <!-- Feature Comparison -->
+        <div id="features" class="mt-32 mb-16">
+            <h2 class="text-3xl font-bold text-center mb-12">Compare Features</h2>
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                Features</th>
+                            <th
+                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                Free</th>
+                            <th
+                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                Pro</th>
+                            <th
+                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                Team</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tasks</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Up to 5</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Unlimited</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Unlimited</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cloud Sync</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Team Members</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">1</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">1</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">3+</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Priority Support
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Advanced Analytics
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
+                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Toggle billing period
+            const toggle = document.getElementById('billing-toggle');
+            const priceElements = document.querySelectorAll('.price-monthly, .price-annually');
+
+            toggle?.addEventListener('change', function () {
+                priceElements.forEach(el => {
+                    el.classList.toggle('hidden');
+                });
+            });
+        </script>
+</body>
+
+</html>

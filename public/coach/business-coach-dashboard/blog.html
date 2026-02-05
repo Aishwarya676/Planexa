@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Coaching Blog | CoachConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="client-details.css">
+    <style>
+        /* Blog Navigation */
+        .blog-navigation {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 2rem;
+        }
+
+        .blog-navigation .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .blog-navigation .dashboard-header {
+            margin: 0;
+            padding: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        .blog-navigation .dashboard-actions {
+            justify-content: flex-start;
+            padding: 0;
+        }
+
+        .blog-navigation .back-btn {
+            margin: 0;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .blog-navigation .back-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        /* Create Article Button Styles */
+        .create-article-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        
+        .create-article-btn:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+        }
+        
+        .create-article-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .create-article-btn i {
+            margin-right: 0.5rem;
+            font-size: 0.9em;
+            transition: transform 0.2s ease;
+        }
+        
+        .create-article-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Blog Page Styles */
+        .blog-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .blog-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            border-radius: var(--radius-lg);
+        }
+
+        .blog-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .blog-header p {
+            color: var(--gray-600);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .article-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .article-category {
+            background: var(--primary-lighter);
+            color: var(--primary-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .article-date {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .article-title {
+            font-size: 1.375rem;
+            margin: 0.5rem 0 1rem;
+            color: var(--dark);
+            line-height: 1.4;
+        }
+
+        .article-excerpt {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: auto;
+            transition: all 0.2s ease;
+        }
+
+        .read-more:hover {
+            color: var(--primary-dark);
+            gap: 0.75rem;
+        }
+
+        .read-more i {
+            transition: transform 0.2s ease;
+        }
+
+        .read-more:hover i {
+            transform: translateX(3px);
+        }
+
+        /* Featured Article */
+        .featured-article {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-bottom: 2rem;
+        }
+
+        .featured-article .article-image {
+            height: 100%;
+            border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+        }
+
+        .featured-article .article-content {
+            padding: 2.5rem;
+            justify-content: center;
+        }
+
+        .featured-article .article-title {
+            font-size: 1.75rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .articles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .featured-article {
+                grid-template-columns: 1fr;
+            }
+            
+            .featured-article .article-image {
+                height: 250px;
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            }
+            
+            .featured-article .article-content {
+                padding: 1.5rem;
+            }
+            
+            .blog-header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .blog-container {
+                padding: 0 1rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="blog-navigation">
+        <div class="container">
+            <nav class="dashboard-header">
+                <div class="dashboard-actions">
+                    <a href="index.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Blog Content -->
+    <div class="blog-container">
+        <header class="blog-header">
+            <div class="flex justify-between items-start w-full">
+                <div class="flex-1">
+                    <h1>Articles and Blog</h1>
+                    <p class="mt-2 max-w-2xl">Expert advice and strategies to help you grow your business, develop leadership skills, and achieve your professional goals.</p>
+                </div>
+                <div class="flex-shrink-0 ml-6 self-center">
+                </div>
+            </div>
+        </header>
+        <a href="createarticle.html" class="create-article-btn">
+                        <i class="fas fa-plus"></i> Create Article
+                    </a>
+
+        <div class="articles-grid">
+            <!-- Featured Article -->
+            <article class="article-card featured-article">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Business Strategy" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Leadership</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> November 15, 2023</span>
+                    </div>
+                    <h2 class="article-title">5 Essential Leadership Skills Every Business Owner Should Master</h2>
+                    <p class="article-excerpt">Discover the key leadership competencies that separate successful business owners from the rest. Learn practical strategies to develop these skills and take your leadership to the next level.</p>
+                    <a href="#" class="read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 1 -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Goal Setting" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Productivity</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> November 10, 2023</span>
+                    </div>
+                    <h2 class="article-title">The SMART Goal Framework: A Step-by-Step Guide</h2>
+                    <p class="article-excerpt">Learn how to set and achieve meaningful business goals using the proven SMART framework. Includes real-world examples and templates you can implement today.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 2 -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Team Building" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Team Building</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> November 5, 2023</span>
+                    </div>
+                    <h2 class="article-title">Building High-Performing Teams: Strategies for Success</h2>
+                    <p class="article-excerpt">Discover the secrets to creating and leading teams that consistently deliver exceptional results. Learn about the key characteristics of high-performing teams.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 3 -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1554224155-3a58922a22c3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Work-Life Balance" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Wellness</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> October 28, 2023</span>
+                    </div>
+                    <h2 class="article-title">Achieving Work-Life Balance as an Entrepreneur</h2>
+                    <p class="article-excerpt">Struggling to find balance? Learn practical strategies to manage your business while maintaining your health, relationships, and personal well-being.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 4 -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Digital Transformation" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Technology</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> October 20, 2023</span>
+                    </div>
+                    <h2 class="article-title">Digital Transformation: A Guide for Small Businesses</h2>
+                    <p class="article-excerpt">Learn how to leverage technology to streamline operations, improve customer experience, and drive growth in your small business.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 5 -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Financial Planning" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Finance</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> October 15, 2023</span>
+                    </div>
+                    <h2 class="article-title">Financial Planning for Business Growth: A Practical Guide</h2>
+                    <p class="article-excerpt">Essential financial strategies to help you plan for sustainable business growth and weather economic uncertainties.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+
+            <!-- Article 6 - New Article -->
+            <article class="article-card">
+                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Effective Communication" class="article-image">
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category">Communication</span>
+                        <span class="article-date"><i class="far fa-calendar-alt"></i> November 1, 2023</span>
+                    </div>
+                    <h2 class="article-title">Mastering Effective Communication in the Workplace</h2>
+                    <p class="article-excerpt">Learn powerful communication techniques that foster collaboration, resolve conflicts, and create a positive work environment. Essential for leaders and team members alike.</p>
+                    <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </article>
+        </div>
+    </div>
+    
+    <script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded - initializing modal functionality');
+        
+        // Get elements
+        const modal = document.getElementById('articleModal');
+        const addBtn = document.getElementById('addArticleBtn');
+        const closeBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelArticle');
+        const form = document.getElementById('articleForm');
+        
+        // Debug log elements
+        console.log('Modal elements:', {modal, addBtn, closeBtn, cancelBtn, form});
+        
+        // Toggle modal function
+        function toggleModal() {
+            console.log('toggleModal called');
+            if (!modal) {
+                console.error('Modal element not found!');
+                return;
+            }
+            
+            if (modal.style.display === 'none' || !modal.style.display) {
+                console.log('Showing modal');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                console.log('Hiding modal');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Add event listeners with error handling
+        try {
+            if (addBtn) {
+                console.log('Adding click handler to add button');
+                addBtn.addEventListener('click', function(e) {
+                    console.log('Add button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleModal();
+                    return false;
+                });
+            } else {
+                console.error('Could not find add button!');
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleModal();
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleModal();
+                });
+            }
+            
+            // Close modal when clicking outside
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        toggleModal();
+                    }
+                });
+            }
+            
+            // Handle form submission
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Form submitted');
+                    // Add your form submission logic here
+                    alert('Article submitted successfully! (This is a demo)');
+                    form.reset();
+                    toggleModal();
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error initializing modal:', error);
+        }
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData();
+                formData.append('title', document.getElementById('articleTitle').value);
+                formData.append('summary', document.getElementById('articleSummary').value);
+                formData.append('category', document.getElementById('articleCategory').value);
+                formData.append('tags', document.getElementById('articleTags').value);
+                formData.append('content', contentEditable.innerHTML);
+                
+                // Add image if selected
+                const imageFile = imageInput.files[0];
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+                
+                // Here you would typically send the formData to your server
+                console.log('Form submitted:', Object.fromEntries(formData.entries()));
+                
+                // For demo purposes, just show an alert
+                alert('Article submitted successfully!');
+                form.reset();
+                contentEditable.innerHTML = '';
+                imagePreview.classList.add('hidden');
+                toggleModal();
+            });
+            
+            // Handle image preview
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImage.src = event.target.result;
+                        imagePreview.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.classList.add('hidden');
+                }
+            });
+            
+            // Rich text editor functionality
+            const editorBtns = document.querySelectorAll('.editor-btn');
+            
+            editorBtns.forEach(btn => {
+                btn.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    const command = this.getAttribute('data-command');
+                    const value = this.getAttribute('data-value');
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Enter the URL:');
+                        if (url) document.execCommand('createLink', false, url);
+                    } else if (command === 'insertImage') {
+                        const url = prompt('Enter the image URL:');
+                        if (url) document.execCommand('insertImage', false, url);
+                    } else {
+                        document.execCommand(command, false, value);
+                    }
+                    
+                    // Update button active state
+                    if (command === 'formatBlock') {
+                        editorBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+            
+            // Handle keyboard shortcuts for formatting
+            contentEditable.addEventListener('keydown', function(e) {
+                // Bold: Ctrl+B
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    document.execCommand('bold', false, null);
+                }
+                // Italic: Ctrl+I
+                if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    document.execCommand('italic', false, null);
+                }
+                // Underline: Ctrl+U
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    document.execCommand('underline', false, null);
+                }
+            });
+       
+    </script>
+    
+    <script>
+        // Add any interactive functionality here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

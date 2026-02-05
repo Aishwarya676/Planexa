@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coach Login — PlannIt</title>
+  <meta name="description" content="Coach login to access your PlannIt coaching dashboard.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="./css/styles.css?v=role1">
+  <script src="/js/auth-helper.js"></script>
+  <style>
+    .login-bg {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      min-height: 100vh;
+    }
+  </style>
+</head>
+
+<body class="login-bg">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header with back button -->
+    <header class="bg-white shadow-sm">
+      <div class="max-w-5xl mx-auto px-4 py-4 flex items-center">
+        <a href="./landing.html" onclick="event.preventDefault(); window.location.replace('./landing.html');"
+          class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          <span>Back to home</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+      <div class="w-full max-w-md">
+        <!-- Logo and title -->
+        <div class="text-center mb-8">
+          <div
+            class="h-16 w-16 mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">
+            <i data-lucide="users" class="w-8 h-8 text-white"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">Coach Portal</h1>
+          <p class="mt-1 text-gray-600">Sign in to your coaching dashboard</p>
+        </div>
+
+        <!-- Login form -->
+        <div id="loginSection" class="bg-white rounded-xl shadow-sm p-8">
+          <form id="loginForm" class="space-y-6">
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input id="email" name="email" type="email" autocomplete="email" required
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="you@example.com">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-500">Forgot password?</a>
+              </div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input id="password" name="password" type="password" autocomplete="current-password" required
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••">
+              </div>
+            </div>
+
+            <!-- Remember me -->
+            <div class="flex items-center">
+              <input id="remember-me" name="remember-me" type="checkbox"
+                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
+
+            <!-- Submit button -->
+            <div>
+              <button type="submit" default
+                class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <span id="login-text">Sign in</span>
+                <span id="login-loading" class="hidden">
+                  <i data-lucide="loader-2" class="w-4 h-4 animate-spin ml-2"></i>
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <div class="mt-6 text-center text-sm">
+            <p class="text-gray-600">
+              New to PlannIt?
+              <button onclick="toggleAuth('signup')" class="font-medium text-blue-600 hover:text-blue-500">
+                Create an account
+              </button>
+            </p>
+          </div>
+        </div>
+
+        <!-- Sign Up Form (Initially Hidden) -->
+        <div id="signupSection" class="bg-white rounded-xl shadow-sm p-8 hidden">
+          <div class="mb-6 text-center">
+            <h2 class="text-xl font-bold text-gray-800">Create Coach Account</h2>
+            <p class="text-xs text-gray-500 mt-1">First step to becoming a coach</p>
+          </div>
+          <form id="signupForm" class="space-y-6">
+            <!-- Username -->
+            <div>
+              <label for="reg-username" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input id="reg-username" name="username" type="text" required
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="John Doe">
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="reg-email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input id="reg-email" name="email" type="email" autocomplete="email" required
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="you@example.com">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label for="reg-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input id="reg-password" name="password" type="password" autocomplete="new-password" required
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••">
+              </div>
+              <p class="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
+            </div>
+
+            <!-- Submit button -->
+            <div>
+              <button type="submit"
+                class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <span id="signup-text">Create Account</span>
+                <span id="signup-loading" class="hidden">
+                  <i data-lucide="loader-2" class="w-4 h-4 animate-spin ml-2"></i>
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <div class="mt-6 text-center text-sm">
+            <p class="text-gray-600">
+              Already have an account?
+              <button onclick="toggleAuth('login')" class="font-medium text-blue-600 hover:text-blue-500">
+                Sign in
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      const API_BASE = 'http://localhost:3000';
+
+      // Login Elements
+      const loginForm = document.getElementById('loginForm');
+      const loginBtn = document.querySelector('#loginForm button[type="submit"]');
+      const loginText = document.getElementById('login-text');
+      const loginLoading = document.getElementById('login-loading');
+
+      // Signup Elements
+      const signupForm = document.getElementById('signupForm');
+      const signupBtn = document.querySelector('#signupForm button[type="submit"]');
+      const signupText = document.getElementById('signup-text');
+      const signupLoading = document.getElementById('signup-loading');
+
+      // Auth Toggle
+      window.toggleAuth = (mode) => {
+        const loginSection = document.getElementById('loginSection');
+        const signupSection = document.getElementById('signupSection');
+        const portalTitle = document.querySelector('h1.text-2xl'); // "Coach Portal" title
+
+        if (mode === 'signup') {
+          loginSection.classList.add('hidden');
+          signupSection.classList.remove('hidden');
+          portalTitle.innerText = "Join as a Coach";
+        } else {
+          signupSection.classList.add('hidden');
+          loginSection.classList.remove('hidden');
+          portalTitle.innerText = "Coach Portal";
+        }
+      };
+
+      // Handle LOGIN submission
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+
+        if (!email || !password) {
+          alert('Please enter both email and password');
+          return;
+        }
+
+        // Show loading state
+        loginBtn.disabled = true;
+        loginText.textContent = 'Signing in...';
+        loginLoading.classList.remove('hidden');
+
+        try {
+          const response = await fetch(`${API_BASE}/api/coach/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password, rememberMe }),
+            credentials: 'include'
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            // Check if it's a verification block
+            if (response.status === 403 && errData.error && errData.error.includes("awaiting admin approval")) {
+              throw new Error("Your account is awaiting admin approval. You will be notified via email once verified.");
+            }
+            throw new Error(errData.error || errData.message || 'Login failed. Please check your credentials.');
+          }
+
+          const data = await response.json();
+
+          // Store user data in localStorage (auth-helper.js uses 'planner.user')
+          localStorage.setItem('planner.user', JSON.stringify(data));
+
+          // Redirect to dashboard
+          window.location.replace('./coach/business-coach-dashboard/index.html');
+
+        } catch (error) {
+          console.error('Login error:', error);
+          alert(error.message || 'An error occurred during login. Please try again.');
+
+          // Reset form state
+          loginBtn.disabled = false;
+          loginText.textContent = 'Sign in';
+          loginLoading.classList.add('hidden');
+        }
+      });
+
+      // Handle SIGNUP submission
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('reg-username').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+
+        if (!username || !email || !password) {
+          alert("All fields are required");
+          return;
+        }
+
+        // Show loading
+        signupBtn.disabled = true;
+        signupText.textContent = 'Creating Account...';
+        signupLoading.classList.remove('hidden');
+
+        try {
+          const res = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password, userType: 'coach' }),
+            credentials: 'include'
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || 'Registration failed');
+          }
+
+          // Successful registration -> Auto-login handled by server session -> Redirect to Onboarding
+          alert("Account created successfully! Please complete your professional profile for admin review.");
+          window.location.replace('./coach/business-coach-dashboard/onboarding.html');
+
+        } catch (err) {
+          console.error(err);
+          alert(err.message || "Registration failed");
+
+          signupBtn.disabled = false;
+          signupText.textContent = 'Create Account';
+          signupLoading.classList.add('hidden');
+        }
+      });
+
+    });
+  </script>
+</body>
+
+</html>

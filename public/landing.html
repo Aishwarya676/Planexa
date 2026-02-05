@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planexa — Your Complete Productivity Solution | Task Management, Goals & Events</title>
+  <meta name="description"
+    content="Planexa is your all-in-one productivity platform. Manage tasks, set goals, track events, and boost productivity with privacy-first design." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="./css/styles.css?v=role1" />
+  <script src="/js/auth-helper.js"></script>
+  <script>
+    // APPLY THEME ONLY IF LOGGED IN
+    (function () {
+      const userStr = localStorage.getItem('planner.user');
+      if (userStr) {
+        const savedTheme = localStorage.getItem('planner.theme');
+        if (savedTheme) {
+          const theme = JSON.parse(savedTheme);
+          const root = document.documentElement;
+          Object.keys(theme).forEach(key => {
+            root.style.setProperty(key, theme[key]);
+          });
+        }
+      }
+    })();
+  </script>
+
+  <style>
+    /* Settings Sidebar */
+    .settings-menu-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      text-align: left;
+      color: #374151;
+      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 150ms;
+    }
+
+    .settings-menu-item:hover {
+      background-color: #f9fafb;
+    }
+
+    .settings-menu-item i {
+      flex-shrink: 0;
+    }
+
+    .settings-menu-item span {
+      font-weight: 500;
+    }
+
+    .settings-menu-item:hover span {
+      color: #4f46e5;
+    }
+
+    /* Authed sections are hidden by JS, not default CSS, to prevent conflicts */
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: #e0f2ff;
+      position: relative;
+    }
+
+    /* Floating Customer Service Button */
+    .customer-service-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      border: none;
+    }
+
+    .customer-service-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .customer-service-btn i {
+      transition: transform 0.3s ease;
+    }
+
+    .customer-service-btn:hover i {
+      transform: scale(1.2);
+    }
+
+    /* Add a semi-transparent overlay to improve text readability */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.3);
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="sticky top-0 z-50 header-dark">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <a href="./landing.html" class="flex items-center gap-3 group">
+          <div
+            class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+          </div>
+          <span
+            class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+        </a>
+      </div>
+      <nav class="ml-auto">
+        <ul class="flex gap-2 items-center">
+          <li data-when="authed"><a href="./app.html#todo" class="tab-btn">To‑Do</a></li>
+          <li data-when="authed"><a href="./app.html#shopping" class="tab-btn">Shopping</a></li>
+          <li data-when="authed"><a href="./app.html#reminders" class="tab-btn">Reminders</a></li>
+          <li data-when="authed"><a href="./app.html#goals" class="tab-btn">Goals</a></li>
+          <li data-when="authed"><a href="./app.html#calendar" class="tab-btn">Events</a></li>
+          <li data-when="authed"><a href="./app.html#profile" class="tab-btn" id="nav-profile-link">Settings</a></li>
+          <li data-when="authed" class="ml-2">
+            <a href="./AI/index.html"
+              class="nav-ai-button inline-flex items-center px-4 py-2 rounded-lg font-semibold text-white transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+              id="nav-ai-link" style="background-color: #2563eb !important;">
+              <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i>
+              Plan with AI
+            </a>
+          </li>
+          <li data-when="guest" class="flex items-center gap-3">
+            <a href="./get-started.html?v=gs3"
+              class="inline-flex items-center px-5 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+              style="background-color: #845ec2;" onmouseover="this.style.backgroundColor='#9b7fd0'"
+              onmouseout="this.style.backgroundColor='#845ec2'">
+              <i data-lucide="rocket" class="w-4 h-4 mr-2"></i>
+              <span>Get Started</span>
+            </a>
+            <a href="/coach/business-coach-dashboard/onboarding.html"
+              class="inline-flex items-center px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+              style="background-color: #4f46e5;" onmouseover="this.style.backgroundColor='#6366f1'"
+              onmouseout="this.style.backgroundColor='#4f46e5'">
+              <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
+              <span>Coach Onboarding</span>
+            </a>
+          </li>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-10 w-full">
+    <!-- Hero -->
+    <section class="relative overflow-hidden rounded-xl shadow-2xl my-8 mx-auto w-full max-w-[1800px]">
+      <!-- Video Background -->
+      <div class="absolute inset-0 z-0 h-[500px] w-full">
+        <video autoplay loop muted playsinline class="w-full h-full object-cover">
+          <source src="7252715-hd_1080_1920_25fps.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70 backdrop-blur-[2px]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 text-center h-[500px] flex flex-col items-center justify-center px-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white drop-shadow-xl leading-tight">
+            Plan Smarter with <span class="text-indigo-200">Planexa</span>
+          </h2>
+          <div class="text-3xl sm:text-4xl font-semibold text-white/90 mt-4">
+            I'll do it <span class="relative inline-block">
+              <span class="block text-purple-400 text-center">now</span>
+              <span class="block text-purple-400 line-through text-center -mt-1">today</span>
+            </span>
+          </div>
+          <p class="text-xl sm:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+            Your complete productivity companion. Manage To‑Dos, Shopping, Reminders, Goals, and Events in one seamless,
+            privacy‑focused platform.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-4 mt-8" data-when="guest">
+            <a id="get-started" href="./login-fixed.html"
+              onclick="event.preventDefault(); window.location.replace('./login-fixed.html');"
+              class="btn btn-primary hover:scale-105 transform transition-all duration-300 px-8 py-4 text-lg font-semibold shadow-lg">
+              <i data-lucide="rocket" class="w-6 h-6"></i>
+              <span>Get Started Free</span>
+            </a>
+            <a href="./how-to-use.html"
+              class="btn bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 hover:border-white/40 px-8 py-4 text-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl flex items-center">
+              <i data-lucide="book-open" class="w-6 h-6 mr-2"></i>
+              <span>User Guide</span>
+            </a>
+          </div>
+          <div data-when="authed" class="flex flex-wrap items-center justify-center gap-4 mt-8 hidden">
+            <a href="./app.html"
+              class="btn btn-primary hover:scale-105 transform transition-all duration-300 px-8 py-4 text-lg font-semibold shadow-lg">
+              <i data-lucide="layout-dashboard" class="w-6 h-6 mr-2"></i>
+              <span>Visit Planner</span>
+            </a>
+            <a href="./how-to-use.html"
+              class="btn bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 hover:border-white/40 px-8 py-4 text-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl flex items-center">
+              <i data-lucide="book-open" class="w-6 h-6 mr-2"></i>
+              <span>User Guide</span>
+            </a>
+          </div>
+          </a>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- About Planexa -->
+    <section class="mt-16 card card-lg raise w-full">
+      <div class="flex items-center gap-2 mb-6"><i data-lucide="info"></i>
+        <h3 class="text-2xl font-bold">About Planexa</h3>
+      </div>
+      <div class="grid gap-8 lg:grid-cols-2 items-stretch">
+        <div>
+          <p class="text-lg text-slate-700 mb-4">Planexa is your all-in-one productivity solution that helps you
+            organize every aspect of your life. From daily tasks to long-term goals, we provide the tools you need to
+            stay focused and achieve more.</p>
+          <p class="text-slate-700 mb-4">Built with privacy in mind, Planexa stores all your data locally in your
+            browser while offering secure cloud sync options. No ads, no data selling, just pure productivity.</p>
+          <ul class="grid gap-3 sm:grid-cols-2 text-sm text-slate-700">
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>All essentials
+              in a single app</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Clean UX with
+              zero learning curve</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Works great on
+              desktop and mobile</li>
+            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Session-based
+              login keeps your data safe</li>
+          </ul>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-8 rounded-xl">
+          <div class="text-center">
+            <div class="flex flex-col items-center mb-6">
+              <div
+                class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+              </div>
+              <span class="text-xl font-bold text-slate-800">Planexa</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">Achieve More Every Day</h4>
+            <p class="text-xs text-slate-500">Join our community of productive people</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pros / Benefits -->
+    <section class="mt-16 grid gap-6 md:grid-cols-3 w-full">
+      <div class="card card-lg raise text-center">
+        <div class="flex items-center justify-center gap-2 mb-4"><i data-lucide="shield-check"
+            class="w-8 h-8 text-green-500"></i></div>
+        <h3 class="text-xl font-semibold mb-3">Privacy First</h3>
+        <p class="text-slate-700">Your data stays on your device by default. No servers, no tracking, no data
+          collection. Your privacy is our priority.</p>
+      </div>
+      <div class="card card-lg raise text-center">
+        <div class="flex items-center justify-center gap-2 mb-4"><i data-lucide="layout-dashboard"
+            class="w-8 h-8 text-blue-500"></i></div>
+        <h3 class="text-xl font-semibold mb-3">All-in-One</h3>
+        <p class="text-slate-700">Manage tasks, events, goals, and shopping lists in one unified interface. Everything
+          you need, nothing you don't.</p>
+      </div>
+      <div class="card card-lg raise text-center hover:shadow-xl transition-shadow duration-300">
+        <div class="flex items-center justify-center gap-2 mb-4"><i data-lucide="book-open"
+            class="w-8 h-8 text-purple-500"></i></div>
+        <h3 class="text-xl font-semibold mb-3">Expert Insights</h3>
+        <p class="text-slate-700 mb-4">Access our collection of business coaching articles and productivity tips.</p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="blogmain.html"
+            class="inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-300">
+            <i data-lucide="book-open" class="w-4 h-4 mr-2"></i>
+            <span>Blog</span>
+          </a>
+          <a href="media.html"
+            class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300">
+            <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+            <span>Watch</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- User Reviews / Testimonials -->
+    <section class="mt-16 card card-lg raise w-full">
+      <div class="flex items-center gap-2 mb-8"><i data-lucide="message-square"></i>
+        <h3 class="text-2xl font-bold">What our users say</h3>
+      </div>
+      <div class="relative">
+        <div id="reviews-scroll" class="flex gap-4 overflow-x-hidden pb-4 w-full">
+          <div class="review-container flex gap-4 transition-transform duration-500 ease-in-out">
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-l-4 border-indigo-400 shadow-lg">
+              <p class="text-indigo-900 mb-4">"Planexa transformed how I manage my daily tasks. The interface is so
+                intuitive, and I love that my data stays private!"</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center font-semibold text-indigo-700">
+                  A</div>
+                <div>
+                  <div class="font-semibold text-indigo-800">Aishwarya</div>
+                  <div class="text-xs text-indigo-500">Product Manager</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-green-50 to-teal-50 border-l-4 border-green-400 shadow-lg">
+              <p class="text-green-900 mb-4">"Simple, fast, and exactly what I needed. The goals tracking feature helped
+                me achieve my quarterly objectives."</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center font-semibold text-green-700">
+                  R</div>
+                <div>
+                  <div class="font-semibold text-green-800">Rahul</div>
+                  <div class="text-xs text-green-500">Software Engineer</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-purple-400 shadow-lg">
+              <p class="text-purple-900 mb-4">"I love the clean interface and the Eisenhower Matrix. It helps me
+                prioritize like never before!"</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center font-semibold text-purple-700">
+                  P</div>
+                <div>
+                  <div class="font-semibold text-purple-800">Priya</div>
+                  <div class="text-xs text-purple-500">Marketing Director</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50 border-l-4 border-yellow-400 shadow-lg">
+              <p class="text-yellow-900 mb-4">"The shopping list and reminders are a game changer for my family. We all
+                stay in sync!"</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center font-semibold text-yellow-700">
+                  S</div>
+                <div>
+                  <div class="font-semibold text-yellow-800">Sonal</div>
+                  <div class="text-xs text-yellow-500">Parent</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-pink-50 to-red-50 border-l-4 border-pink-400 shadow-lg">
+              <p class="text-pink-900 mb-4">"I use Planexa for both work and personal goals. The UI is beautiful and
+                motivating."</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center font-semibold text-pink-700">
+                  M</div>
+                <div>
+                  <div class="font-semibold text-pink-800">Meera</div>
+                  <div class="text-xs text-pink-500">Graphic Designer</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 border-l-4 border-blue-400 shadow-lg">
+              <p class="text-blue-900 mb-4">"The calendar integration is seamless. I can now manage all my events and
+                tasks in one place."</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center font-semibold text-blue-700">
+                  A</div>
+                <div>
+                  <div class="font-semibold text-blue-800">Arjun</div>
+                  <div class="text-xs text-blue-500">Freelancer</div>
+                </div>
+              </div>
+            </blockquote>
+            <blockquote
+              class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50 border-l-4 border-teal-400 shadow-lg">
+              <p class="text-teal-900 mb-4">"Best productivity app I've used. The clean interface helps me stay focused
+                on what's important."</p>
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-10 h-10 rounded-full bg-teal-200 flex items-center justify-center font-semibold text-teal-700">
+                  N</div>
+                <div>
+                  <div class="font-semibold text-teal-800">Neha</div>
+                  <div class="text-xs text-teal-500">Student</div>
+                </div>
+              </div>
+            </blockquote>
+          </div>
+        </div>
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            const scrollContainer = document.getElementById('reviews-scroll');
+            const reviewsContainer = document.querySelector('.review-container');
+            let reviews = document.querySelectorAll('.review-item');
+            const leftBtn = document.getElementById('scroll-reviews-left');
+            const rightBtn = document.getElementById('scroll-reviews-right');
+
+
+            let autoScrollInterval;
+            const scrollDelay = 2000; // 2 seconds
+            let currentIndex = 0;
+            let isScrolling = false;
+
+            // Load Dynamic Reviews
+            async function loadDynamicReviews() {
+              try {
+                const response = await fetch('/api/public/reviews');
+                const dynamicData = await response.json();
+
+                if (dynamicData && dynamicData.length > 0) {
+                  const colors = [
+                    'from-indigo-50 to-purple-50 border-indigo-400',
+                    'from-green-50 to-teal-50 border-green-400',
+                    'from-purple-50 to-pink-50 border-purple-400',
+                    'from-yellow-50 to-orange-50 border-yellow-400',
+                    'from-pink-50 to-red-50 border-pink-400',
+                    'from-blue-50 to-cyan-50 border-blue-400'
+                  ];
+
+                  const dynamicHtml = dynamicData.map((r, idx) => {
+                    const stars = '⭐'.repeat(r.rating);
+                    const colorClass = colors[idx % colors.length];
+                    return `
+                    <blockquote class="review-item p-6 w-[calc(33.333%-10px)] min-w-[300px] flex-shrink-0 rounded-xl bg-gradient-to-br ${colorClass} border-l-4 shadow-lg">
+                      <div class="flex text-yellow-500 mb-2">${stars}</div>
+                      <p class="text-slate-900 mb-4 italic">"${r.comment}"</p>
+                      <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-semibold text-slate-700">
+                          ${r.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div class="font-semibold text-slate-800">${r.username}</div>
+                          <div class="text-xs text-slate-500">Review for ${r.coach_name}</div>
+                        </div>
+                      </div>
+                    </blockquote>
+                  `;
+                  }).join('');
+
+                  reviewsContainer.innerHTML = dynamicHtml + reviewsContainer.innerHTML;
+                  reviews = document.querySelectorAll('.review-item');
+                }
+                initCarousel();
+              } catch (e) {
+                console.error("Error loading reviews:", e);
+                initCarousel();
+              }
+            }
+
+            // Initialize the carousel
+            function initCarousel() {
+              if (reviews.length === 0) return;
+              updateActiveReview();
+              setupEventListeners();
+              startAutoScroll();
+            }
+
+            loadDynamicReviews();
+
+            // Update which review is currently active
+            function updateActiveReview() {
+              if (!reviews[currentIndex]) return;
+
+              // Update active class
+              reviews.forEach((review, index) => {
+                if (index === currentIndex) {
+                  review.classList.add('active');
+                } else {
+                  review.classList.remove('active');
+                }
+              });
+
+              // Update button states
+              if (leftBtn && rightBtn) {
+                leftBtn.disabled = currentIndex === 0;
+                rightBtn.disabled = currentIndex >= reviews.length - 1;
+              }
+
+              // Scroll to the active review
+              scrollToReview(currentIndex);
+            }
+
+            // Scroll to a specific review
+            function scrollToReview(index) {
+              if (!reviews[index] || isScrolling) return;
+
+              isScrolling = true;
+              const review = reviews[index];
+              const containerWidth = scrollContainer.offsetWidth;
+              const reviewWidth = review.offsetWidth;
+              const scrollPosition = review.offsetLeft - (containerWidth / 2) + (reviewWidth / 2);
+
+              scrollContainer.scrollTo({
+                left: scrollPosition,
+                behavior: 'smooth'
+              });
+
+              // Reset the scrolling flag after the scroll completes
+              setTimeout(() => {
+                isScrolling = false;
+              }, 600); // Slightly longer than the CSS transition
+            }
+
+            // Go to next review
+            function next() {
+              if (currentIndex < reviews.length - 1) {
+                currentIndex++;
+              } else {
+                currentIndex = 0; // Loop back to first
+              }
+              updateActiveReview();
+            }
+
+            // Go to previous review
+            function prev() {
+              if (currentIndex > 0) {
+                currentIndex--;
+              } else {
+                currentIndex = reviews.length - 1; // Loop to last
+              }
+              updateActiveReview();
+            }
+
+            // Handle scroll events to update active review
+            function handleScroll() {
+              if (isScrolling) return;
+
+              const containerScroll = scrollContainer.scrollLeft + (scrollContainer.offsetWidth / 2);
+              let closestReview = null;
+              let closestDistance = Infinity;
+
+              reviews.forEach((review, index) => {
+                const reviewLeft = review.offsetLeft;
+                const reviewWidth = review.offsetWidth;
+                const reviewCenter = reviewLeft + (reviewWidth / 2);
+                const distance = Math.abs(containerScroll - reviewCenter);
+
+                if (distance < closestDistance) {
+                  closestDistance = distance;
+                  closestReview = index;
+                }
+              });
+
+              if (closestReview !== null && closestReview !== currentIndex) {
+                currentIndex = closestReview;
+                updateActiveReview();
+              }
+            }
+
+            // Set up event listeners
+            function setupEventListeners() {
+              // Navigation buttons
+              if (leftBtn && rightBtn) {
+                leftBtn.addEventListener('click', () => {
+                  stopAutoScroll();
+                  prev();
+                  startAutoScroll();
+                });
+
+                rightBtn.addEventListener('click', () => {
+                  stopAutoScroll();
+                  next();
+                  startAutoScroll();
+                });
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                  if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    stopAutoScroll();
+                    prev();
+                    startAutoScroll();
+                  } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    stopAutoScroll();
+                    next();
+                    startAutoScroll();
+                  }
+                });
+              }
+
+              // Handle scroll events
+              let scrollTimeout;
+              scrollContainer.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(handleScroll, 100);
+              }, { passive: true });
+
+              // Pause auto-scroll on hover
+              scrollContainer.addEventListener('mouseenter', stopAutoScroll);
+              scrollContainer.addEventListener('mouseleave', startAutoScroll);
+              scrollContainer.addEventListener('touchstart', stopAutoScroll);
+              scrollContainer.addEventListener('touchend', () => setTimeout(startAutoScroll, 5000));
+
+              // Handle window resize
+              let resizeTimer;
+              window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                  updateActiveReview();
+                }, 250);
+              });
+            }
+
+            // Start auto-scrolling
+            function startAutoScroll() {
+              stopAutoScroll();
+              if (reviews.length > 1) {
+                autoScrollInterval = setInterval(next, scrollDelay);
+              }
+            }
+
+            // Stop auto-scrolling
+            function stopAutoScroll() {
+              if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+              }
+            }
+
+            // Initialize the carousel
+            initCarousel();
+          });
+
+          // Dynamic Coaches Loader & Carousel
+          document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('coaches-container');
+            const leftBtn = document.getElementById('scroll-coaches-left');
+            const rightBtn = document.getElementById('scroll-coaches-right');
+            let coaches = [];
+            let autoScrollInterval;
+            const scrollDelay = 3000;
+            let currentIndex = 0;
+            let isScrolling = false;
+
+            async function loadCoaches() {
+              try {
+                const response = await fetch('/api/public/coaches');
+                if (!response.ok) throw new Error('Failed to fetch coaches');
+                coaches = await response.json();
+
+                if (coaches.length === 0) {
+                  container.innerHTML = `
+                    <div class="py-12 text-center w-full text-gray-500">
+                      <i data-lucide="users" class="w-8 h-8 mx-auto mb-2 opacity-20"></i>
+                      <p>Our expert coaches are wrapping up their sessions.</p>
+                      <p class="text-sm">Check back soon to meet them!</p>
+                    </div>
+                  `;
+                  if (leftBtn) leftBtn.style.display = 'none';
+                  if (rightBtn) rightBtn.style.display = 'none';
+                } else {
+                  renderCoaches();
+                  initCoachesCarousel();
+                }
+                lucide.createIcons();
+              } catch (err) {
+                console.error('Error loading coaches:', err);
+                container.innerHTML = '<p class="text-center py-12 text-red-500">Failed to load coaches. Please try again later.</p>';
+              }
+            }
+
+            function renderCoaches() {
+              container.innerHTML = coaches.map((coach, index) => {
+                const colors = [
+                  { bg: 'from-indigo-50 to-purple-50', border: 'border-indigo-400', text: 'text-indigo-600' },
+                  { bg: 'from-green-50 to-teal-50', border: 'border-green-400', text: 'text-green-600' },
+                  { bg: 'from-purple-50 to-pink-50', border: 'border-purple-400', text: 'text-purple-600' },
+                  { bg: 'from-blue-50 to-cyan-50', border: 'border-blue-400', text: 'text-blue-600' },
+                  { bg: 'from-yellow-50 to-orange-50', border: 'border-yellow-400', text: 'text-yellow-600' },
+                  { bg: 'from-red-50 to-pink-50', border: 'border-red-400', text: 'text-red-600' }
+                ];
+                const theme = colors[index % colors.length];
+                const photo = coach.profile_photo || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE5IDIxdi0yYTQgNCAwIDAgMC00LTRIOWE0IDQgMCAwIDAgLTQgNHYyIj48L3BhdGg+PGNpcmNsZSBjeD0iMTIiIGN5PSI3IiByPSI0Ij48L2NpcmNsZT48L3N2Zz4=';
+
+                return `
+                  <div class="coach-card p-6 w-72 flex-shrink-0 rounded-xl bg-gradient-to-br ${theme.bg} border-l-4 ${theme.border} shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300" 
+                       onclick="window.location.href='./coach-profile.html?id=${coach.id}'">
+                    <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 bg-white">
+                      <img src="${photo}" alt="${coach.name}" class="w-full h-full object-cover">
+                    </div>
+                    <h4 class="text-xl font-semibold text-center text-gray-800">${coach.name}</h4>
+                    <p class="${theme.text} text-sm text-center mb-3 font-medium">${coach.coach_type || 'Expert Coach'}</p>
+                    <p class="text-gray-600 text-sm text-center mb-4 line-clamp-2">${coach.bio || 'Professional coach dedicated to your growth and success.'}</p>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="${theme.text} text-xs font-bold uppercase tracking-wider bg-white/50 px-2 py-1 rounded-full">${coach.coach_type}</span>
+                      <div class="flex items-center bg-white/50 px-2 py-1 rounded-full">
+                        <span class="text-xs font-bold ${theme.text}">₹${coach.hourly_rate || 'N/A'}/hr</span>
+                      </div>
+                    </div>
+                    <div class="flex justify-center space-x-1 text-yellow-400">
+                      <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                      <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                      <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                      <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                      <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+
+            function initCoachesCarousel() {
+              const cards = container.querySelectorAll('.coach-card');
+              if (cards.length <= 2) {
+                if (leftBtn) leftBtn.style.display = 'none';
+                if (rightBtn) rightBtn.style.display = 'none';
+                return;
+              }
+
+              if (leftBtn) leftBtn.addEventListener('click', prevCoach);
+              if (rightBtn) rightBtn.addEventListener('click', nextCoach);
+
+              const scrollContainer = document.getElementById('coaches-scroll');
+              scrollContainer.addEventListener('mouseenter', stopAutoScroll);
+              scrollContainer.addEventListener('mouseleave', startAutoScroll);
+
+              startAutoScroll();
+            }
+
+            function nextCoach() {
+              if (isScrolling) return;
+              isScrolling = true;
+              const cards = container.querySelectorAll('.coach-card');
+              const maxIndex = Math.max(0, cards.length - 2);
+              currentIndex = (currentIndex + 1) > maxIndex ? 0 : currentIndex + 1;
+              updateCoachesPosition();
+              setTimeout(() => { isScrolling = false; }, 500);
+            }
+
+            function prevCoach() {
+              if (isScrolling) return;
+              isScrolling = true;
+              const cards = container.querySelectorAll('.coach-card');
+              const maxIndex = Math.max(0, cards.length - 2);
+              currentIndex = (currentIndex - 1) < 0 ? maxIndex : currentIndex - 1;
+              updateCoachesPosition();
+              setTimeout(() => { isScrolling = false; }, 500);
+            }
+
+            function updateCoachesPosition() {
+              const cards = container.querySelectorAll('.coach-card');
+              if (cards.length === 0) return;
+              const cardWidth = cards[0].offsetWidth + 24; // width + gap
+              container.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+            }
+
+            function startAutoScroll() {
+              stopAutoScroll();
+              const cards = container.querySelectorAll('.coach-card');
+              if (cards.length > 2) {
+                autoScrollInterval = setInterval(nextCoach, scrollDelay);
+              }
+            }
+
+            function stopAutoScroll() {
+              if (autoScrollInterval) clearInterval(autoScrollInterval);
+            }
+
+            loadCoaches();
+          });
+        </script>
+        <div class="mt-6 text-center">
+        </div>
+    </section>
+
+    <!-- Collaborations / Integrations -->
+    <section class="mt-16 card card-lg raise w-full">
+      <div class="flex items-center gap-2 mb-8"><i data-lucide="link"></i>
+        <h3 class="text-2xl font-bold">Works with your favorite tools</h3>
+      </div>
+      <p class="text-lg text-slate-700 mb-6">Planexa integrates seamlessly with these powerful productivity tools,
+        creating a complete workflow solution.</p>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4 w-full">
+        <!-- Grit -->
+        <div class="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow">
+          <div
+            class="w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center">
+            <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+          </div>
+          <h4 class="font-semibold text-lg mb-2">Grit</h4>
+          <p class="text-sm text-gray-600">Todo list and habit tracker for building better routines and staying
+            productive.</p>
+        </div>
+
+        <!-- Etar Calendar -->
+        <div class="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow">
+          <div
+            class="w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-600 flex items-center justify-center">
+            <i data-lucide="calendar" class="w-6 h-6 text-white"></i>
+          </div>
+          <h4 class="font-semibold text-lg mb-2">Etar Calendar</h4>
+          <p class="text-sm text-gray-600">Open-source calendar that syncs with Google Calendar while respecting your
+            privacy.</p>
+        </div>
+
+        <!-- Simplenote -->
+        <div class="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow">
+          <div
+            class="w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
+            <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+          </div>
+          <h4 class="font-semibold text-lg mb-2">Simplenote</h4>
+          <p class="text-sm text-gray-600">Minimalist note-taking app that keeps your thoughts organized across all
+            devices.</p>
+        </div>
+
+        <!-- Cal.com -->
+        <div class="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow">
+          <div
+            class="w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r from-pink-500 to-rose-600 flex items-center justify-center">
+            <i data-lucide="calendar-days" class="w-6 h-6 text-white"></i>
+          </div>
+          <h4 class="font-semibold text-lg mb-2">Cal.com</h4>
+          <p class="text-sm text-gray-600">Open-source scheduling infrastructure with complete control over your data.
+          </p>
+        </div>
+    </section>
+
+
+    <!-- Featured Coaches -->
+    <section class="mt-16 card card-lg raise w-full">
+      <div class="flex items-center gap-2 mb-8"><i data-lucide="users"></i>
+        <h3 class="text-2xl font-bold">Meet Our Expert Coaches</h3>
+      </div>
+      <div class="relative">
+        <div id="coaches-scroll" class="flex gap-6 overflow-x-hidden pb-6 w-full">
+          <div id="coaches-container"
+            class="coaches-container flex gap-6 transition-transform duration-500 ease-in-out">
+            <!-- Coaches will be loaded dynamically -->
+            <div class="py-12 text-center w-full text-gray-500">
+              <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2"></i>
+              <p>Loading our expert coaches...</p>
+            </div>
+          </div>
+        </div>
+        <button id="scroll-coaches-left"
+          class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10">
+          <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
+        </button>
+        <button id="scroll-coaches-right"
+          class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10">
+          <i data-lucide="chevron-right" class="w-6 h-6 text-gray-700"></i>
+        </button>
+      </div>
+      <div class="mt-6 text-center">
+        <a href="./coaches.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
+          <span>View All Coaches</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+        </a>
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="mt-16 text-center py-16 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl" data-when="guest">
+      <h3 class="text-3xl font-bold mb-4">Ready to boost your productivity?</h3>
+      <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">Join the productive community that has transformed their
+        productivity with Planexa. Start for free today.</p>
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <a id="get-started" href="./app.html#todo" class="btn btn-primary btn-lg"><i data-lucide="rocket"></i><span>Get
+            Started Free</span></a>
+        <a href="./login-fixed.html" class="btn btn-lg"><i data-lucide="user"></i><span>Sign In</span></a>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    const API_BASE = 'http://localhost:3000';
+    const NAME_KEY = 'planner.user';
+    let currentUser = null;
+
+    // Check if user is logged in
+    async function checkSession() {
+      try {
+        const userData = localStorage.getItem(NAME_KEY);
+        if (!userData) return null;
+
+        const token = JSON.parse(userData).token;
+        if (!token) return null;
+
+        const r = await fetch(`${API_BASE}/api/session`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!r.ok) return null;
+        const data = await r.json();
+        return data.isAuthenticated ? data.user : null;
+      } catch (err) {
+        console.error('Session check error:', err);
+        return null;
+      }
+    }
+
+    function getLocalUser() {
+      try {
+        const raw = localStorage.getItem(NAME_KEY);
+        if (!raw) return null;
+        const stored = JSON.parse(raw);
+        // Support both shapes: {user, token} and plain user object
+        const u = stored?.user || stored;
+        if (!u || (!u.email && !u.username)) return null;
+        return u;
+      } catch { return null; }
+    }
+
+    function setGates(authed) {
+      const authedElements = document.querySelectorAll('[data-when="authed"]');
+      const guestElements = document.querySelectorAll('[data-when="guest"]');
+
+      authedElements.forEach(el => {
+        if (el) el.hidden = !authed;
+      });
+      guestElements.forEach(el => {
+        if (el) el.hidden = authed;
+      });
+    }
+
+    function applyUser(user) {
+      currentUser = user;
+      setAvatar(user);
+      setGates(!!user);
+      updateAuthUI(user);
+    }
+
+    function setAvatar(user) {
+      const avatarInitial = document.getElementById('avatar-initial');
+      if (avatarInitial) {
+        if (user) {
+          const initial = (user.email?.[0]) || (user.username?.[0]) || (user.name?.[0]) || 'U';
+          avatarInitial.textContent = String(initial).toUpperCase();
+        } else {
+          avatarInitial.textContent = '?';
+        }
+      }
+    }
+
+    function updateAuthUI(user) {
+      const profileLink = document.getElementById('nav-profile-link');
+      const avatarLink = document.getElementById('avatar-link');
+      const avatarInitial = document.getElementById('avatar-initial');
+
+      // Update profile link
+      if (profileLink) {
+        profileLink.href = user ? './app.html#profile' : './login-fixed.html';
+      }
+
+      // Update avatar link and appearance
+      if (avatarLink) {
+        avatarLink.href = user ? './app.html#profile' : './login-fixed.html';
+        avatarLink.title = user ? 'Profile' : 'Log In';
+      }
+
+      // Update avatar initial
+      if (avatarInitial) {
+        if (user) {
+          const initial = (user.email?.[0]) || (user.username?.[0]) || (user.name?.[0]) || 'U';
+          avatarInitial.textContent = String(initial).toUpperCase();
+        } else {
+          avatarInitial.textContent = '?';
+        }
+      }
+    }
+
+    // Handle sign out
+    async function handleSignOut() {
+      try {
+        const response = await fetch('/api/signout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Clear local storage
+          localStorage.removeItem(NAME_KEY);
+          // Update UI to show guest state
+          applyUser(null);
+          // Redirect to landing page
+          window.location.href = '/';
+        } else {
+          console.error('Sign out failed:', await response.text());
+        }
+      } catch (error) {
+        console.error('Sign out error:', error);
+      }
+    }
+
+    // Initialize auth state on page load
+    document.addEventListener('DOMContentLoaded', async function () {
+      // Add event listener for sign out button
+      const logoutButton = document.getElementById('logout-landing');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', handleSignOut);
+      }
+
+      // Check if user is logged in
+      const user = await checkSession() || getLocalUser();
+      // Update UI based on auth state
+      setGates(!!user);
+      if (user) {
+        applyUser(user);
+      }
+
+      // Settings sidebar functionality
+      const settingsButton = document.getElementById('settings-button');
+      const closeSettings = document.getElementById('close-settings');
+      const settingsSidebar = document.getElementById('settings-sidebar');
+      const settingsOverlay = document.getElementById('settings-overlay');
+
+      // Open settings
+      if (settingsButton) {
+        settingsButton.addEventListener('click', function () {
+          settingsSidebar.classList.remove('translate-x-full');
+          settingsOverlay.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+        });
+      }
+
+      // Close settings
+      function closeSettingsSidebar() {
+        settingsSidebar.classList.add('translate-x-full');
+        settingsOverlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      if (closeSettings) {
+        closeSettings.addEventListener('click', closeSettingsSidebar);
+      }
+
+      if (settingsOverlay) {
+        settingsOverlay.addEventListener('click', closeSettingsSidebar);
+      }
+
+      // Handle menu item clicks
+      const menuItems = document.querySelectorAll('.settings-menu-item');
+      menuItems.forEach(item => {
+        item.addEventListener('click', function () {
+          const section = this.getAttribute('data-section');
+          console.log('Selected section:', section);
+          // Add your section handling logic here
+          // For example: window.location.href = `/settings/${section}`;
+        });
+      });
+
+      // Close with Escape key
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !settingsSidebar.classList.contains('translate-x-full')) {
+          closeSettingsSidebar();
+        }
+      });
+    });
+
+    // Initialize the page
+    let sessionChecked = false;
+    (async () => {
+      document.querySelectorAll('[data-when]').forEach(el => { el.hidden = true; });
+      const localFirst = getLocalUser();
+      if (localFirst) {
+        applyUser(localFirst);
+      } else {
+        applyUser(null);
+      }
+      // Now confirm with server, but always prefer local fallback if server unavailable
+      let user = await checkSession();
+      const userFinal = user || localFirst || null;
+      applyUser(userFinal);
+      sessionChecked = true;
+
+      // Guard app feature links: if session not yet known, re-check before deciding
+      document.querySelectorAll('a[href^="./app.html"]').forEach(a => {
+        a.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const targetHref = a.getAttribute('href');
+          if (currentUser) {
+            window.location.replace(targetHref);
+            return;
+          }
+          if (!sessionChecked) {
+            const userNow = await checkSession();
+            if (userNow) {
+              applyUser(userNow);
+              window.location.replace(targetHref);
+              return;
+            }
+          }
+          const localUser = getLocalUser();
+          if (localUser) {
+            applyUser(localUser);
+            window.location.replace(targetHref);
+            return;
+          }
+          // If still not authed, go to login
+          window.location.href = './login-fixed.html';
+        });
+      });
+    })();
+
+    // Handle get-started navigation specifically for the main CTA buttons
+    document.querySelectorAll('.cta-button[href*="get-started.html"], .hero-cta[href*="get-started.html"]').forEach(button => {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.location.href = this.getAttribute('href');
+      });
+    });
+
+
+    // --- Pricing currency toggle ---
+    function updatePrices(currency) {
+      const spans = document.querySelectorAll('.price');
+      spans.forEach(s => {
+        const v = s.getAttribute(currency === 'INR' ? 'data-inr' : 'data-usd');
+        if (v) s.textContent = v;
+      });
+      // button states
+      const usdBtn = document.getElementById('price-usd');
+      const inrBtn = document.getElementById('price-inr');
+      if (usdBtn && inrBtn) {
+        if (currency === 'INR') {
+          inrBtn.classList.add('bg-slate-100');
+          usdBtn.classList.remove('bg-slate-100');
+        } else {
+          usdBtn.classList.add('bg-slate-100');
+          inrBtn.classList.remove('bg-slate-100');
+        }
+      }
+    }
+    document.getElementById('price-usd')?.addEventListener('click', () => updatePrices('USD'));
+    document.getElementById('price-inr')?.addEventListener('click', () => updatePrices('INR'));
+    // default to USD on load
+    updatePrices('USD');
+
+    // Add click handler for logo if it exists
+    const logo = document.querySelector('.logo');
+    if (logo) {
+      logo.addEventListener('click', () => {
+        window.location.href = '/landing.html';
+      });
+    }
+
+  </script>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Planexa Info -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-2">
+            <div
+              class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+            </div>
+            <span
+              class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+          </div>
+          <p class="text-gray-400">Helping you organize your life and achieve your goals with powerful planning tools
+            and expert guidance.</p>
+        </div>
+
+        <!-- Explore -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Explore</h3>
+          <ul class="space-y-2">
+            <li><a href="landing.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+            <li><a href="blogmain.html" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+            <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Podcasts</a></li>
+            <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Videos</a></li>
+          </ul>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Company</h3>
+          <ul class="space-y-2">
+            <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+            <li><a href="pricing.html" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+            <li><a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+            <li><a href="faq.html" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+          </ul>
+        </div>
+
+        <!-- Connect -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Connect</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-gray-400 mb-2">Subscribe to our Podcast</p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <a href="media.html"
+                  class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                  <span>Apple Podcasts</span>
+                </a>
+                <a href="media.html"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                  <span>Spotify</span>
+                </a>
+              </div>
+            </div>
+            <div class="pt-4 border-t border-gray-800">
+              <div class="flex space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="twitter" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="facebook" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="instagram" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                  <i data-lucide="linkedin" class="w-5 h-5"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-16 pt-8 border-t border-gray-800">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+            <span class="hidden md:inline text-gray-600">|</span>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+            <span class="hidden md:inline text-gray-600">|</span>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+          </div>
+          <p class="mt-4 md:mt-0 text-gray-400 text-sm">
+            &copy; 2025 Planexa. All rights reserved.
+            <span class="block md:inline mt-1 md:mt-0">Designed &amp; Powered by
+              <a href="https://purplehuetechnosoft.com" target="_blank" rel="noopener"
+                class="text-indigo-400 hover:text-white transition-colors">
+                Purple Hue Technosoft Pvt. Ltd.
+              </a>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <!-- Floating Customer Service Button -->
+  <a href="customer-service/customer.html" class="customer-service-btn hidden" aria-label="Customer Service"
+    data-when="authed">
+    <i data-lucide="message-circle" class="w-8 h-8"></i>
+  </a>
+
+  <script>
+    // Initialize Lucide icons for the customer service button
+    document.addEventListener('DOMContentLoaded', function () {
+      lucide.createIcons();
+    });
+
+    // Authentication Logic
+    // Combined Auth Logic
+    const sessionData = JSON.parse(localStorage.getItem('planner.user') || 'null');
+    const isAuthed = !!sessionData;
+    // Check both possible structures (from login page vs from checkAuth)
+    const role = sessionData?.userType || sessionData?.user_type || sessionData?.user?.user_type;
+    const isRegularUser = isAuthed && role === 'user';
+
+    document.querySelectorAll('[data-when]').forEach(el => {
+      const when = el.dataset.when;
+      if (when === 'authed') {
+        // Only show 'authed' sections on landing for regular users, not coaches/admins
+        if (isRegularUser) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      } else if (when === 'guest') {
+        if (isAuthed) el.classList.add('hidden');
+        else el.classList.remove('hidden');
+      }
+    });
+
+    // Integrated Logout Logic
+    document.getElementById('logout-landing')?.addEventListener('click', () => {
+      if (window.AuthHelper) {
+        window.AuthHelper.logout();
+      } else {
+        // Fallback
+        localStorage.removeItem('planner.user');
+        window.location.replace('/landing.html');
+      }
+    });
+  </script>
+
+</body>
+
+</html>

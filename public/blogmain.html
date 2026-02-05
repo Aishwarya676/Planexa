@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planexa Blog - Expert Insights & Tips</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .blog-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-tag {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="landing.html" class="flex items-center space-x-2">
+                <div class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Expert Insights & Tips</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">Discover articles and resources from our expert coaches
+                to help you achieve your personal and professional goals.</p>
+            <div class="mt-8 flex justify-center">
+                <div class="relative w-full max-w-xl">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Article Detail View (Hidden by default) -->
+    <section id="article-detail" class="hidden py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <button id="back-to-articles"
+                class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium mb-8 transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                Back to Articles
+            </button>
+
+            <article class="prose prose-lg max-w-none">
+                <div id="article-category"
+                    class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full mb-4">
+                </div>
+                <h1 id="article-title" class="text-4xl font-bold text-gray-900 mb-4"></h1>
+
+                <div class="flex items-center text-gray-600 mb-8 pb-8 border-b border-gray-200">
+                    <div class="flex items-center">
+                        <i data-lucide="user" class="w-5 h-5 mr-2"></i>
+                        <span id="article-author" class="font-medium"></span>
+                    </div>
+                    <span class="mx-4">•</span>
+                    <div class="flex items-center">
+                        <i data-lucide="calendar" class="w-5 h-5 mr-2"></i>
+                        <span id="article-date"></span>
+                    </div>
+                </div>
+
+                <img id="article-image" src="" alt="" class="w-full h-96 object-cover rounded-xl mb-8 shadow-lg">
+
+                <div id="article-content" class="text-gray-700 leading-relaxed text-lg space-y-4"></div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Featured Articles -->
+    <section id="recent" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Latest Articles</h2>
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Articles will be loaded here dynamically -->
+                <div class="col-span-full text-center py-12 text-gray-500">
+                    <i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto mb-2"></i>
+                    <p>Loading articles...</p>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                    const grid = document.getElementById('articles-grid');
+                    let allArticles = [];
+                    let showingAll = false;
+
+                    try {
+                        const res = await fetch('/api/articles');
+                        allArticles = await res.json();
+
+                        grid.innerHTML = ''; // Clear loader
+
+                        if (allArticles.length === 0) {
+                            grid.innerHTML = `
+                             <div class="col-span-full text-center py-12 text-gray-500">
+                               <p>No articles found yet. Check back soon!</p>
+                             </div>
+                           `;
+                            return;
+                        }
+
+                        // Function to render articles
+                        function renderArticles(articles) {
+                            grid.innerHTML = '';
+                            articles.forEach(article => {
+                                const date = new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                const isAdmin = article.coach_id === null;
+                                const colorClass = isAdmin ? 'purple' : 'blue';
+                                const bgGradient = isAdmin
+                                    ? 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100'
+                                    : 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100';
+
+                                const card = document.createElement('article');
+                                card.className = `blog-card ${bgGradient} border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full`;
+                                card.innerHTML = `
+                                   <div class="relative h-48 overflow-hidden">
+                                       <img src="${article.image_url || 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80'}" 
+                                            alt="${article.title}" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                                       <span class="category-tag bg-${colorClass}-600 text-white shadow-sm">${article.category || 'General'}</span>
+                                   </div>
+                                   <div class="p-6 flex flex-col flex-1">
+                                       <div class="flex items-center text-sm text-${colorClass}-600 font-medium mb-2">
+                                           <i data-lucide="${isAdmin ? 'shield-check' : 'user'}" class="w-4 h-4 mr-1"></i>
+                                           <span>By ${article.author_name || 'PlannIt Team'}</span>
+                                           <span class="mx-2 text-gray-300">•</span>
+                                           <span class="text-gray-500 font-normal">${date}</span>
+                                       </div>
+                                       <h3 class="text-xl font-bold mb-2 text-gray-800 line-clamp-2 leading-snug">${article.title}</h3>
+                                       <p class="text-gray-600 mb-4 line-clamp-3 flex-1 text-sm leading-relaxed">${article.description || article.content.substring(0, 100) + '...'}</p>
+                                       <a href="#" data-article-id="${article.id}" class="read-article-link text-${colorClass}-600 font-bold hover:text-${colorClass}-800 inline-flex items-center mt-auto transition-colors">
+                                           Read Article <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                                       </a>
+                                   </div>
+                               `;
+                                grid.appendChild(card);
+                            });
+
+                            // Add click event listeners to all Read Article links
+                            grid.querySelectorAll('.read-article-link').forEach(link => {
+                                link.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const articleId = parseInt(link.getAttribute('data-article-id'));
+                                    showArticle(articleId);
+                                });
+                            });
+
+                            lucide.createIcons();
+                        }
+
+                        // Initially show only 6 articles
+                        renderArticles(allArticles.slice(0, 6));
+
+                        // Always show button, enable only if more than 6 articles
+                        const viewAllBtn = document.getElementById('view-all-btn');
+                        viewAllBtn.classList.remove('hidden');
+
+                        viewAllBtn.addEventListener('click', () => {
+                            showingAll = !showingAll;
+                            if (showingAll) {
+                                renderArticles(allArticles);
+                                viewAllBtn.innerHTML = '<i data-lucide="chevron-up" class="w-5 h-5 mr-2"></i> Show Less';
+                            } else {
+                                renderArticles(allArticles.slice(0, 6));
+                                viewAllBtn.innerHTML = '<i data-lucide="chevron-down" class="w-5 h-5 mr-2"></i> View All Articles';
+                            }
+                            lucide.createIcons();
+                        });
+
+                        // Function to show article detail
+                        window.showArticle = function (articleId) {
+                            const article = allArticles.find(a => a.id === articleId);
+                            if (!article) return;
+
+                            // Populate article detail
+                            document.getElementById('article-category').textContent = article.category || 'General';
+                            document.getElementById('article-title').textContent = article.title;
+                            document.getElementById('article-author').textContent = article.author_name || 'Planexa Team';
+                            document.getElementById('article-date').textContent = new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                            document.getElementById('article-image').src = article.image_url || 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80';
+                            document.getElementById('article-image').alt = article.title;
+
+                            // Format content with paragraphs
+                            const contentDiv = document.getElementById('article-content');
+                            const paragraphs = article.content.split('\n').filter(p => p.trim());
+                            contentDiv.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+
+                            // Hide articles list, show detail
+                            document.getElementById('recent').classList.add('hidden');
+                            document.getElementById('article-detail').classList.remove('hidden');
+
+                            // Scroll to top
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                            lucide.createIcons();
+                        };
+
+                        // Back to articles button
+                        document.getElementById('back-to-articles').addEventListener('click', () => {
+                            document.getElementById('article-detail').classList.add('hidden');
+                            document.getElementById('recent').classList.remove('hidden');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        });
+                    } catch (e) {
+                        console.error(e);
+                        grid.innerHTML = '<p class="text-center text-red-500 col-span-full">Failed to load articles.</p>';
+                    }
+                });
+            </script>
+
+            <!-- View All Button -->
+            <div class="text-center mt-12">
+                <button id="view-all-btn"
+                    class="hidden inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    <i data-lucide="chevron-down" class="w-5 h-5 mr-2"></i>
+                    View All Articles
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Planexa Info -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div
+                            class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <span
+                            class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+                    </div>
+                    <p class="text-gray-400">Helping you organize your life and achieve your goals with powerful
+                        planning tools
+                        and expert guidance.</p>
+                </div>
+
+                <!-- Explore -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Explore</h3>
+                    <ul class="space-y-2">
+                        <li><a href="landing.html" class="text-gray-400 hover:text-white transition-colors">Home</a>
+                        </li>
+                        <li><a href="blogmain.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                        </li>
+                        <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Podcasts</a>
+                        </li>
+                        <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Videos</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a>
+                        </li>
+                        <li><a href="pricing.html" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+                        </li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact</a>
+                        </li>
+                        <li><a href="faq.html" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Connect -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Connect</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-400 mb-2">Subscribe to our Podcast</p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="media.html"
+                                    class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                    <span>Apple Podcasts</span>
+                                </a>
+                                <a href="media.html"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                    <span>Spotify</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-800">
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="twitter" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="facebook" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="instagram" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="linkedin" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-16 pt-8 border-t border-gray-800">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+                        <span class="hidden md:inline text-gray-600">|</span>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+                        <span class="hidden md:inline text-gray-600">|</span>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+                    </div>
+                    <p class="mt-4 md:mt-0 text-gray-400 text-sm">
+                        &copy; 2025 Planexa. All rights reserved.
+                        <span class="block md:inline mt-1 md:mt-0">Designed &amp; Powered by
+                            <a href="https://purplehuetechnosoft.com" target="_blank" rel="noopener"
+                                class="text-indigo-400 hover:text-white transition-colors">
+                                Purple Hue Technosoft Pvt. Ltd.
+                            </a>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

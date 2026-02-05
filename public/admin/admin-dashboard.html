@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@0.263.0"></script>
+    <script src="/js/auth-helper.js"></script>
+</head>
+
+<body class="bg-indigo-50">
+
+    <div class="flex">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-white shadow-lg h-screen p-6 flex flex-col justify-between">
+
+            <div>
+                <h2 class="text-2xl font-bold text-indigo-700 mb-8">Admin Panel</h2>
+
+                <!-- ADMIN EMAIL BOX -->
+                <div class="mt-2 mb-6 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <p class="text-sm text-gray-600">Logged in as</p>
+                    <p class="text-md font-semibold text-indigo-700">planneradmin@gmail.com</p>
+                </div>
+
+
+                <ul class="space-y-4">
+                    <li><a href="#" onclick="showSection('users')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link active-nav">Users</a>
+                    </li>
+                    <li><a href="#" onclick="showSection('coaches')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Coaches
+                            List</a></li>
+                    <li><a href="#" onclick="showSection('verification')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Verification
+                            <span id="pendingCountBadge"
+                                class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">0</span></a>
+                    </li>
+                    <li><a href="#" onclick="showSection('notifications')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Notifications</a>
+                    </li>
+                    <li><a href="#" onclick="showSection('stats')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Stats
+                            & Reports</a></li>
+                    <li><a href="#" onclick="showSection('blogs')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Blogs
+                            & Articles</a></li>
+                    <li><a href="#" onclick="showSection('complaints')"
+                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Complaints
+                            <span id="complaintCountBadge"
+                                class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">0</span></a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- SIGN OUT BUTTON (BOTTOM) -->
+            <button id="adminLogoutBtn" onclick="if(window.AuthHelper) window.AuthHelper.logout();"
+                class="flex items-center gap-3 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 
+      01-2 2H6a2 2 0 01-2-2V7a2 2 0 
+      012-2h5a2 2 0 012 2v1" />
+                </svg>
+
+                <span>Sign out</span>
+            </button>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 p-8">
+
+            <div id="categoryManagerPanel"
+                class="hidden mb-6 bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-bold text-gray-800">Coach Categories Management</h4>
+                    <button onclick="toggleCategoryManager()" class="text-gray-400 hover:text-gray-600"><i
+                            data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Add New Category -->
+                    <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
+                        <h5 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">Add New Category
+                        </h5>
+                        <div class="flex gap-2">
+                            <input type="text" id="newCategoryName" placeholder="e.g., Mental Health"
+                                class="flex-1 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border text-sm">
+                            <button onclick="addCategory()"
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Category List -->
+                    <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
+                        <h5 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">All Categories
+                        </h5>
+                        <div id="categoriesList" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                            <!-- Populated by JS -->
+                            <p class="text-sm text-gray-400 text-center py-2">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS LOGIN ACTIVITY -->
+            <section id="usersSection">
+                <!-- STATS ROW -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-indigo-500">
+                        <h4 class="text-gray-500 text-sm uppercase">Total Users</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="statTotalUsers">Loading...</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-green-500">
+                        <h4 class="text-gray-500 text-sm uppercase">Daily Active Users</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="statDAU">Loading...</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-blue-500">
+                        <h4 class="text-gray-500 text-sm uppercase">Monthly Active Users</h4>
+                        <p class="text-3xl font-bold text-gray-800" id="statMAU">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- USERS SECTION -->
+                <section>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-indigo-700">Users Management</h3>
+                        <button onclick="fetchUsers()"
+                            class="text-sm text-indigo-600 hover:text-indigo-800 underline">Refresh List</button>
+                    </div>
+
+                    <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-indigo-100">
+                                    <th class="py-2 px-3">Name</th>
+                                    <th class="py-2 px-3">Email</th>
+                                    <th class="py-2 px-3">Role</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Populated by JS -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- COACHES (Initially Hidden) -->
+            <section id="coachesSection" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-indigo-700">Coaches Directory</h3>
+                    <button onclick="toggleCategoryManager()"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm flex items-center gap-2">
+                        <i data-lucide="settings-2" class="w-4 h-4"></i> Manage Categories
+                    </button>
+                </div>
+                <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-indigo-100">
+                                <th class="py-2 px-3">Name</th>
+                                <th class="py-2 px-3">Email</th>
+                                <th class="py-2 px-3">Clients</th>
+                                <th class="py-2 px-3">Category</th>
+                                <th class="py-2 px-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coachesTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VERIFICATION SECTION -->
+            <section id="verificationSection" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-indigo-700">Pending Coach Verifications</h3>
+                    <button onclick="fetchPendingCoaches()"
+                        class="text-sm text-indigo-600 hover:text-indigo-800 underline">Refresh</button>
+                </div>
+
+                <div class="overflow-hidden bg-white shadow rounded-xl p-6">
+                    <div id="pendingContainer" class="space-y-6">
+                        <p class="text-gray-500 text-center py-8">Loading pending verifications...</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- NOTIFICATIONS SECTION -->
+            <section id="notificationsSection" class="hidden">
+                <h3 class="text-2xl font-bold text-indigo-700 mb-6">Push Notifications</h3>
+                <div class="bg-white p-8 rounded-xl shadow max-w-2xl">
+                    <form onsubmit="sendPushNotification(event)" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+                            <select id="pushTarget"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                onchange="toggleUserIdInput()">
+                                <option value="all">All Subscribers</option>
+                                <option value="single">Single User (by ID)</option>
+                            </select>
+                        </div>
+                        <div id="userIdInputGroup" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                            <input type="text" id="pushUserId"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="e.g. 123">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input type="text" id="pushTitle"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="e.g. New Feature Alert!" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Message Body</label>
+                            <textarea id="pushBody" rows="3"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="Message content..." required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Click URL (Optional)</label>
+                            <input type="text" id="pushUrl"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                value="/app.html">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition font-medium">Send
+                            Notification</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- BLOGS SECTION -->
+            <section id="blogsSection" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-indigo-700">Blogs & Articles</h3>
+
+                    <!-- Sub-navigation -->
+                    <div class="flex bg-white rounded-lg p-1 shadow-sm border border-indigo-100">
+                        <button onclick="switchBlogView('list')" id="blogViewListBtn"
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all bg-indigo-600 text-white">
+                            All Articles
+                        </button>
+                        <button onclick="switchBlogView('create')" id="blogViewCreateBtn"
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-indigo-600">
+                            Create Article
+                        </button>
+                        <button onclick="switchBlogView('pending')" id="blogViewPendingBtn"
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-indigo-600">
+                            Pending Approvals
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PENDING ARTICLES VIEW -->
+                <div id="pendingArticlesView" class="hidden space-y-4">
+                    <div
+                        class="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow border border-yellow-100">
+                        <p class="text-yellow-800 text-sm font-bold"> <i data-lucide="alert-circle"
+                                class="w-4 h-4 inline mr-1"></i> These articles are waiting for your approval before
+                            going live.</p>
+                        <button onclick="fetchPendingArticles()"
+                            class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Article</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Coach</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Category</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Submitted</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingArticlesTable">
+                                <!-- Populated by JS -->
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-gray-400">Loading pending
+                                        articles...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ALL ARTICLES LIST -->
+                <div id="allArticlesView" class="space-y-4">
+                    <div
+                        class="flex justify-between items-center bg-white p-4 rounded-xl shadow border border-indigo-50">
+                        <p class="text-gray-600 text-sm">Review and manage all articles published on the platform.
+                        </p>
+                        <button onclick="fetchAllArticles()"
+                            class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Article</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Author</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Category</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Status</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Date</th>
+                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminArticlesTable">
+                                <!-- Populated by JS -->
+                                <tr>
+                                    <td colspan="6" class="py-12 text-center text-gray-400">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <i data-lucide="loader" class="w-8 h-8 animate-spin text-indigo-400"></i>
+                                            <p>Loading articles...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CREATE ARTICLE FORM -->
+                <div id="createArticleView"
+                    class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-indigo-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h2 class="text-xl font-bold text-gray-800">Create New Article</h2>
+                        <p class="text-sm text-gray-500">Fill in the details below to create a new article for your
+                            business coaching blog.</p>
+                    </div>
+
+                    <div class="p-8">
+                        <form id="articleForm" onsubmit="publishArticle(event)" class="space-y-8">
+                            <!-- Title & Description -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <i data-lucide="heading" class="w-5 h-5 text-indigo-600"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800">Title & Description</h3>
+                                </div>
+
+                                <div class="grid gap-4">
+                                    <div>
+                                        <label for="articleTitle"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Title Tag*</label>
+                                        <input type="text" id="articleTitle" oninput="generateSlug(this.value)"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="Enter article title" required>
+                                    </div>
+
+                                    <div>
+                                        <label for="articleDescription"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Meta
+                                            Description*</label>
+                                        <textarea id="articleDescription" rows="3"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="Enter a brief description for search engines (150-160 characters)"
+                                            required></textarea>
+                                        <p class="text-xs text-gray-500 mt-1">This helps with SEO and appears in
+                                            search
+                                            results.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Content Section -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800">Article Content</h3>
+                                </div>
+
+                                <div class="grid gap-4">
+                                    <div>
+                                        <label for="articleContent"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Content*</label>
+                                        <textarea id="articleContent" rows="10"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="Write your article content here..." required></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Featured
+                                            Image</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="text" id="articleImage"
+                                                class="flex-1 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                                placeholder="Enter image URL (https://...)">
+                                            <span class="text-gray-400 text-sm">or</span>
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:bg-gray-50 transition-colors cursor-pointer flex-1"
+                                                onclick="document.getElementById('featuredImageFile').click()">
+                                                <p class="text-xs text-gray-600">Upload File</p>
+                                                <input type="file" id="featuredImageFile" accept="image/*"
+                                                    class="hidden">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SEO & Technical -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <i data-lucide="search" class="w-5 h-5 text-indigo-600"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800">SEO & Technical Details</h3>
+                                </div>
+
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="articleSlug"
+                                            class="block text-sm font-medium text-gray-700 mb-1">URL Slug*</label>
+                                        <input type="text" id="articleSlug"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="custom-url-slug" required>
+                                        <p class="text-xs text-gray-500 mt-1">Part of the article URL.</p>
+                                    </div>
+                                    <div>
+                                        <label for="articleKeywords"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Focus
+                                            Keywords</label>
+                                        <input type="text" id="articleKeywords"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="business, coaching, strategy">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Meta Robots</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-2">
+                                            <input type="checkbox" id="indexPage" checked
+                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="text-sm text-gray-700">Allow search engines to index this
+                                                page</span>
+                                        </label>
+                                        <label class="flex items-center gap-2">
+                                            <input type="checkbox" id="followLinks" checked
+                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                            <span class="text-sm text-gray-700">Allow search engines to follow links
+                                                on
+                                                this page</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Categorization -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                    <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800">Categorization</h3>
+                                </div>
+
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="articleCategory"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                                        <select id="articleCategory"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            required>
+                                            <option value="">Select a category</option>
+                                            <option value="Business">Business Strategy</option>
+                                            <option value="Leadership">Leadership</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Productivity">Productivity</option>
+                                            <option value="Mental Health">Mental Health</option>
+                                            <option value="Finance">Finance</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="articleTags"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                                        <input type="text" id="articleTags"
+                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            placeholder="Add tags separated by commas">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="flex items-center gap-2 mt-2">
+                                        <input type="checkbox" id="featured"
+                                            class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                        <span class="text-sm text-gray-700 font-medium">Mark as featured
+                                            article</span>
+                                    </label>
+                                    <div class="mt-4">
+                                        <label for="articleStatus"
+                                            class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select id="articleStatus"
+                                            class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border">
+                                            <option value="published">Published</option>
+                                            <option value="draft">Draft</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
+                                <button type="button" onclick="document.getElementById('articleForm').reset()"
+                                    class="px-6 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+                                    <i data-lucide="x" class="w-4 h-4"></i> Cancel
+                                </button>
+                                <button type="submit" id="publishBtn"
+                                    class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 font-bold shadow-lg shadow-indigo-100">
+                                    <i data-lucide="save" class="w-4 h-4"></i> Publish Article
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COMPLAINTS SECTION -->
+            <section id="complaintsSection" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-indigo-700">User Complaints & Feedback</h3>
+                    <button onclick="fetchComplaints()"
+                        class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
+                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">User Information
+                                </th>
+                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Subject & Message
+                                </th>
+                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Status</th>
+                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Submitted At</th>
+                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="complaintsTable">
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-gray-400">Loading complaints...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <!-- COACH DETAILS MODAL -->
+    <div id="coachDetailsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+
+            <div class="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
+                <h3 class="text-2xl font-bold text-gray-800">Coach Application Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-8 space-y-8" id="modalContent">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl sticky bottom-0">
+                <button onclick="closeModal()"
+                    class="px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                    Close
+                </button>
+                <div id="modalActions" class="flex gap-3">
+                    <!-- Actions injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER HISTORY MODAL -->
+    <div id="userHistoryModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800">Login History</h3>
+                <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-600">
+                        <tr>
+                            <th class="py-2 px-3">Date/Time</th>
+                            <th class="py-2 px-3">IP Address</th>
+                            <th class="py-2 px-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-xl text-right">
+                <button onclick="closeHistoryModal()"
+                    class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT (ALL INSIDE SAME FILE) -->
+    <script>
+        // Global state for coaches to avoid huge strings in HTML attributes
+        let state = {
+            allCoaches: [],
+            pendingCoaches: []
+        };
+
+        async function loadAdminData() {
+            try {
+                // 1. Fetch Stats
+                const statsRes = await fetch('/api/admin/stats');
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('statTotalUsers').innerText = stats.totalUsers;
+                    document.getElementById('statDAU').innerText = stats.dailyActive;
+                    document.getElementById('statMAU').innerText = stats.monthlyActive;
+                }
+
+                // 2. Fetch Users
+                await fetchUsers();
+
+                // 3. Fetch Coaches
+                await fetchCoaches();
+
+                // 4. Fetch Complaints (for badge)
+                await fetchComplaints();
+            } catch (error) {
+                console.error("Error loading admin data:", error);
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch('/api/admin/users');
+                const users = await res.json();
+
+                const tbody = document.getElementById("usersTable");
+                tbody.innerHTML = '';
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No users found</td></tr>';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const statusColor = user.status === 'active' ? 'text-green-600' :
+                        user.status === 'banned' ? 'text-red-600' : 'text-gray-500';
+
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 px-3">
+                                <span class="font-medium">${user.username || 'N/A'}</span>
+                            </td>
+                            <td class="py-2 px-3 text-sm text-gray-600">${user.email}</td>
+                            <td class="py-2 px-3">
+                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">${user.role}</span>
+                            </td>
+                            <td class="py-2 px-3 font-semibold ${statusColor}">
+                                ${user.status || 'Active'}
+                            </td>
+                            <td class="py-2 px-3">
+                                <div class="relative group inline-block">
+                                    <button class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Actions ▼</button>
+                                    <!-- Dropdown -->
+                                    <div class="absolute right-0 top-full mt-1 hidden group-hover:block bg-white border border-gray-200 shadow-lg rounded z-10 w-32">
+                                        ${user.status !== 'active' ?
+                            `<button onclick="updateUserStatus('${user.id}', 'active')" class="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50">Activate</button>` :
+                            `<button onclick="updateUserStatus('${user.id}', 'inactive')" class="block w-full text-left px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50">Deactivate</button>`
+                        }
+                                        <button onclick="updateUserStatus('${user.id}', 'banned')" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Block/Ban</button>
+                                        <button onclick="viewUserHistory('${user.id}')" class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50">View Login History</button>
+                                        <hr class="my-1">
+                                        <button onclick="deleteUser('${user.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-red-100 hover:text-red-700">Delete</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                document.getElementById("usersTable").innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500">Failed to load users</td></tr>';
+            }
+        }
+
+        async function updateUserStatus(userId, status) {
+            if (!confirm(`Are you sure you want to change status to ${status}?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                if (res.ok) {
+                    fetchUsers(); // Refresh
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (e) {
+                alert('Error updating status');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm("Are you sure you want to DELETE this user? This cannot be undone.")) return;
+            try {
+                const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    fetchUsers(); // Refresh
+                } else {
+                    alert('Failed to delete user');
+                }
+            } catch (e) {
+                alert('Error deleting user');
+            }
+        }
+
+        async function fetchCoaches() {
+            try {
+                const res = await fetch('/api/admin/coaches');
+                if (!res.ok) throw new Error("Failed to fetch coaches");
+                const coaches = await res.json();
+
+                // Update both tables (Main Section and Coaches Section)
+                // Note: The HTML has two tables with same ID 'coachesTable', which is invalid HTML but we must handle it.
+                // Or better, let's fix the selector to target all matching tables or just update by ID if unique.
+                // The dashboard structure shows two <tbody id="coachesTable">. querySelectorAll is safer.
+
+                const tables = document.querySelectorAll('#coachesTable');
+
+                tables.forEach(tbody => {
+                    tbody.innerHTML = '';
+                    if (coaches.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No active coaches found</td></tr>';
+                        return;
+                    }
+
+                    state.allCoaches = coaches; // Save to state
+
+                    coaches.forEach((coach, index) => {
+                        // Filter out if user wants them "removed from everywhere" (including this list?)
+                        // The user said: "removed from everywhere. they shouldnt be in coach list at all"
+                        // But usually admins need to see blocked users to unblock them.
+                        // However, the request was explicit: "they shouldnt be in coach list at all"
+                        // I will hide them from the MAIN list, but maybe keep them in database.
+                        // If I assume "coach list" refers to the *Admin Dashboard Coach List*, then I should filter.
+                        // But then how do they unblock?
+                        // "when i press block... they should get blocked from the website, and removed from everywhere. they shouldnt be in coach list at all"
+                        // This implies the *public* list and maybe the *admin* list too?
+                        // If I remove them from Admin list, they are gone forever unless accessed via DB.
+                        // I'll filter them from the UI but maybe add a toggle later? 
+                        // For now, I will strictly follow "shouldnt be in coach list at all".
+                        // Wait, if I filter them, I can't check the "Unblock" button logic I see in lines 800+.
+                        // The user might mean the "Coaches List" section of the dashboard.
+
+                        if (coach.status === 'blocked' || coach.status === 'banned') return;
+
+                        tbody.innerHTML += `
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-2 px-3 font-medium text-gray-900">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${coach.profile_photo || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover">
+                                        ${coach.name}
+                                    </div>
+                                </td>
+                                <td class="py-2 px-3 text-sm text-gray-600">${coach.email}</td>
+                                <td class="py-2 px-3">${coach.hours_coached || 0} hrs</td>
+                                <td class="py-2 px-3">
+                                    <span class="px-2 py-1 rounded text-xs uppercase font-bold 
+                                        ${coach.status === 'blocked' ? 'bg-orange-100 text-orange-700' :
+                                coach.status === 'banned' ? 'bg-red-100 text-red-700' :
+                                    'bg-indigo-100 text-indigo-700'}">
+                                        ${coach.status || coach.coach_type}
+                                    </span>
+                                </td>
+                                <td class="py-2 px-3">
+                                    <button onclick="viewCoachDetails(${index}, 'approved')" class="text-indigo-600 hover:underline text-sm font-medium mr-2">View Profile</button>
+                                    
+                                    ${coach.status === 'blocked' || coach.status === 'banned' ? `
+                                        <button onclick="updateCoachStatus(${coach.id}, 'approved')" class="text-green-600 hover:text-green-800 text-xs font-bold uppercase border border-green-200 px-2 py-1 rounded">Unblock</button>
+                                    ` : `
+                                        <button onclick="updateCoachStatus(${coach.id}, 'blocked')" class="text-orange-500 hover:text-orange-700 text-xs font-bold uppercase mr-1" title="Block Temporarily"><i data-lucide="slash" class="w-3 h-3"></i></button>
+                                        <button onclick="updateCoachStatus(${coach.id}, 'banned')" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase" title="Ban Permanently"><i data-lucide="x-circle" class="w-3 h-3"></i></button>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    if (window.lucide) lucide.createIcons();
+                });
+
+            } catch (error) {
+                console.error("Error fetching coaches:", error);
+            }
+        }
+
+        // Initialize
+        loadAdminData();
+
+        // POPULATE COACHES
+
+
+        // Removed JS logout listener as inline onclick now handles logout and redirect.
+
+        // --- SECTION SWITCHING ---
+        function showSection(sectionId) {
+            // Hide all sections first
+            document.getElementById('usersSection').classList.add('hidden');
+            document.getElementById('coachesSection').classList.add('hidden');
+            document.getElementById('verificationSection').classList.add('hidden');
+            document.getElementById('notificationsSection').classList.add('hidden');
+            document.getElementById('blogsSection').classList.add('hidden');
+            document.getElementById('complaintsSection').classList.add('hidden');
+
+            // Remove active class from nav
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-nav', 'font-bold', 'bg-indigo-50'));
+
+            // Highlight clicked specific link (logic can be improved but existing uses onclick)
+            // Ideally passing 'this' or doing improved DOM manip. For now we rely on the click updating styles manually or just simplistic view switching.
+
+            // Show selected
+            if (sectionId === 'users' || sectionId === 'stats') {
+                document.getElementById('usersSection').classList.remove('hidden');
+            } else if (sectionId === 'coaches') {
+                document.getElementById('coachesSection').classList.remove('hidden');
+                fetchCategories(); // Load categories for the manager
+            } else if (sectionId === 'verification') {
+                document.getElementById('verificationSection').classList.remove('hidden');
+                fetchPendingCoaches();
+            } else if (sectionId === 'notifications') {
+                document.getElementById('notificationsSection').classList.remove('hidden');
+            } else if (sectionId === 'blogs') {
+                document.getElementById('blogsSection').classList.remove('hidden');
+                switchBlogView('list'); // Default to list view
+            } else if (sectionId === 'complaints') {
+                document.getElementById('complaintsSection').classList.remove('hidden');
+                fetchComplaints();
+            }
+        }
+
+        // --- VERIFICATION API ---
+        async function fetchPendingCoaches() {
+            const container = document.getElementById('pendingContainer');
+            container.innerHTML = '<p class="text-center text-gray-500 py-4">Checking for new applications...</p>';
+
+            try {
+                const res = await fetch('/api/admin/verifications/coaches');
+                if (!res.ok) throw new Error("Failed to fetch");
+                const pending = await res.json();
+
+                // Update badge
+                const badge = document.getElementById('pendingCountBadge');
+                if (pending.length > 0) {
+                    badge.innerText = pending.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                if (pending.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h4 class="text-lg font-medium text-gray-900">All caught up!</h4>
+                            <p class="text-gray-500">No pending coach verifications.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                state.pendingCoaches = pending; // Save to state
+
+                pending.forEach((coach, index) => {
+                    container.innerHTML += `
+                        <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wide">
+                                        ${coach.coach_type || 'General'}
+                                    </span>
+                                    <span class="text-sm text-gray-500"><i class="far fa-clock mr-1"></i> Applied: ${new Date(coach.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <h4 class="text-xl font-bold text-gray-900 mt-2">${coach.name}</h4>
+                                <p class="text-sm text-gray-600">${coach.email}</p>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="viewCoachDetails(${index}, 'pending')" 
+                                    class="px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 font-medium transition shadow-sm">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p class="text-center text-red-500 py-4">Error loading data.</p>';
+            }
+        }
+
+        async function updateCoachStatus(coachId, status) {
+            if (!confirm(`Are you sure you want to change coach status to ${status.toUpperCase()}?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/coaches/${coachId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                if (res.ok) {
+                    // Close modal if open
+                    closeModal();
+                    // Refresh coach list
+                    fetchCoaches();
+                    alert(`Coach status updated: ${status}`);
+                } else {
+                    const err = await res.json();
+                    alert('Failed: ' + (err.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Connection error');
+            }
+        }
+
+        async function verifyCoach(userId, status, btn = null) {
+            if (!confirm(`Are you sure you want to ${status.toUpperCase()} this coach?`)) return;
+
+            // Optimistic UI if simple button click
+            if (btn) {
+                const card = btn.closest('.border');
+                if (card) {
+                    card.style.opacity = '0.5';
+                }
+            }
+
+            try {
+                const res = await fetch(`/api/admin/verifications/coaches/${userId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                if (res.ok) {
+                    // Close modal if open
+                    closeModal();
+                    // Refresh list
+                    fetchPendingCoaches();
+                    // Refresh users list if approved (they might now show up as active coaches)
+                    fetchUsers();
+                } else {
+                    alert('Action failed');
+                    if (btn) {
+                        const card = btn.closest('.border');
+                        if (card) card.style.opacity = '1';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error submitting verification');
+            }
+        }
+
+        async function viewCoachDetails(index, type = 'pending') {
+            let coach = type === 'pending' ? state.pendingCoaches[index] : state.allCoaches[index];
+            if (!coach) return;
+
+            // Fetch full details (including profile photo and certificates)
+            try {
+                const res = await fetch(`/api/admin/coaches/${coach.id}`);
+                if (res.ok) {
+                    coach = await res.json();
+                    // Update state with full details so we don't re-fetch if clicked again soon
+                    if (type === 'pending') state.pendingCoaches[index] = coach;
+                    else state.allCoaches[index] = coach;
+                }
+            } catch (e) {
+                console.error("Error fetching coach details:", e);
+                // Continue with partial data if fetch fails
+            }
+
+            const modal = document.getElementById('coachDetailsModal');
+            const content = document.getElementById('modalContent');
+            const actions = document.getElementById('modalActions');
+
+            // Parse JSON fields if they are strings (server might return strings or objects depending on driver settings)
+            const parse = (val) => typeof val === 'string' ? JSON.parse(val || '[]') : (val || []);
+            const parseObj = (val) => typeof val === 'string' ? JSON.parse(val || '{}') : (val || {});
+
+            const specs = parse(coach.specialties);
+            const certs = parse(coach.certifications);
+            const socials = parseObj(coach.social_links);
+            const files = parse(coach.certificate_files);
+
+            // Render Content
+            content.innerHTML = `
+                <!-- Header Info -->
+                <div class="flex flex-col md:flex-row gap-6 items-start">
+                    <img src="${coach.profile_photo || 'https://via.placeholder.com/150'}" alt="Profile" class="w-32 h-32 rounded-lg object-cover shadow-sm border border-gray-200 bg-gray-50">
+                    <div class="flex-1">
+                        <h4 class="text-3xl font-bold text-gray-900 mb-2">${coach.name}</h4>
+                        <p class="text-lg text-indigo-600 font-medium mb-4">${coach.coach_type} Coach</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div class="flex items-center"><i class="far fa-envelope w-6"></i> ${coach.email}</div>
+                            <div class="flex items-center"><i class="fas fa-map-marker-alt w-6"></i> ${coach.location || 'N/A'}</div>
+                            <div class="flex items-center"><i class="far fa-calendar w-6"></i> DOB: ${coach.dob ? new Date(coach.dob).toLocaleDateString() : 'N/A'}</div>
+                            <div class="flex items-center"><i class="fas fa-briefcase w-6"></i> Exp: ${coach.years_experience || 0} Years</div>
+                            <div class="flex items-center"><i class="far fa-clock w-6"></i> ${coach.hours_coached || 0} Hours Coached</div>
+                            <div class="flex items-center text-indigo-700 font-bold bg-indigo-50 px-2 py-1 rounded">
+                                <i class="fas fa-rupee-sign w-6"></i> Price: ₹${coach.hourly_rate || 0}/hr
+                            </div>
+                            <div class="flex items-center text-red-600 font-medium bg-red-50 px-2 py-1 rounded">
+                                <i class="fas fa-percentage w-6"></i> Net (80%): ₹${(coach.hourly_rate * 0.8).toFixed(2)}/hr
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <section>
+                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">About</h5>
+                    <p class="text-gray-600 leading-relaxed whitespace-pre-line">${coach.bio || 'No bio provided.'}</p>
+                </section>
+
+                <!-- Specialties -->
+                <section>
+                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Specialties</h5>
+                    <div class="flex flex-wrap gap-2">
+                        ${specs.length > 0 ? specs.map(s => `<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">${s}</span>`).join('') : '<p class="text-gray-500">None listed</p>'}
+                    </div>
+                </section>
+                
+                 <!-- Socials -->
+                <section>
+                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Online Presence</h5>
+                    <div class="flex gap-4">
+                        ${socials.linkedin ? `<a href="${socials.linkedin}" target="_blank" class="text-blue-700 hover:text-blue-900"><i class="fab fa-linkedin fa-lg"></i> LinkedIn</a>` : ''}
+                        ${socials.twitter ? `<a href="${socials.twitter}" target="_blank" class="text-blue-400 hover:text-blue-600"><i class="fab fa-twitter fa-lg"></i> Twitter</a>` : ''}
+                        ${socials.website ? `<a href="${socials.website}" target="_blank" class="text-gray-700 hover:text-black"><i class="fas fa-globe fa-lg"></i> Website</a>` : ''}
+                    </div>
+                </section>
+
+                <!-- Certifications -->
+                <section>
+                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Certifications</h5>
+                    <div class="space-y-3">
+                        ${certs.length > 0 ? certs.map(c => `
+                            <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                                <p class="font-bold text-gray-900">${c.name}</p>
+                                <p class="text-sm text-gray-600">${c.org} • ${c.year} ${c.id ? '• ID: ' + c.id : ''}</p>
+                            </div>
+                        `).join('') : '<p class="text-gray-500">None listed</p>'}
+                    </div>
+                </section>
+
+                <!-- Files -->
+                <section>
+                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Uploaded Documents</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${files.length > 0 ? files.map((f, i) => `
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded border hover:bg-gray-100 transition cursor-pointer" onclick="downloadFile('${coach.user_id}', ${i})">
+                                <div class="bg-red-100 text-red-600 p-2 rounded"><i class="fas fa-file-pdf"></i></div>
+                                <div class="overflow-hidden">
+                                    <p class="font-medium text-gray-900 truncate">${f.name}</p>
+                                    <p class="text-xs text-gray-500">${f.size ? (f.size / 1024).toFixed(1) + ' KB' : ''}</p>
+                                </div>
+                                <a href="${f.data}" download="${f.name}" class="ml-auto text-indigo-600 hover:text-indigo-800 px-2 py-1 text-sm font-medium">Download</a>
+                            </div>
+                        `).join('') : '<p class="text-gray-500">No documents uploaded</p>'}
+                    </div>
+                </section>
+            `;
+
+            // Actions
+            actions.innerHTML = `
+                <div class="flex items-center gap-3 w-full">
+                    ${coach.status === 'blocked' || coach.status === 'banned' ? `
+                        <button onclick="updateCoachStatus('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition shadow-sm">Unblock / Activate Coach</button>
+                    ` : `
+                        <button onclick="updateCoachStatus('${coach.id}', 'blocked')" class="flex-1 px-4 py-2 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 font-medium transition">Block Coach</button>
+                        <button onclick="updateCoachStatus('${coach.id}', 'banned')" class="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 font-medium transition">Ban Coach</button>
+                    `}
+                    
+                    ${type === 'pending' ? `
+                        <button onclick="verifyCoach('${coach.id}', 'rejected')" class="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 font-medium transition">Reject Application</button>
+                        <button onclick="verifyCoach('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm shadow-indigo-200">Approve Coach</button>
+                    ` : ''}
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('coachDetailsModal').classList.add('hidden');
+        }
+
+        // --- VERIFICATION API ---
+        fetchPendingCoaches();
+
+        /* ---------------- NEW FEATURES JS ---------------- */
+
+
+        /* ---------------- ARTICLE PUBLISHING ---------------- */
+        // File size validation for Admin Article Image
+        document.getElementById('featuredImageFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 500 * 1024) {
+                    alert("Image must be less than 500KB.");
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    document.getElementById('articleImage').value = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function generateSlug(title) {
+            const slug = title.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '');
+            document.getElementById('articleSlug').value = slug;
+        }
+
+        async function publishArticle(e) {
+            e.preventDefault();
+            const btn = document.getElementById('publishBtn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Publishing...';
+            btn.disabled = true;
+
+            const data = {
+                title: document.getElementById('articleTitle').value,
+                slug: document.getElementById('articleSlug').value,
+                description: document.getElementById('articleDescription').value,
+                content: document.getElementById('articleContent').value,
+                category: document.getElementById('articleCategory').value,
+                imageUrl: document.getElementById('articleImage').value,
+                status: document.getElementById('articleStatus').value,
+                keywords: document.getElementById('articleKeywords').value,
+                indexPage: document.getElementById('indexPage').checked,
+                followLinks: document.getElementById('followLinks').checked,
+                tags: document.getElementById('articleTags').value,
+                featured: document.getElementById('featured').checked
+            };
+
+            try {
+                const res = await fetch('/api/articles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert('Article published successfully!');
+                    document.getElementById('articleForm').reset();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + err.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        /* ---------------- ADMIN ARTICLE MGMT ---------------- */
+        function switchBlogView(view) {
+            const listView = document.getElementById('allArticlesView');
+            const createView = document.getElementById('createArticleView');
+            const pendingView = document.getElementById('pendingArticlesView');
+
+            const listBtn = document.getElementById('blogViewListBtn');
+            const createBtn = document.getElementById('blogViewCreateBtn');
+            const pendingBtn = document.getElementById('blogViewPendingBtn');
+
+            if (!listView || !createView || !listBtn || !createBtn) return;
+
+            // Defines
+            const activeBtnClass = ['bg-indigo-600', 'text-white'];
+            const inactiveBtnClass = ['text-gray-500'];
+
+            // Reset
+            [listBtn, createBtn, pendingBtn].forEach(btn => {
+                if (btn) {
+                    btn.classList.remove(...activeBtnClass);
+                    btn.classList.add(...inactiveBtnClass);
+                }
+            });
+            [listView, createView, pendingView].forEach(v => {
+                if (v) v.classList.add('hidden');
+            });
+
+            if (view === 'list') {
+                listView.classList.remove('hidden');
+                listBtn.classList.add(...activeBtnClass);
+                listBtn.classList.remove(...inactiveBtnClass);
+                fetchAllArticles();
+            } else if (view === 'create') {
+                createView.classList.remove('hidden');
+                createBtn.classList.add(...activeBtnClass);
+                createBtn.classList.remove(...inactiveBtnClass);
+            } else if (view === 'pending') {
+                if (pendingView) pendingView.classList.remove('hidden');
+                if (pendingBtn) {
+                    pendingBtn.classList.add(...activeBtnClass);
+                    pendingBtn.classList.remove(...inactiveBtnClass);
+                }
+                fetchPendingArticles();
+            }
+        }
+
+        async function fetchPendingArticles() {
+            try {
+                const res = await fetch('/api/admin/articles/pending');
+                if (!res.ok) throw new Error('Failed to fetch pending articles');
+                const articles = await res.json();
+
+                const tbody = document.getElementById('pendingArticlesTable');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (articles.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500">No pending articles found.</td></tr>';
+                    return;
+                }
+
+                articles.forEach(article => {
+                    tbody.innerHTML += `
+                         <tr class="border-b hover:bg-gray-50 transition-colors">
+                             <td class="py-4 px-4">
+                                 <p class="font-bold text-gray-800 text-sm">${article.title}</p>
+                                 <p class="text-xs text-gray-500 mt-1 line-clamp-1">${article.description || ''}</p>
+                             </td>
+                             <td class="py-4 px-4">
+                                 <div class="flex flex-col">
+                                     <span class="text-sm font-medium text-gray-700">${article.coach_name || 'Unknown'}</span>
+                                     <span class="text-xs text-gray-500">${article.coach_email || ''}</span>
+                                 </div>
+                             </td>
+                             <td class="py-4 px-4 text-sm text-gray-600">${article.category || 'N/A'}</td>
+                             <td class="py-4 px-4 text-sm text-gray-500">${new Date(article.created_at).toLocaleDateString()}</td>
+                             <td class="py-4 px-4 text-right">
+                                 <div class="flex justify-end gap-2">
+                                     <button onclick="reviewArticle(${article.id})" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold border border-indigo-200 px-3 py-1.5 rounded-md hover:bg-indigo-50 transition-colors">Review</button>
+                                     <button onclick="updateArticleStatus(${article.id}, 'published')" class="text-green-600 hover:text-green-800 text-xs font-bold bg-green-50 px-3 py-1.5 rounded-md hover:bg-green-100 transition-colors border border-green-200">Approve</button>
+                                     <button onclick="updateArticleStatus(${article.id}, 'draft')" class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-3 py-1.5 rounded-md hover:bg-red-100 transition-colors border border-red-200">Reject</button>
+                                 </div>
+                             </td>
+                         </tr>
+                     `;
+                });
+
+            } catch (e) {
+                console.error(e);
+                const tbody = document.getElementById('pendingArticlesTable');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-500">Error loading data.</td></tr>';
+            }
+        }
+
+        async function updateArticleStatus(id, status) {
+            if (!confirm(`Are you sure you want to mark this article as ${status}?`)) return;
+            try {
+                const res = await fetch(`/api/admin/articles/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`Article marked as ${status}`);
+                    fetchPendingArticles();
+                    if (status === 'published') fetchAllArticles(); // Update main list too
+                } else {
+                    alert("Failed: " + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error updating status");
+            }
+        }
+
+        function reviewArticle(id) {
+            // Ideally open a modal with full content. For now, let's just alert or implement a simple open
+            alert("This feature is yet to be fully implemented. For now, please check the database or content directly.");
+        }
+
+        async function fetchAllArticles() {
+            const tbody = document.getElementById('adminArticlesTable');
+            if (!tbody) return;
+
+            try {
+                const res = await fetch('/api/admin/articles');
+                const articles = await res.json();
+
+                if (articles.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-400">No articles found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = articles.map(article => `
+                    <tr class="border-b hover:bg-indigo-50/30 transition-colors">
+                        <td class="py-4 px-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-900">${article.title}</span>
+                                <span class="text-xs text-gray-500">slug: ${article.slug}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 text-sm">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-gray-800">${article.coach_name || 'Admin'}</span>
+                                <span class="text-xs text-gray-500">${article.coach_email || 'planneradmin@gmail.com'}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold uppercase">${article.category || 'Uncategorized'}</span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="px-2 py-1 ${article.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} rounded text-xs font-bold uppercase">
+                                ${article.status}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-sm text-gray-500">
+                            ${new Date(article.published_at || article.created_at).toLocaleDateString()}
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <button onclick="deleteArticle(${article.id})" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider flex items-center gap-1 justify-end ml-auto">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-red-500">Failed to load articles.</td></tr>';
+            }
+        }
+
+        async function deleteArticle(id) {
+            if (!confirm('Are you sure you want to delete this article? This action cannot be undone.')) return;
+
+            try {
+                const res = await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Article deleted successfully');
+                    fetchAllArticles();
+                } else {
+                    alert('Failed to delete article');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        // --- NOTIFICATIONS ---
+        function toggleUserIdInput() {
+            const target = document.getElementById('pushTarget').value;
+            const group = document.getElementById('userIdInputGroup');
+            if (target === 'single') {
+                group.classList.remove('hidden');
+            } else {
+                group.classList.add('hidden');
+            }
+        }
+
+        async function sendPushNotification(e) {
+            e.preventDefault();
+            const target = document.getElementById('pushTarget').value;
+            const userId = document.getElementById('pushUserId').value;
+            const title = document.getElementById('pushTitle').value;
+            const body = document.getElementById('pushBody').value;
+            const url = document.getElementById('pushUrl').value;
+
+            if (target === 'single' && !userId) {
+                alert("Please enter a User ID");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/push/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target, userId, title, body, url })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    e.target.reset();
+                    toggleUserIdInput();
+                } else {
+                    alert("Failed: " + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error sending notification");
+            }
+        }
+
+        // --- USER HISTORY ---
+        async function viewUserHistory(userId) {
+            const modal = document.getElementById('userHistoryModal');
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">Loading...</td></tr>';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/ api / admin / users / ${userId} / history`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No login history found.</td></tr>';
+                } else {
+                    tbody.innerHTML = data.map(log => `
+                < tr class= "border-b hover:bg-gray-50" >
+                            <td class="py-2 px-3 text-sm">${new Date(log.created_at).toLocaleString()}</td>
+                            <td class="py-2 px-3 text-sm font-mono text-gray-600">${log.ip_address || 'N/A'}</td>
+                            <td class="py-2 px-3 text-sm">
+                                ${log.success ?
+                            '<span class="text-green-600 font-bold">Success</span>' :
+                            '<span class="text-red-600 font-bold">Failed</span>'}
+                            </td>
+                        </tr >
+                    `).join('');
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-red-500">Error loading history.</td></tr>';
+            }
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('userHistoryModal').classList.add('hidden');
+        }
+
+        /* ---------------- COACH CATEGORIES ---------------- */
+        function toggleCategoryManager() {
+            const panel = document.getElementById('categoryManagerPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                fetchCategories();
+                lucide.createIcons();
+            }
+        }
+
+        async function fetchCategories() {
+            try {
+                const res = await fetch('/api/admin/coach-categories');
+                const categories = await res.json();
+                const list = document.getElementById('categoriesList');
+
+                if (categories.length === 0) {
+                    list.innerHTML = '<p class="text-sm text-gray-400 text-center py-2">No categories found.</p>';
+                } else {
+                    list.innerHTML = categories.map(cat => `
+                    < div class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100 group" >
+                            <span class="text-sm font-medium text-gray-700">${cat.name}</span>
+                            <button onclick="deleteCategory(${cat.id})" 
+                                class="flex items-center gap-1.5 px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Category">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">Delete</span>
+                            </button>
+                        </div >
+                    `).join('');
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                }
+            } catch (err) {
+                console.error("Error in fetchCategories:", err);
+                const list = document.getElementById('categoriesList');
+                if (list) list.innerHTML = `< p class="text-sm text-red-500 text-center py-2" > Error loading categories.Check console.</p > `;
+            }
+        }
+
+        async function addCategory() {
+            const nameInput = document.getElementById('newCategoryName');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            try {
+                const res = await fetch('/api/admin/coach-categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (res.ok) {
+                    nameInput.value = '';
+                    fetchCategories();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Failed to add category');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this category? Coaches already assigned to this category will not be affected, but it will be removed from future options.')) return;
+
+            try {
+                const res = await fetch(`/ api / admin / coach - categories / ${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    fetchCategories();
+                } else {
+                    alert('Failed to delete category');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        /* ---------------- COMPLAINTS MANAGEMENT ---------------- */
+        async function fetchComplaints() {
+            const tbody = document.getElementById('complaintsTable');
+            const badge = document.getElementById('complaintCountBadge');
+            if (!tbody) return;
+
+            try {
+                const res = await fetch('/api/admin/complaints');
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error(`Fetch failed: ${res.status} ${res.statusText}`, errorText);
+                    throw new Error(`Failed to fetch: ${res.status}`);
+                }
+                const complaints = await res.json();
+
+                // Update badge with pending count
+                const pendingCount = complaints.filter(c => c.status === 'pending').length;
+                if (pendingCount > 0) {
+                    badge.innerText = pendingCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                if (complaints.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">No complaints found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = complaints.map(complaint => `
+                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-900">${complaint.name}</span>
+                                <span class="text-xs text-gray-500">${complaint.email}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="max-w-md">
+                                <p class="font-bold text-indigo-700 text-sm mb-1">${complaint.subject}</p>
+                                <p class="text-xs text-gray-600 line-clamp-2" title="${complaint.message}">${complaint.message}</p>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${complaint.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                    }">
+                                ${complaint.status}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-xs text-gray-500">
+                            ${new Date(complaint.created_at).toLocaleString()}
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                ${complaint.status === 'pending' ? `
+                                    <button onclick="updateComplaintStatus(${complaint.id}, 'resolved')" 
+                                        class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors border border-emerald-100" title="Mark as Resolved">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteComplaint(${complaint.id})" 
+                                    class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors border border-red-100" title="Delete">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Failed to load complaints.</td></tr>';
+            }
+        }
+
+        async function updateComplaintStatus(id, status) {
+            try {
+                const res = await fetch(`/api/admin/complaints/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                if (res.ok) {
+                    fetchComplaints();
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+
+        async function deleteComplaint(id) {
+            if (!confirm('Are you sure you want to delete this complaint?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/complaints/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    fetchComplaints();
+                } else {
+                    alert('Failed to delete complaint');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

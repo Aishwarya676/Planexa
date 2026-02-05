@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - Your Coaching Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .payment-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .payment-header {
+            background: #4a6cf7;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .payment-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .payment-body {
+            padding: 30px;
+        }
+        
+        .payment-methods {
+            margin-bottom: 30px;
+        }
+        
+        .method-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .method-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+        }
+        
+        .method-tab.active {
+            color: #4a6cf7;
+            border-bottom-color: #4a6cf7;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+        }
+        
+        .card-icons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 30px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #6b7280;
+        }
+        
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .col {
+            flex: 1;
+        }
+        
+        .upi-apps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .upi-app {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upi-app:hover {
+            border-color: #4a6cf7;
+            background: #f8f9ff;
+        }
+        
+        .upi-app i {
+            font-size: 30px;
+            margin-bottom: 8px;
+            color: #4a6cf7;
+        }
+        
+        .upi-app span {
+            display: block;
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+        
+        .order-summary {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .btn-pay-now {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-pay-now:hover {
+            background: #3a5bd9;
+            transform: translateY(-2px);
+        }
+        
+        .secure-payment {
+            text-align: center;
+            margin-top: 20px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .secure-payment i {
+            color: #10b981;
+            margin-right: 5px;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e5e7eb;
+            z-index: 1;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            z-index: 2;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-container {
+                margin: 20px 10px;
+            }
+            
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .upi-apps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Hide spinner in number inputs */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="payment-header">
+        <h1>Secure Payment</h1>
+    </header>
+
+    <main>
+        <div class="payment-container">
+            <div class="payment-body">
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div class="order-item">
+                        <span>Coaching Session (1 hour)</span>
+                        <span>$99.00</span>
+                    </div>
+                    <div class="order-item">
+                        <span>Tax</span>
+                        <span>$8.91</span>
+                    </div>
+                    <div class="order-total">
+                        <span>Total</span>
+                        <span>$107.91</span>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="payment-methods">
+                    <div class="method-tabs">
+                        <div class="method-tab active" data-tab="card">
+                            <i class="far fa-credit-card"></i> Credit/Debit Card
+                        </div>
+                        <div class="method-tab" data-tab="upi">
+                            <i class="fas fa-mobile-alt"></i> UPI
+                        </div>
+                    </div>
+
+                    <!-- Card Payment Form -->
+                    <div id="card-payment" class="tab-content active">
+                        <form id="card-form">
+                            <div class="form-group">
+                                <label for="card-number">Card Number</label>
+                                <div class="card-icons">
+                                    <div class="card-icon"><i class="fab fa-cc-visa"></i></div>
+                                    <div class="card-icon"><i class="fab fa-cc-mastercard"></i></div>
+                                    <div class="card-icon"><i class="fab fa-cc-amex"></i></div>
+                                    <div class="card-icon"><i class="fab fa-cc-discover"></i></div>
+                                </div>
+                                <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="card-name">Cardholder Name</label>
+                                <input type="text" id="card-name" class="form-control" placeholder="John Doe" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="expiry-date">Expiry Date</label>
+                                        <input type="text" id="expiry-date" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="cvv">CVV</label>
+                                        <input type="number" id="cvv" class="form-control" placeholder="123" maxlength="4" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-pay-now">
+                                Pay $107.91
+                            </button>
+                            
+                            <div class="secure-payment">
+                                <i class="fas fa-lock"></i> Secure payment encrypted
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- UPI Payment Form -->
+                    <div id="upi-payment" class="tab-content">
+                        <div class="form-group">
+                            <label for="upi-id">UPI ID</label>
+                            <input type="text" id="upi-id" class="form-control" placeholder="yourname@upi" required>
+                        </div>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <h4>Pay via UPI Apps</h4>
+                        <div class="upi-apps">
+                            <div class="upi-app" onclick="selectUpiApp('gpay')">
+                                <i class="fab fa-google-pay"></i>
+                                <span>Google Pay</span>
+                            </div>
+                            <div class="upi-app" onclick="selectUpiApp('phonepe')">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>PhonePe</span>
+                            </div>
+                            <div class="upi-app" onclick="selectUpiApp('paytm')">
+                                <i class="fas fa-wallet"></i>
+                                <span>Paytm</span>
+                            </div>
+                            <div class="upi-app" onclick="selectUpiApp('amazonpay')">
+                                <i class="fab fa-amazon-pay"></i>
+                                <span>Amazon Pay</span>
+                            </div>
+                            <div class="upi-app" onclick="selectUpiApp('bhim')">
+                                <i class="fas fa-university"></i>
+                                <span>BHIM</span>
+                            </div>
+                            <div class="upi-app" onclick="selectUpiApp('other')">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <span>Other UPI Apps</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-pay-now" onclick="processUpiPayment()">
+                            Pay $107.91 via UPI
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; color: #6b7280; font-size: 0.9rem;">
+        <p>© 2025 Coaching Platform. All rights reserved.</p>
+        <div style="margin-top: 10px;">
+            <a href="#" style="color: #6b7280; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+            <a href="#" style="color: #6b7280; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabs = document.querySelectorAll('.method-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and content
+                    document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-payment`).classList.add('active');
+                });
+            });
+
+            // Format card number
+            const cardNumber = document.getElementById('card-number');
+            if (cardNumber) {
+                cardNumber.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s+/g, '');
+                    if (value.length > 0) {
+                        value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            // Format expiry date
+            const expiryDate = document.getElementById('expiry-date');
+            if (expiryDate) {
+                expiryDate.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
+
+            // Form submission
+            const cardForm = document.getElementById('card-form');
+            if (cardForm) {
+                cardForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    processCardPayment();
+                });
+            }
+        });
+
+        function selectUpiApp(app) {
+            console.log(`Selected ${app} for payment`);
+            // In a real app, this would open the selected UPI app
+            alert(`Opening ${app} to complete payment...`);
+        }
+
+        function processCardPayment() {
+            // In a real app, this would integrate with a payment processor
+            const cardNumber = document.getElementById('card-number').value;
+            const cardName = document.getElementById('card-name').value;
+            const expiry = document.getElementById('expiry-date').value;
+            const cvv = document.getElementById('cvv').value;
+            
+            if (!cardNumber || !cardName || !expiry || !cvv) {
+                alert('Please fill in all card details');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.querySelector('#card-form button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // In a real app, you would handle the payment processing here
+                console.log('Processing payment with card ending in', cardNumber.slice(-4));
+                
+                // Show success message
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Payment Successful!';
+                submitBtn.style.backgroundColor = '#10b981';
+                
+                // Redirect to success page after a delay
+                setTimeout(() => {
+                    // window.location.href = 'payment-success.html';
+                    alert('Payment processed successfully!');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = '';
+                }, 1500);
+                
+            }, 2000);
+        }
+
+        function processUpiPayment() {
+            const upiId = document.getElementById('upi-id').value;
+            
+            if (!upiId) {
+                alert('Please enter a UPI ID');
+                return;
+            }
+            
+            // In a real app, this would integrate with UPI payment gateway
+            console.log('Initiating UPI payment for', upiId);
+            alert(`Initiating UPI payment request to ${upiId}. Please complete the payment in your UPI app.`);
+        }
+    </script>
+</body>
+</html>

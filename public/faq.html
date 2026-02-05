@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequently Asked Questions - Planexa</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background-color: #e0f2ff;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: -1;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            transition: color 0.3s ease;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .faq-item.active .faq-question {
+            color: #4f46e5;
+        }
+
+        .faq-item.active .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="sticky top-0 z-10 header-dark">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <a href="landing.html" class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold text-slate-800">Planexa</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- FAQ Hero -->
+    <div class="relative bg-gradient-to-r from-indigo-600 to-purple-600 overflow-hidden py-16">
+        <div
+            class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==')]">
+        </div>
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold text-white mb-4">Frequently Asked Questions</h1>
+            <p class="text-xl text-indigo-100">Find answers to common questions about Planexa and our services</p>
+        </div>
+    </div>
+
+    <!-- FAQ Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-md overflow-hidden border border-gray-100">
+            <div class="divide-y divide-gray-200">
+                <!-- FAQ Item 1 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            What is Planexa and how does it work?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            Planexa is a comprehensive productivity platform that helps you organize your tasks, habits,
+                            and schedule in one place.
+                            It combines powerful planning tools with expert coaching to help you achieve your personal
+                            and professional goals.
+                            Our platform integrates with your favorite tools and provides actionable insights to improve
+                            your productivity.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            How much does Planexa cost?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            We offer several pricing plans to fit different needs:
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li><strong>Free Plan:</strong> Basic task management and limited access to resources</li>
+                            <li><strong>Pro Plan:</strong> $9.99/month - Advanced features and unlimited tasks</li>
+                            <li><strong>Business Plan:</strong> $24.99/month - Team collaboration and advanced analytics
+                            </li>
+                            <li><strong>Enterprise:</strong> Custom pricing for organizations with specific needs</li>
+                        </ul>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            Can I use Planexa on multiple devices?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            Yes! Planexa is fully responsive and works across all your devices. We offer:
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Web application accessible from any browser</li>
+                            <li>iOS and Android mobile apps (coming soon)</li>
+                            <li>Desktop apps for Windows and macOS</li>
+                        </ul>
+                        Your data syncs automatically across all devices in real-time.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            How does the coaching program work?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            Our coaching program connects you with certified productivity coaches who will help you:
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Set and achieve meaningful goals</li>
+                            <li>Develop effective planning strategies</li>
+                            <li>Overcome productivity challenges</li>
+                            <li>Create sustainable habits</li>
+                        </ul>
+                        <p class="mt-2">Coaching sessions are conducted via video call, and you can schedule them at
+                            your convenience through our platform.</p>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            Is my data secure with Planexa?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            We take your privacy and data security very seriously. Here's how we protect your
+                            information:
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>End-to-end encryption for all data</li>
+                            <li>Regular security audits and updates</li>
+                            <li>GDPR and CCPA compliance</li>
+                            <li>Two-factor authentication</li>
+                            <li>Regular data backups</li>
+                        </ul>
+                        <p class="mt-2">We never sell your data to third parties. You can read more in our <a href="#"
+                                class="text-indigo-600 hover:underline">Privacy Policy</a>.</p>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            How do I cancel my subscription?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            You can cancel your subscription at any time:
+                        <ol class="list-decimal pl-5 mt-2 space-y-1">
+                            <li>Go to your Account Settings</li>
+                            <li>Click on "Billing"</li>
+                            <li>Select "Cancel Subscription"</li>
+                            <li>Follow the prompts to confirm</li>
+                        </ol>
+                        <p class="mt-2">Your subscription will remain active until the end of your current billing
+                            period, and you'll continue to have access to all premium features during that time.</p>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 7 -->
+                <div class="faq-item p-6 cursor-pointer group" onclick="toggleFAQ(this)">
+                    <div class="flex justify-between items-center">
+                        <h3 class="faq-question text-lg font-medium text-gray-900 group-hover:text-indigo-600">
+                            Do you offer discounts for students or non-profits?
+                        </h3>
+                        <i data-lucide="chevron-down"
+                            class="w-5 h-5 text-gray-500 chevron transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        <p class="pt-2">
+                            Yes, we offer special discounts for students, educators, and non-profit organizations:
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li><strong>Students:</strong> 50% off any plan with a valid .edu email address</li>
+                            <li><strong>Educators:</strong> 30% off any plan</li>
+                            <li><strong>Non-profits:</strong> 40% off Business and Enterprise plans</li>
+                        </ul>
+                        <p class="mt-2">To apply for these discounts, please contact our support team with proof of
+                            eligibility at <a href="mailto:support@planexa.com"
+                                class="text-indigo-600 hover:underline">support@planexa.com</a>.</p>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Still have questions? -->
+        <div class="mt-12 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Still have questions?</h2>
+            <p class="text-gray-600 mb-6">Our support team is here to help you with any questions you may have.</p>
+            <a href="contact.html"
+                class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+                style="background-color: #845ec2;" onmouseover="this.style.backgroundColor='#9b7fd0'"
+                onmouseout="this.style.backgroundColor='#845ec2'">
+                Contact Support
+                <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Planexa Info -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <span class="text-2xl font-bold">Planexa</span>
+                    </div>
+                    <p class="text-gray-400">Helping you organize your life and achieve your goals with powerful
+                        planning tools and expert guidance.</p>
+                </div>
+
+                <!-- Explore -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Explore</h3>
+                    <ul class="space-y-2">
+                        <li><a href="landing.html" class="text-gray-400 hover:text-white transition-colors">Home</a>
+                        </li>
+                        <li><a href="blogmain.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                        </li>
+                        <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Podcasts</a>
+                        </li>
+                        <li><a href="media.html" class="text-gray-400 hover:text-white transition-colors">Videos</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a>
+                        </li>
+                        <li><a href="pricing.html" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+                        </li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact</a>
+                        </li>
+                        <li><a href="faq.html" class="text-indigo-400 hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Connect -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Connect</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-400 mb-2">Subscribe to our Podcast</p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="#"
+                                    class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                    <span>Apple Podcasts</span>
+                                </a>
+                                <a href="#"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                    <span>Spotify</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-800">
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="twitter" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="facebook" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="instagram" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                    <i data-lucide="linkedin" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-16 pt-8 border-t border-gray-800">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+                        <span class="hidden md:inline text-gray-600">|</span>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+                        <span class="hidden md:inline text-gray-600">|</span>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+                    </div>
+                    <p class="mt-4 md:mt-0 text-gray-400 text-sm">
+                        &copy; 2025 Planexa. All rights reserved.
+                        <span class="block md:inline mt-1 md:mt-0">Designed &amp; Powered by
+                            <a href="https://purplehuetechnosoft.com" target="_blank" rel="noopener"
+                                class="text-indigo-400 hover:text-white transition-colors">
+                                Purple Hue Technosoft Pvt. Ltd.
+                            </a>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Toggle FAQ items
+        function toggleFAQ(element) {
+            // Close all other open FAQs
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== element) {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Toggle current FAQ
+            element.classList.toggle('active');
+        }
+
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function () {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Open first FAQ by default
+            const firstFaq = document.querySelector('.faq-item');
+            if (firstFaq) {
+                firstFaq.classList.add('active');
+            }
+        });
+    </script>
+</body>
+
+</html>

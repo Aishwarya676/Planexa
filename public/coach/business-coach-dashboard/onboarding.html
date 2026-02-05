@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Onboarding | Planexa</title>
+    <script src="/js/auth-helper.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #f9fafb;
+            --text: #111827;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1.25rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Form Styles */
+        .onboarding-container {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+        }
+
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .onboarding-header h1 {
+            font-size: 2rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .onboarding-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .onboarding-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #f9fafb;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background-color: #f0f2ff;
+        }
+
+        .file-upload i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .file-upload p {
+            margin: 0.5rem 0 0;
+            color: var(--text-light);
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .file-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .social-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-input {
+            position: relative;
+        }
+
+        .social-input i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .social-input input {
+            padding-left: 40px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #6d28d9 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .onboarding-card {
+                padding: 1.5rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/landing.html" class="logo">
+                <div class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="onboarding-container">
+            <header class="onboarding-header">
+                <h1>Complete Your Coach Profile</h1>
+                <p>Let's get to know you better to match you with the right opportunities</p>
+            </header>
+
+            <form id="onboardingForm">
+                <!-- Personal Information Section -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-user"></i> Personal Information
+                    </h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullName" class="form-label">Full Name*</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="John Doe">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateOfBirth" class="form-label">Date of Birth*</label>
+                            <input type="date" id="dateOfBirth" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" class="form-label">Where are you from?*</label>
+                        <input type="text" id="location" class="form-control" placeholder="City, Country">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" class="form-label">Enter Email</label>
+                        <input type="email" id="mail" class="form-control" placeholder="Email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio" class="form-label">Short Bio*</label>
+                        <textarea id="bio" class="form-control" rows="4"
+                            placeholder="Tell us about yourself and your coaching journey..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Coaching Details Section -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-chalkboard-teacher"></i> Coaching Details
+                    </h2>
+
+                    <div class="form-group">
+                        <label for="coachingCategory" class="form-label">Coaching Category*</label>
+                        <select id="coachingCategory" class="form-control form-select">
+                            <option value="">Select a category</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="yearsExperience" class="form-label">Years of Coaching Experience*</label>
+                        <input type="number" id="yearsExperience" class="form-control" min="0" step="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hoursCoached" class="form-label">Total Hours Coached*</label>
+                        <input type="number" id="hoursCoached" class="form-control" min="0" step="1">
+                        <small class="text-muted">Estimated total hours of coaching you've provided</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specialties" class="form-label">Specialties (Select up to 5)*</label>
+                        <div class="specialties-grid">
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="leadership"> Leadership Development
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="strategy"> Business Strategy
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="startups"> Startups & Entrepreneurship
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="career"> Career Transition
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="productivity"> Productivity
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="communication"> Communication Skills
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="mindset"> Mindset & Motivation
+                            </label>
+                            <label class="specialty-option">
+                                <input type="checkbox" name="specialties" value="worklife"> Work-Life Balance
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certifications Section -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-certificate"></i> Certifications & Qualifications
+                    </h2>
+
+                    <div class="form-group">
+                        <div id="certificationsContainer">
+                            <!-- Certifications will be added here dynamically -->
+                        </div>
+                        <button type="button" id="addCertification" class="btn btn-outline" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Add Certification
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Upload Certificates (PDF, JPG, PNG)*</label>
+                        <div class="file-upload" id="certificateUpload">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload or drag and drop</p>
+                            <p>Max. file size: 5MB</p>
+                            <input type="file" id="certificateFiles" class="d-none" accept=".pdf,.jpg,.jpeg,.png"
+                                multiple>
+                        </div>
+                        <div class="file-preview" id="certificatePreview"></div>
+                    </div>
+                </div>
+
+                <!-- Social Media & Online Presence -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-share-alt"></i> Social Media & Online Presence
+                    </h2>
+
+                    <div class="social-links">
+                        <div class="form-group">
+                            <label for="linkedin" class="form-label">LinkedIn Profile</label>
+                            <div class="social-input">
+                                <i class="fab fa-linkedin"></i>
+                                <input type="url" id="linkedin" class="form-control"
+                                    placeholder="https://linkedin.com/in/username">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="twitter" class="form-label">Twitter</label>
+                            <div class="social-input">
+                                <i class="fab fa-twitter"></i>
+                                <input type="url" id="twitter" class="form-control"
+                                    placeholder="https://twitter.com/username">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="website" class="form-label">Website/Blog</label>
+                            <div class="social-input">
+                                <i class="fas fa-globe"></i>
+                                <input type="url" id="website" class="form-control"
+                                    placeholder="https://yourwebsite.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="podcast" class="form-label">Podcast (if any)</label>
+                        <div class="social-input">
+                            <i class="fas fa-podcast"></i>
+                            <input type="url" id="podcast" class="form-control" placeholder="Link to your podcast">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="otherLinks" class="form-label">Other Relevant Links</label>
+                        <textarea id="otherLinks" class="form-control" rows="3"
+                            placeholder="Any other links you'd like to share (e.g., YouTube, publications, etc.)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Profile Photo -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-camera"></i> Profile Photo
+                    </h2>
+
+                    <div class="form-group">
+                        <div class="file-upload" id="profilePhotoUpload">
+                            <i class="fas fa-user-circle"></i>
+                            <p>Click to upload a professional photo</p>
+                            <p>Recommended size: 400x400px</p>
+                            <input type="file" id="profilePhoto" class="d-none" accept="image/*">
+                        </div>
+                        <div class="file-preview" id="profilePhotoPreview"></div>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="onboarding-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-dollar-sign"></i> Pricing & Earnings
+                    </h2>
+                    <p class="text-light mb-4 text-sm">Set your hourly coaching rate. Please note that Planexa
+                        takes a 20% platform fee for every session booked through our platform.</p>
+
+                    <div class="form-group">
+                        <label for="hourlyRate" class="form-label">Hourly Rate (₹)*</label>
+                        <div style="position: relative;">
+                            <span
+                                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light);">₹</span>
+                            <input type="number" id="hourlyRate" class="form-control" style="padding-left: 30px;"
+                                placeholder="e.g., 500" min="10" step="5">
+                        </div>
+                    </div>
+
+                    <div class="earnings-breakdown bg-indigo-50 p-4 rounded-lg border border-indigo-100 mt-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Your Base Rate:</span>
+                            <span class="font-semibold" id="baseRateDisplay">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between mb-2 text-red-500">
+                            <span>Platform Fee (20%):</span>
+                            <span id="feeDisplay">-₹0.00</span>
+                        </div>
+                        <hr class="my-2 border-indigo-200">
+                        <div class="flex justify-between text-lg font-bold text-indigo-700">
+                            <span>You Earn:</span>
+                            <span id="earningsDisplay">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Submit -->
+                <div class="onboarding-card">
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="termsAgreement">
+                            <span>I agree to the Terms of Service and Privacy Policy</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline">Save Draft</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Complete Profile
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Success Message (initially hidden) -->
+            <div id="successMessage" class="onboarding-card"
+                style="display: none; text-align: center; padding: 3rem 2rem;">
+                <div style="max-width: 500px; margin: 0 auto;">
+                    <div style="font-size: 4rem; color: #10b981; margin-bottom: 1.5rem;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; color: #111827;">
+                        Profile Submitted Successfully!
+                    </h2>
+                    <p style="color: #4b5563; margin-bottom: 2rem; line-height: 1.6;">
+                        Thank you for submitting your profile. Our team will review your information and verify your
+                        details.
+                        You'll receive a confirmation email once your profile is approved. This process typically takes
+                        1-2 business days.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Check for edit mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const isEditMode = urlParams.get('mode') === 'edit';
+
+            // Load dynamic categories
+            await loadCategories();
+
+            if (isEditMode) {
+                document.querySelector('h1').textContent = 'Edit Your Profile';
+                document.querySelector('.subtitle').textContent = 'Update your professional information and pricing details.';
+                document.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                await loadCurrentProfile();
+            }
+
+            async function loadCategories() {
+                try {
+                    const res = await fetch('/api/admin/coach-categories');
+                    const categories = await res.json();
+                    const select = document.getElementById('coachingCategory');
+
+                    // Clear existing (except placeholder)
+                    select.innerHTML = '<option value="">Select a category</option>';
+
+                    categories.forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat.slug;
+                        opt.textContent = cat.name;
+                        select.appendChild(opt);
+                    });
+
+                    // Add "Other" at the end if you want
+                    const otherOpt = document.createElement('option');
+                    otherOpt.value = 'other';
+                    otherOpt.textContent = 'Other';
+                    select.appendChild(otherOpt);
+
+                } catch (err) {
+                    console.error('Error loading categories:', err);
+                }
+            }
+
+            async function loadCurrentProfile() {
+                try {
+                    const res = await fetch('/api/coach/me', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to fetch profile');
+                    const coach = await res.json();
+
+                    // Pre-fill basic fields
+                    document.getElementById('fullName').value = coach.name || '';
+                    document.getElementById('mail').value = coach.email || '';
+                    document.getElementById('dateOfBirth').value = coach.dob ? coach.dob.split('T')[0] : '';
+                    document.getElementById('coachingCategory').value = coach.coach_type || '';
+                    document.getElementById('location').value = coach.location || '';
+                    document.getElementById('yearsExperience').value = coach.years_experience || '';
+                    document.getElementById('hoursCoached').value = coach.hours_coached || '';
+                    document.getElementById('bio').value = coach.bio || '';
+                    document.getElementById('hourlyRate').value = coach.hourly_rate || '';
+
+                    // Trigger pricing calculation
+                    const event = new Event('input');
+                    document.getElementById('hourlyRate').dispatchEvent(event);
+
+                    // Pre-fill specialties (assuming it's a JSON array string in DB or real array)
+                    const specs = coach.specialties || [];
+                    const specsArray = Array.isArray(specs) ? specs : (typeof specs === 'string' ? JSON.parse(specs) : []);
+                    specsArray.forEach(s => {
+                        const cb = document.querySelector(`input[name="specialties"][value="${s}"]`);
+                        if (cb) cb.checked = true;
+                    });
+
+                    // Pre-fill Socials
+                    const socialLinks = coach.social_links || {};
+                    const socials = typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks;
+                    if (socials.linkedin) document.getElementById('linkedin').value = socials.linkedin;
+                    if (socials.twitter) document.getElementById('twitter').value = socials.twitter;
+                    if (socials.website) document.getElementById('website').value = socials.website;
+                    if (socials.podcast) document.getElementById('podcast').value = socials.podcast;
+                    if (socials.other) document.getElementById('otherLinks').value = socials.other;
+
+                    // Pre-fill Certifications
+                    const certs = coach.certifications || [];
+                    const certsArray = Array.isArray(certs) ? certs : (typeof certs === 'string' ? JSON.parse(certs) : []);
+
+                    // Clear default first cert if any
+                    certificationsContainer.innerHTML = '';
+                    certificationCount = 0;
+
+                    certsArray.forEach(cert => {
+                        addCertificationBtn.click();
+                        const lastCert = certificationsContainer.lastElementChild;
+                        lastCert.querySelector('input[name="certificationName[]"]').value = cert.name || '';
+                        lastCert.querySelector('input[name="certificationOrg[]"]').value = cert.org || '';
+                        lastCert.querySelector('input[name="certificationYear[]"]').value = cert.year || '';
+                        lastCert.querySelector('input[name="credentialId[]"]').value = cert.id || '';
+                    });
+
+                    // If no certs, add one empty one
+                    if (certsArray.length === 0) {
+                        addCertificationBtn.click();
+                    }
+
+                    // Handling profile image preview
+                    if (coach.profile_photo) {
+                        profilePreview.src = coach.profile_photo;
+                        profilePreview.classList.add('active');
+                        document.querySelector('.upload-placeholder').style.display = 'none';
+                    }
+
+                } catch (err) {
+                    console.error('Error loading profile:', err);
+                    alert('Could not load your profile data.');
+                }
+            }
+            // File Upload Handling
+            const profilePhotoUpload = document.getElementById('profilePhotoUpload');
+            const profilePhotoInput = document.getElementById('profilePhoto');
+            const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+
+            const certificateUpload = document.getElementById('certificateUpload');
+            const certificateFiles = document.getElementById('certificateFiles');
+            const certificatePreview = document.getElementById('certificatePreview');
+
+            // Profile Photo Upload
+            profilePhotoUpload.addEventListener('click', () => profilePhotoInput.click());
+            profilePhotoInput.addEventListener('click', (e) => e.stopPropagation());
+
+            profilePhotoInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 500 * 1024) {
+                        alert("Profile photo must be less than 500KB.");
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        profilePhotoPreview.innerHTML = `
+                            <div class="preview-container">
+                                <img src="${event.target.result}" alt="Profile Preview" class="preview-image">
+                                <button type="button" class="remove-image" onclick="event.stopPropagation(); this.parentElement.remove();">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                        profilePhotoPreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Certificate Files Upload
+            certificateUpload.addEventListener('click', () => certificateFiles.click());
+            certificateFiles.addEventListener('click', (e) => e.stopPropagation());
+
+            certificateFiles.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    certificatePreview.innerHTML = '';
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+
+                        // Size Validation
+                        const isPdf = file.type === 'application/pdf';
+                        const isImage = file.type.startsWith('image/');
+
+                        if (isPdf && file.size > 5 * 1024 * 1024) {
+                            alert(`File "${file.name}" exceeds the 5MB limit for documents.`);
+                            continue;
+                        }
+                        if (isImage && file.size > 500 * 1024) {
+                            alert(`Image "${file.name}" exceeds the 500KB limit.`);
+                            continue;
+                        }
+
+                        const reader = new FileReader();
+
+                        reader.onload = function (event) {
+                            const fileType = file.type.split('/')[0];
+                            let previewContent = '';
+
+                            if (fileType === 'image') {
+                                previewContent = `
+                                    <div class="preview-item">
+                                        <img src="${event.target.result}" alt="${file.name}" class="preview-thumbnail">
+                                        <div class="preview-info">
+                                            <span class="preview-filename">${file.name}</span>
+                                            <span class="preview-size">${formatFileSize(file.size)}</span>
+                                        </div>
+                                        <button type="button" class="remove-file" data-index="${i}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                previewContent = `
+                                    <div class="preview-item">
+                                        <div class="preview-icon">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div class="preview-info">
+                                            <span class="preview-filename">${file.name}</span>
+                                            <span class="preview-size">${formatFileSize(file.size)}</span>
+                                        </div>
+                                        <button type="button" class="remove-file" data-index="${i}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+
+                            certificatePreview.insertAdjacentHTML('beforeend', previewContent);
+                            certificatePreview.style.display = 'block';
+                        };
+
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // Add Certification
+            const addCertificationBtn = document.getElementById('addCertification');
+            const certificationsContainer = document.getElementById('certificationsContainer');
+            let certificationCount = 0;
+
+            addCertificationBtn.addEventListener('click', function () {
+                certificationCount++;
+                const certificationHtml = `
+                    <div class="certification-item" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb;">
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Certification Name*</label>
+                                <input type="text" name="certificationName[]" class="form-control" placeholder="e.g., Certified Professional Coach" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Issuing Organization*</label>
+                                <input type="text" name="certificationOrg[]" class="form-control" placeholder="e.g., International Coach Federation" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Year Obtained*</label>
+                                <input type="number" name="certificationYear[]" class="form-control" min="1900" max="${new Date().getFullYear()}" value="${new Date().getFullYear()}" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Credential ID (if any)</label>
+                                <input type="text" name="credentialId[]" class="form-control" placeholder="e.g., ICF-12345">
+                            </div>
+                        </div>
+                        ${certificationCount > 1 ? `
+                            <button type="button" class="btn btn-outline btn-sm remove-certification" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                certificationsContainer.insertAdjacentHTML('beforeend', certificationHtml);
+
+                // Add event listener to the remove button
+                const removeBtn = certificationsContainer.lastElementChild.querySelector('.remove-certification');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function () {
+                        this.closest('.certification-item').remove();
+                    });
+                }
+            });
+
+            // If NOT in edit mode, add the first certification by default
+            if (!isEditMode) {
+                addCertificationBtn.click();
+            }
+
+            // Pricing Calculation Logic
+            const hourlyRateInput = document.getElementById('hourlyRate');
+            const baseRateDisplay = document.getElementById('baseRateDisplay');
+            const feeDisplay = document.getElementById('feeDisplay');
+            const earningsDisplay = document.getElementById('earningsDisplay');
+
+            hourlyRateInput.addEventListener('input', function () {
+                const rate = parseFloat(this.value) || 0;
+                const fee = rate * 0.20;
+                const earnings = rate - fee;
+
+                baseRateDisplay.textContent = `₹${rate.toFixed(2)}`;
+                feeDisplay.textContent = `-₹${fee.toFixed(2)}`;
+                earningsDisplay.textContent = `₹${earnings.toFixed(2)}`;
+            });
+
+            // Form Submission - Save to backend then show success
+            const form = document.getElementById('onboardingForm');
+            const successMessage = document.getElementById('successMessage');
+
+            // Remove required attributes from all inputs to prevent validation
+            document.querySelectorAll('input[required], select[required]').forEach(input => {
+                input.removeAttribute('required');
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                // Helper to get value or null
+                const getVal = (id) => document.getElementById(id)?.value?.trim() || null;
+
+                // 1. Gather Basic Info
+                const name = getVal('fullName');
+                const dob = getVal('dateOfBirth');
+                const email = getVal('mail');
+                const coachType = getVal('coachingCategory');
+                const location = getVal('location');
+                const bio = getVal('bio');
+                const yearsExperience = getVal('yearsExperience');
+                const hoursCoached = getVal('hoursCoached');
+                const hourlyRate = getVal('hourlyRate');
+
+                // 2. Gather Specialties
+                const specialties = Array.from(document.querySelectorAll('input[name="specialties"]:checked'))
+                    .map(cb => cb.value);
+
+                // 3. Gather Socials
+                const socialLinks = {
+                    linkedin: getVal('linkedin'),
+                    twitter: getVal('twitter'),
+                    website: getVal('website'),
+                    podcast: getVal('podcast'),
+                    other: getVal('otherLinks')
+                };
+
+                // 4. Gather Certifications (Dynamic inputs)
+                const certNames = document.getElementsByName('certificationName[]');
+                const certOrgs = document.getElementsByName('certificationOrg[]');
+                const certYears = document.getElementsByName('certificationYear[]');
+                const certIds = document.getElementsByName('credentialId[]');
+
+                const certifications = [];
+                for (let i = 0; i < certNames.length; i++) {
+                    if (certNames[i].value) {
+                        certifications.push({
+                            name: certNames[i].value,
+                            org: certOrgs[i].value,
+                            year: certYears[i].value,
+                            id: certIds[i].value
+                        });
+                    }
+                }
+
+                if (!name || !dob || !email || !coachType) {
+                    alert('Please fill name, email, date of birth and coaching category.');
+                    return;
+                }
+
+                const btn = document.querySelector('button[type="submit"]');
+                const original = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                try {
+                    // 5. Convert Files to Base64
+                    const profilePhotoFile = document.getElementById('profilePhoto').files[0];
+                    const certificateFileList = document.getElementById('certificateFiles').files;
+
+                    const toBase64 = file => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                    });
+
+                    let profilePhoto = null;
+                    if (profilePhotoFile) {
+                        profilePhoto = await toBase64(profilePhotoFile);
+                    }
+
+                    let certificateFiles = [];
+                    if (certificateFileList.length > 0) {
+                        for (let i = 0; i < certificateFileList.length; i++) {
+                            const b64 = await toBase64(certificateFileList[i]);
+                            certificateFiles.push({
+                                name: certificateFileList[i].name,
+                                type: certificateFileList[i].type,
+                                size: certificateFileList[i].size,
+                                data: b64
+                            });
+                        }
+                    }
+
+                    // 6. Send payload
+                    const payload = {
+                        name, email, dob, coachType,
+                        location, bio, yearsExperience, hoursCoached,
+                        specialties, certifications, socialLinks,
+                        profilePhoto, certificateFiles,
+                        hourlyRate
+                    };
+
+                    const res = await fetch('/api/coach-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error || 'Failed to save coach details.');
+                    }
+
+                    // Hide the form and show success message
+                    if (isEditMode) {
+                        alert('Profile updated successfully!');
+                        window.location.href = 'index.html';
+                    } else {
+                        form.style.display = 'none';
+                        successMessage.style.display = 'block';
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        // Add a delayed redirect to admin dashboard if preferred, or just rely on the link
+                        setTimeout(() => {
+                            window.location.href = '/admin/admin-dashboard.html';
+                        }, 3000);
+                    }
+                } catch (err) {
+                    alert(err.message || 'Something went wrong.');
+                    console.error(err);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                }
+            });
+
+
+            // Helper function to format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Add drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                [profilePhotoUpload, certificateUpload].forEach(element => {
+                    element.addEventListener(eventName, preventDefaults, false);
+                });
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                [profilePhotoUpload, certificateUpload].forEach(element => {
+                    element.addEventListener(eventName, highlight, false);
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                [profilePhotoUpload, certificateUpload].forEach(element => {
+                    element.addEventListener(eventName, unhighlight, false);
+                });
+            });
+
+            function highlight(e) {
+                this.classList.add('bg-blue-50', 'border-blue-300');
+            }
+
+            function unhighlight(e) {
+                this.classList.remove('bg-blue-50', 'border-blue-300');
+            }
+
+            // Handle dropped files
+            [profilePhotoUpload, certificateUpload].forEach(element => {
+                element.addEventListener('drop', handleDrop, false);
+            });
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (this === profilePhotoUpload) {
+                    profilePhotoInput.files = files;
+                    const event = new Event('change');
+                    profilePhotoInput.dispatchEvent(event);
+                } else if (this === certificateUpload) {
+                    certificateFiles.files = files;
+                    const event = new Event('change');
+                    certificateFiles.dispatchEvent(event);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

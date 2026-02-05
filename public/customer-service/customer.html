@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purple Hue Technosoft - Customer Bot</title>
+
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f3e8ff, #f8f0ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .chat-container {
+      width: 600px;
+      max-width: 95%;
+      height: 750px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: #9b59b6;
+      color: white;
+      padding: 20px;
+      font-size: 24px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Moved below messages */
+    .loading-bar-container {
+      height: 26px;
+      width: 100%;
+      display: none;
+      background: #eee0ff;
+      border-top: 1px solid #d4c1ff;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: #9b59b6;
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      line-height: 26px;
+      transition: width 0.05s linear;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #faf5ff;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.5;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .user {
+      background: #d9f0d9;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #e8e0f8;
+      align-self: flex-start;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 15px;
+      background: #f6f0ff;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 15px;
+      border: 1px solid #d0bfff;
+      font-size: 16px;
+    }
+
+    button {
+      margin-left: 12px;
+      padding: 12px 20px;
+      background: #9b59b6;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+    }
+
+    .stop-btn {
+      background: #e4d5ff;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chat-container">
+
+    <!-- HEADER -->
+    <div class="chat-header" style="position: relative;">
+      <a href="../app.html"
+        style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: white; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 5px;">
+        <span>&larr;</span> Back
+      </a>
+      Customer Service
+    </div>
+
+    <!-- CHAT BOX -->
+    <div class="messages" id="messages"></div>
+
+    <!-- PROGRESS BAR (moved below messages) -->
+    <div class="loading-bar-container" id="loading-bar-container">
+      <div class="loading-bar" id="loading-bar">0%</div>
+    </div>
+
+    <!-- INPUT -->
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Ask a question...">
+      <button onclick="sendMessage()">Send</button>
+      <button class="stop-btn" onclick="stopMessage()">Stop</button>
+    </div>
+
+  </div>
+
+  <script src="knowledge_base.js"></script>
+
+  <script>
+    let controller = null;
+
+    function startLoadingBar() {
+      const box = document.getElementById("loading-bar-container");
+      const bar = document.getElementById("loading-bar");
+
+      bar.style.width = "0%";
+      bar.innerText = "0%";
+      box.style.display = "block";
+    }
+
+    function updateLoadingBar(percent) {
+      const bar = document.getElementById("loading-bar");
+      bar.style.width = percent + "%";
+      bar.innerText = percent + "%";
+    }
+
+    function finishLoading() {
+      updateLoadingBar(100);
+      setTimeout(() => {
+        document.getElementById("loading-bar-container").style.display = "none";
+      }, 300);
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const messages = document.getElementById("messages");
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+
+      // show user message
+      const userMsg = document.createElement("div");
+      userMsg.className = "message user";
+      userMsg.innerText = text;
+      messages.appendChild(userMsg);
+      messages.scrollTop = messages.scrollHeight;
+
+      startLoadingBar();
+
+      // check predefined questions
+      for (let item of knowledgeBase) {
+        if (text.toLowerCase().includes(item.question.toLowerCase())) {
+          finishLoading();
+          const botMsg = document.createElement("div");
+          botMsg.className = "message bot";
+          botMsg.innerText = item.answer;
+          messages.appendChild(botMsg);
+          messages.scrollTop = messages.scrollHeight;
+          return;
+        }
+      }
+
+      controller = new AbortController();
+      const signal = controller.signal;
+
+      let botResponse = "";
+      let tokenCount = 0;
+      let estimatedTotalTokens = 120;
+
+      try {
+        const res = await fetch("http://localhost:11434/api/generate", {
+          method: "POST",
+          body: JSON.stringify({
+            model: "llama3.2:1b",
+            prompt: text,
+            stream: true
+          }),
+          signal
+        });
+
+        const reader = res.body.getReader();
+
+        const botMsg = document.createElement("div");
+        botMsg.className = "message bot";
+        messages.appendChild(botMsg);
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value).trim();
+
+          chunk.split("\n").forEach(line => {
+            try {
+              const data = JSON.parse(line);
+              if (data.response) {
+                botResponse += data.response;
+                botMsg.innerText = botResponse;
+                tokenCount++;
+
+                let percent = Math.min(
+                  Math.floor((tokenCount / estimatedTotalTokens) * 100),
+                  95
+                );
+
+                updateLoadingBar(percent);
+              }
+            } catch { }
+          });
+          messages.scrollTop = messages.scrollHeight;
+        }
+
+        finishLoading();
+
+      } catch (e) {
+        finishLoading();
+        const botMsg = document.createElement("div");
+        botMsg.className = "message bot";
+        botMsg.innerText =
+          e.name === "AbortError"
+            ? "[Generation stopped]"
+            : "Error: Cannot connect to AI.";
+        messages.appendChild(botMsg);
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+
+    function stopMessage() {
+      if (controller) controller.abort();
+      finishLoading();
+    }
+
+    window.onload = () => {
+      const msg = document.createElement("div");
+      msg.className = "message bot";
+      msg.innerText = "Hello! Welcome to Purple Hue Technosoft. How can I help you today?";
+      document.getElementById("messages").appendChild(msg);
+
+      // Add Enter key listener
+      document.getElementById("user-input").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+    };
+  </script>
+</body>
+
+</html>

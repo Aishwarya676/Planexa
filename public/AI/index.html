@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Planner</title>
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(135deg, #f3e8ff, #f8f0ff);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1000px;
+      height: 90vh;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 22px;
+      box-shadow: 0 12px 30px rgba(120, 70, 180, 0.15);
+      border: 1px solid #ead7ff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #845ec2;
+    }
+
+    #response {
+      flex-grow: 1;
+      overflow-y: auto;
+      background: #faf5ff;
+      padding: 20px;
+      border-radius: 16px;
+      border-left: 6px solid #845ec2;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #42335b;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 97%;
+      height: 50px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #c8aaf0;
+      font-size: 16px;
+      resize: none;
+      background: #faf5ff;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px;
+      background: linear-gradient(135deg, #a371f7, #845ec2);
+      border: none;
+      border-radius: 14px;
+      color: black;
+      font-size: 17px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button.stop {
+      background: #CBC3E3;
+    }
+
+    /* REAL progress bar */
+    #thinking-box {
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    .thinking-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    .progress-wrapper {
+      background: #eee;
+      height: 14px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #a371f7, #c8aaf0);
+      transition: width 0.12s linear;
+    }
+
+    .progress-percent {
+      font-size: 12px;
+      font-weight: bold;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>AI Planner</h2>
+
+    <!-- Real token-based loader -->
+    <div id="thinking-box">
+      <div class="thinking-text">🤖 AI is generating your answer...</div>
+      <div class="progress-wrapper">
+        <div class="progress-bar" id="progress-bar"></div>
+        <div class="progress-percent" id="progress-percent">0%</div>
+      </div>
+    </div>
+
+    <div id="response"></div>
+
+    <textarea id="userInput" placeholder="Ask anything..."></textarea>
+
+    <div class="button-group">
+      <button onclick="askAI()">Ask AI</button>
+      <button class="stop" onclick="stopAI()">Stop</button>
+    </div>
+  </div>
+
+  <script>
+    let abortController = null;
+
+    let receivedTokens = 0;
+    let estimatedTotalTokens = 120; // will self-adjust based on flow
+
+    function showProgress() {
+      document.getElementById("thinking-box").style.display = "block";
+      updateProgress(0);
+      receivedTokens = 0;
+      estimatedTotalTokens = 120;
+    }
+
+    function updateProgress(p) {
+      const bar = document.getElementById("progress-bar");
+      const percent = document.getElementById("progress-percent");
+      bar.style.width = p + "%";
+      percent.innerText = p + "%";
+    }
+
+    function finishProgress() {
+      updateProgress(100);
+      setTimeout(() => {
+        document.getElementById("thinking-box").style.display = "none";
+      }, 500);
+    }
+
+    async function askAI() {
+      const input = document.getElementById("userInput").value.trim();
+      const responseBox = document.getElementById("response");
+
+      if (!input) return;
+
+      if (abortController) abortController.abort();
+      abortController = new AbortController();
+      const signal = abortController.signal;
+
+      responseBox.innerHTML = "";
+      showProgress();
+
+      try {
+        const res = await fetch("http://localhost:11434/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "llama3.2:1b",
+            prompt: "Give your answer in bullet points:\n" + input
+          }),
+          signal
+        });
+
+        const reader = res.body.getReader();
+        let aiText = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value);
+          const json = JSON.parse(chunk);
+
+          // COUNT REAL TOKENS
+          const newTokens = json.response.split(/\s+/).length;
+          receivedTokens += newTokens;
+
+          // Auto-adjust estimate (fast & accurate)
+          if (receivedTokens > estimatedTotalTokens * 0.4) {
+            estimatedTotalTokens = receivedTokens * 1.25;
+          }
+
+          // Calculate percent
+          let percent = Math.floor((receivedTokens / estimatedTotalTokens) * 100);
+          if (percent > 99) percent = 99; // wait for finish
+
+          updateProgress(percent);
+
+          // Add streamed text
+          aiText += json.response;
+
+          responseBox.innerHTML = aiText
+            .split(/\n+/)
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(line => `<p>• ${line}</p>`)
+            .join("");
+        }
+
+        finishProgress();
+
+      } catch (err) {
+        document.getElementById("thinking-box").style.display = "none";
+
+        if (err.name === "AbortError") {
+          responseBox.innerHTML += "<p style='color:red;'>Generation stopped.</p>";
+        } else {
+          responseBox.innerHTML = "<p style='color:red;'>Error generating response.</p>";
+        }
+      }
+
+      abortController = null;
+      document.getElementById("userInput").value = "";
+    }
+
+    function stopAI() {
+      if (abortController) abortController.abort();
+    }
+
+    document.getElementById("userInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        askAI();
+      }
+    });
+  </script>
+</body>
+</html>
