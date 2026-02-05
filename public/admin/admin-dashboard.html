@@ -1460,14 +1460,14 @@
             modal.classList.remove('hidden');
 
             try {
-                const res = await fetch(`/ api / admin / users / ${userId} / history`);
+                const res = await fetch(`/api/admin/users/${userId}/history`);
                 const data = await res.json();
 
                 if (data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No login history found.</td></tr>';
                 } else {
                     tbody.innerHTML = data.map(log => `
-                < tr class= "border-b hover:bg-gray-50" >
+                        <tr class="border-b hover:bg-gray-50">
                             <td class="py-2 px-3 text-sm">${new Date(log.created_at).toLocaleString()}</td>
                             <td class="py-2 px-3 text-sm font-mono text-gray-600">${log.ip_address || 'N/A'}</td>
                             <td class="py-2 px-3 text-sm">
@@ -1475,7 +1475,7 @@
                             '<span class="text-green-600 font-bold">Success</span>' :
                             '<span class="text-red-600 font-bold">Failed</span>'}
                             </td>
-                        </tr >
+                        </tr>
                     `).join('');
                 }
             } catch (e) {
@@ -1507,14 +1507,14 @@
                     list.innerHTML = '<p class="text-sm text-gray-400 text-center py-2">No categories found.</p>';
                 } else {
                     list.innerHTML = categories.map(cat => `
-                    < div class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100 group" >
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100 group">
                             <span class="text-sm font-medium text-gray-700">${cat.name}</span>
                             <button onclick="deleteCategory(${cat.id})" 
                                 class="flex items-center gap-1.5 px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Category">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 <span class="text-xs font-bold uppercase tracking-wider">Delete</span>
                             </button>
-                        </div >
+                        </div>
                     `).join('');
                     if (typeof lucide !== 'undefined') {
                         lucide.createIcons();
@@ -1523,7 +1523,7 @@
             } catch (err) {
                 console.error("Error in fetchCategories:", err);
                 const list = document.getElementById('categoriesList');
-                if (list) list.innerHTML = `< p class="text-sm text-red-500 text-center py-2" > Error loading categories.Check console.</p > `;
+                if (list) list.innerHTML = `<p class="text-sm text-red-500 text-center py-2">Error loading categories. Check console.</p>`;
             }
         }
 
@@ -1556,7 +1556,7 @@
             if (!confirm('Are you sure you want to delete this category? Coaches already assigned to this category will not be affected, but it will be removed from future options.')) return;
 
             try {
-                const res = await fetch(`/ api / admin / coach - categories / ${id}`, {
+                const res = await fetch(`/api/admin/coach-categories/${id}`, {
                     method: 'DELETE'
                 });
 
