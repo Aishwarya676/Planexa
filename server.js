@@ -268,8 +268,17 @@ app.get("/api/session", async (req, res) => {
   try {
     // 1. Session-based Check (Priority)
     if (req.session) {
+      if (req.session.userId === 'admin') {
+        return res.json({
+          isAuthenticated: true,
+          user: { id: 'admin', username: 'Admin', email: process.env.ADMIN_EMAIL, user_type: 'admin' },
+          userType: 'admin',
+          isAdmin: true
+        });
+      }
+
       if (req.session.userId) {
-        // Regular User or Admin
+        // Regular User
         const [rows] = await db.query(
           "SELECT id, username, email, user_type FROM users WHERE id = ?",
           [req.session.userId]
@@ -518,6 +527,26 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() || req.socket.remoteAddress || "";
+
+    // Special Bypass for Admin Credentials (from .env)
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      req.session.userId = 'admin';
+      req.session.userType = 'admin';
+      req.session.isAdmin = true;
+      if (rememberMe) req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+
+      await db.query(
+        "INSERT INTO admin_audit (admin_email, login_time) VALUES (?, NOW())",
+        [email]
+      );
+
+      return res.json({
+        success: true,
+        message: "Admin login successful",
+        user: { id: 'admin', username: 'Admin', email: email, user_type: 'admin' },
+        token: jwt.sign({ userId: 'admin', isAdmin: true }, JWT_SECRET, { expiresIn: "7d" })
+      });
+    }
 
     const [rows] = await db.query("SELECT id, username, email, user_type, password_hash, theme_id, theme_colors, status FROM users WHERE email = ?", [email]);
 
@@ -1142,7 +1171,7 @@ app.post("/api/logout", async (req, res) => {
       const [rows] = await db.query("SELECT email, user_type FROM users WHERE id = ?", [userId]);
       if (rows.length > 0) {
         const { email, user_type } = rows[0];
-        // Admin Audit Logging for Logout - ONLY for planneradmin@gmail.com
+        // Admin Audit Logging for Logout - ONLY for the configured admin email
         if (email === process.env.ADMIN_EMAIL) {
           // Update the latest login record that has no logout time
           await db.query(
@@ -2118,10 +2147,14 @@ app.get("/api/admin/complaints", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const [user] = await db.query("SELECT email, user_type FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Admin access only" });
+    // Admin Authorization Check (Session or DB)
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email, user_type FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Admin access only" });
 
     const [rows] = await db.query("SELECT * FROM complaints ORDER BY created_at DESC");
     res.json(rows);
@@ -2137,10 +2170,14 @@ app.post("/api/admin/complaints/:id/status", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Admin access only" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Admin access only" });
 
     const { id } = req.params;
     const { status } = req.body;
@@ -2159,10 +2196,14 @@ app.delete("/api/admin/complaints/:id", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Admin access only" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Admin access only" });
 
     const { id } = req.params;
 
@@ -2640,10 +2681,14 @@ app.post("/api/articles", async (req, res) => {
 // Admin: Get Pending Articles
 app.get("/api/admin/articles/pending", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const [rows] = await db.query(`
        SELECT a.*, c.name as coach_name, c.email as coach_email
@@ -2662,10 +2707,14 @@ app.get("/api/admin/articles/pending", async (req, res) => {
 // Admin: Update Article Status (Approve/Reject)
 app.post("/api/admin/articles/:id/status", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const { id } = req.params;
     const { status } = req.body; // 'published' or 'draft' (rejected)
@@ -2703,11 +2752,14 @@ app.post("/api/admin/articles/:id/status", async (req, res) => {
 // Admin: Get all articles
 app.get("/api/admin/articles", async (req, res) => {
   try {
-    // Basic admin check
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const [rows] = await db.query(`
       SELECT a.*, c.name as coach_name, c.email as coach_email, u.username as admin_name 
@@ -2726,10 +2778,14 @@ app.get("/api/admin/articles", async (req, res) => {
 // Admin: Delete article
 app.delete("/api/admin/articles/:id", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const { id } = req.params;
     await db.query("DELETE FROM coach_articles WHERE id = ?", [id]);
@@ -2987,10 +3043,14 @@ server.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
 // Admin: Get all coaches
 app.get("/api/admin/coaches", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const [rows] = await db.query(`
       SELECT c.*, cd.status, cd.coach_type, cd.hours_coached, cd.profile_photo
@@ -3009,10 +3069,14 @@ app.get("/api/admin/coaches", async (req, res) => {
 // Admin: Update Coach Status
 app.post("/api/admin/coaches/:id/status", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const { id } = req.params;
     const { status } = req.body;
@@ -3053,10 +3117,14 @@ app.post("/api/admin/coaches/:id/status", async (req, res) => {
 // Restore the verification route to avoid 404s in the dashboard
 app.post("/api/admin/verifications/coaches/:id/status", async (req, res) => {
   try {
-    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-    if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-      return res.status(403).json({ error: "Forbidden" });
+    // Admin Authorization Check
+    let isAdmin = req.session.userId === 'admin';
+    if (!isAdmin) {
+      const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+      if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
     }
+
+    if (!isAdmin) return res.status(403).json({ error: "Forbidden" });
 
     const { id } = req.params;
     const { status } = req.body;
@@ -3100,14 +3168,14 @@ app.get("/api/admin/coach-categories", async (req, res) => {
 });
 
 app.post("/api/admin/coach-categories", async (req, res) => {
-  // Simple admin check (ideally use middleware)
-  const isAdmin = req.session && req.session.userId && req.session.userType === 'admin';
-  // Note: userType 'admin' check might need adjustment based on how it's stored
-  // For now, mirroring the article admin check
-  const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-  if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-    return res.status(403).json({ error: "Admin access only" });
+  // Admin Authorization Check
+  let isAdmin = req.session.userId === 'admin';
+  if (!isAdmin) {
+    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+    if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
   }
+
+  if (!isAdmin) return res.status(403).json({ error: "Admin access only" });
 
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: "Name is required" });
@@ -3123,10 +3191,14 @@ app.post("/api/admin/coach-categories", async (req, res) => {
 });
 
 app.delete("/api/admin/coach-categories/:id", async (req, res) => {
-  const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
-  if (!user.length || user[0].email !== process.env.ADMIN_EMAIL) {
-    return res.status(403).json({ error: "Admin access only" });
+  // Admin Authorization Check
+  let isAdmin = req.session.userId === 'admin';
+  if (!isAdmin) {
+    const [user] = await db.query("SELECT email FROM users WHERE id = ?", [req.session.userId]);
+    if (user.length && user[0].email === process.env.ADMIN_EMAIL) isAdmin = true;
   }
+
+  if (!isAdmin) return res.status(403).json({ error: "Admin access only" });
 
   try {
     await db.query("DELETE FROM coach_categories WHERE id = ?", [req.params.id]);
