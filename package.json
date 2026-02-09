@@ -4,7 +4,7 @@
   "description": "A planning and productivity application with user authentication",
   "main": "server.js",
   "engines": {
-    "node": "20.10.4"
+    "node": "20.19.4"
   },
   "scripts": {
     "start": "node server.js",
