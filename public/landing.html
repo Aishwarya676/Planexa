@@ -130,14 +130,25 @@
       </div>
       <nav class="ml-auto">
         <ul class="flex gap-2 items-center">
-          <li data-when="authed"><a href="./app.html#todo" class="tab-btn">To‑Do</a></li>
-          <li data-when="authed"><a href="./app.html#shopping" class="tab-btn">Shopping</a></li>
-          <li data-when="authed"><a href="./app.html#reminders" class="tab-btn">Reminders</a></li>
-          <li data-when="authed"><a href="./app.html#goals" class="tab-btn">Goals</a></li>
-          <li data-when="authed"><a href="./app.html#calendar" class="tab-btn">Events</a></li>
-          <li data-when="authed"><a href="./app.html#profile" class="tab-btn" id="nav-profile-link">Settings</a></li>
-          <li data-when="authed" class="ml-2">
+          <!-- User-specific navigation (only for regular users) -->
+          <li data-when="user-only"><a href="./app.html#todo" class="tab-btn">To‑Do</a></li>
+          <li data-when="user-only"><a href="./app.html#shopping" class="tab-btn">Shopping</a></li>
+          <li data-when="user-only"><a href="./app.html#reminders" class="tab-btn">Reminders</a></li>
+          <li data-when="user-only"><a href="./app.html#goals" class="tab-btn">Goals</a></li>
+          <li data-when="user-only"><a href="./app.html#calendar" class="tab-btn">Events</a></li>
+          <li data-when="user-only"><a href="./app.html#profile" class="tab-btn" id="nav-profile-link">Settings</a></li>
+
+          <!-- Dashboard link for coaches/admins -->
+          <li data-when="coach-admin" class="ml-2">
+            <a href="#" id="dashboard-link"
+              class="inline-flex items-center px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+              style="background-color: #4f46e5;" onmouseover="this.style.backgroundColor='#6366f1'"
+              onmouseout="this.style.backgroundColor='#4f46e5'">
+              <i data-lucide="layout-dashboard" class="w-4 h-4 mr-2"></i>
+              <span>Visit Dashboard</span>
+            </a>
           </li>
+
           <li data-when="guest" class="flex items-center gap-3">
             <a href="./get-started.html?v=gs3"
               class="inline-flex items-center px-5 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
@@ -1267,12 +1278,40 @@
     // Combined Auth Logic
     const sessionData = JSON.parse(localStorage.getItem('planner.user') || 'null');
     const isAuthed = !!sessionData;
-    const role = sessionData?.userType || sessionData?.user_type || sessionData?.user?.user_type || sessionData?.coachId ? 'coach' : 'user';
+
+    // Fix role detection - properly check all possible role fields
+    let role = 'user'; // default
+    if (sessionData) {
+      if (sessionData.userType) role = sessionData.userType;
+      else if (sessionData.user_type) role = sessionData.user_type;
+      else if (sessionData.user?.user_type) role = sessionData.user.user_type;
+      else if (sessionData.coachId) role = 'coach';
+    }
+
     const isRegularUser = isAuthed && role === 'user';
+    const isCoachOrAdmin = isAuthed && (role === 'coach' || role === 'admin');
 
     document.querySelectorAll('[data-when]').forEach(el => {
       const when = el.dataset.when;
-      if (when === 'authed') {
+
+      if (when === 'user-only') {
+        // Only show for regular users
+        if (isRegularUser) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      } else if (when === 'coach-admin') {
+        // Only show for coaches and admins
+        if (isCoachOrAdmin) {
+          el.classList.remove('hidden');
+          // Set the dashboard link href based on role
+          const dashboardLink = el.querySelector('#dashboard-link');
+          if (dashboardLink) {
+            if (role === 'coach') dashboardLink.href = '/coach/business-coach-dashboard/index.html';
+            else if (role === 'admin') dashboardLink.href = '/admin/admin-dashboard.html';
+          }
+        }
+        else el.classList.add('hidden');
+      } else if (when === 'authed') {
+        // Show for any authenticated user
         if (isAuthed) {
           el.classList.remove('hidden');
           // Update dashboard link if not a regular user
