@@ -1267,15 +1267,26 @@
     // Combined Auth Logic
     const sessionData = JSON.parse(localStorage.getItem('planner.user') || 'null');
     const isAuthed = !!sessionData;
-    // Check both possible structures (from login page vs from checkAuth)
-    const role = sessionData?.userType || sessionData?.user_type || sessionData?.user?.user_type;
+    const role = sessionData?.userType || sessionData?.user_type || sessionData?.user?.user_type || sessionData?.coachId ? 'coach' : 'user';
     const isRegularUser = isAuthed && role === 'user';
 
     document.querySelectorAll('[data-when]').forEach(el => {
       const when = el.dataset.when;
       if (when === 'authed') {
-        // Only show 'authed' sections on landing for regular users, not coaches/admins
-        if (isRegularUser) el.classList.remove('hidden');
+        if (isAuthed) {
+          el.classList.remove('hidden');
+          // Update dashboard link if not a regular user
+          const dashboardLink = el.querySelector('a[href="./app.html"]');
+          if (dashboardLink) {
+            if (role === 'coach') dashboardLink.href = '/coach/business-coach-dashboard/index.html';
+            else if (role === 'admin') dashboardLink.href = '/admin/admin-dashboard.html';
+
+            const span = dashboardLink.querySelector('span');
+            if (span && span.textContent === 'Visit Planner') {
+              span.textContent = role === 'user' ? 'Visit Planner' : 'Visit Dashboard';
+            }
+          }
+        }
         else el.classList.add('hidden');
       } else if (when === 'guest') {
         if (isAuthed) el.classList.add('hidden');

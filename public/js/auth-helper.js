@@ -57,28 +57,24 @@
             }
 
             // 2. REDIRECTION LOGIC (Route Guarding)
+            const isHomePath = path === LANDING_PAGE || path === '/';
 
             // If on Login/GetStarted pages but ALREADY authed -> Go Home
-            const isLoginPage = path.includes('login') || path.includes('get-started.html') || path === '/';
-            if (isLoginPage && isAuthenticated) {
+            const isLoginPage = path.includes('login') || path.includes('get-started.html');
+            if ((isLoginPage || path === '/') && isAuthenticated) {
                 if (userType === 'admin') window.location.replace(ADMIN_DASHBOARD);
                 else if (userType === 'coach') window.location.replace(COACH_DASHBOARD);
                 else window.location.replace(LANDING_PAGE);
                 return;
             }
 
-            // If on Landing Page but already authed as Coach/Admin -> Redirect them to their dashboard
-            // instead of showing User nav links on landing.html
-            if ((path === LANDING_PAGE || path === '/') && isAuthenticated) {
-                if (userType === 'admin') {
-                    window.location.replace(ADMIN_DASHBOARD);
-                    return;
-                }
-                if (userType === 'coach') {
-                    window.location.replace(COACH_DASHBOARD);
-                    return;
-                }
-            }
+            // REDIRECTS DISABLED FOR LANDING PAGE to allow all roles to view it
+            /* 
+            if (isHomePath && isAuthenticated) {
+                if (userType === 'admin') { window.location.replace(ADMIN_DASHBOARD); return; }
+                if (userType === 'coach') { window.location.replace(COACH_DASHBOARD); return; }
+            } 
+            */
 
             // If on Protected pages but NOT authed -> Go Login
             if (isProtectedPage(path) && !isAuthenticated) {
@@ -90,8 +86,8 @@
                 return;
             }
 
-            // Role Separation Enforcement
-            if (isAuthenticated) {
+            // Role Separation Enforcement (Keep users on their own dashboards)
+            if (isAuthenticated && !isHomePath) {
                 if (path.includes('/admin/') && userType !== 'admin') {
                     window.location.replace(LANDING_PAGE);
                     return;
@@ -104,7 +100,6 @@
                     window.location.replace(ADMIN_DASHBOARD);
                     return;
                 }
-                // Coach Guard for User App
                 if (path === USER_APP && userType === 'coach') {
                     window.location.replace(COACH_DASHBOARD);
                     return;
