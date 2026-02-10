@@ -127,7 +127,7 @@ app.use((req, res, next) => {
     if (reqPath.includes("onboarding.html") || reqPath.includes("onboarding")) {
       // Allow access
     } else {
-      if (!isAuthenticated) return res.redirect("/login-fixed.html");
+      if (!isAuthenticated) return res.redirect("/coach-login.html");
       if (userType !== 'coach') return res.redirect("/landing.html");
     }
   }
@@ -293,14 +293,16 @@ app.get("/api/session", async (req, res) => {
       } else if (req.session.coachId) {
         // Coach
         const [rows] = await db.query(
-          "SELECT id, name, email FROM coaches WHERE id = ?",
+          "SELECT c.id, c.name, c.email, cd.status FROM coaches c LEFT JOIN coach_details cd ON c.id = cd.user_id WHERE c.id = ?",
           [req.session.coachId]
         );
         if (rows.length > 0) {
+          const coach = rows[0];
           return res.json({
             isAuthenticated: true,
-            coachId: rows[0].id,
-            user: { ...rows[0], username: rows[0].name, user_type: 'coach' },
+            coachId: coach.id,
+            status: coach.status || 'pending_onboarding',
+            user: { ...coach, username: coach.name, user_type: 'coach' },
             userType: 'coach'
           });
         }

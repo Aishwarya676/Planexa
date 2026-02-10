@@ -63,7 +63,16 @@
             const isLoginPage = path.includes('login') || path.includes('get-started.html');
             if ((isLoginPage || path === '/') && isAuthenticated) {
                 if (userType === 'admin') window.location.replace(ADMIN_DASHBOARD);
-                else if (userType === 'coach') window.location.replace(COACH_DASHBOARD);
+                else if (userType === 'coach') {
+                    // ONLY redirect to dashboard if status is 'approved' or 'active'
+                    const status = data.status || user?.status || '';
+                    if (status === 'approved' || status === 'active') {
+                        window.location.replace(COACH_DASHBOARD);
+                    } else {
+                        // If pending, stay on current page (landing/public) or go to landing
+                        if (isLoginPage) window.location.replace(LANDING_PAGE);
+                    }
+                }
                 else window.location.replace(LANDING_PAGE);
                 return;
             }

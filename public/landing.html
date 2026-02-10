@@ -1288,13 +1288,22 @@
       else if (sessionData.coachId) role = 'coach';
     }
 
-    const isRegularUser = isAuthed && role === 'user';
-    const isCoachOrAdmin = isAuthed && (role === 'coach' || role === 'admin');
+    const status = sessionData?.status || sessionData?.user?.status || '';
+
+    // Treat pending coaches as guests for landing page UI
+    const isActuallyApproved = (role === 'coach' && (status === 'approved' || status === 'active')) || role !== 'coach';
+    const uiAuthed = isAuthed && isActuallyApproved;
+
+    const isRegularUser = uiAuthed && role === 'user';
+    const isCoachOrAdmin = uiAuthed && (role === 'coach' || role === 'admin');
 
     document.querySelectorAll('[data-when]').forEach(el => {
       const when = el.dataset.when;
 
-      if (when === 'user-only') {
+      if (when === 'guest') {
+        if (!uiAuthed) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      } else if (when === 'user-only') {
         // Only show for regular users
         if (isRegularUser) el.classList.remove('hidden');
         else el.classList.add('hidden');
@@ -1312,7 +1321,7 @@
         else el.classList.add('hidden');
       } else if (when === 'authed') {
         // Show for any authenticated user
-        if (isAuthed) {
+        if (uiAuthed) {
           el.classList.remove('hidden');
           // Update dashboard link if not a regular user
           const dashboardLink = el.querySelector('a[href="./app.html"]');
@@ -1321,15 +1330,12 @@
             else if (role === 'admin') dashboardLink.href = '/admin/admin-dashboard.html';
 
             const span = dashboardLink.querySelector('span');
-            if (span && span.textContent === 'Visit Planner') {
+            if (span && (span.textContent === 'Visit Planner' || span.textContent === 'Visit Dashboard')) {
               span.textContent = role === 'user' ? 'Visit Planner' : 'Visit Dashboard';
             }
           }
         }
         else el.classList.add('hidden');
-      } else if (when === 'guest') {
-        if (isAuthed) el.classList.add('hidden');
-        else el.classList.remove('hidden');
       }
     });
 
