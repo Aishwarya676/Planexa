@@ -146,13 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
     shopList.innerHTML = '';
     shopping.forEach(item => {
       const li = document.createElement('li');
-      li.className = 'card flex items-center justify-between p-3';
+      li.className = 'notepad-item py-1 px-2 hover:bg-black/5 transition-colors rounded-lg group';
       li.innerHTML = `
-        <div class="flex items-center gap-2">
-          <input type="checkbox" ${item.bought ? 'checked' : ''} class="h-4 w-4" data-action="toggle" data-id="${item.id}">
-          <span class="${item.bought ? 'line-through text-slate-400' : ''}">${item.text}</span>
+        <div class="flex items-center gap-3 flex-1">
+          <input type="checkbox" ${item.bought ? 'checked' : ''} class="w-5 h-5 cursor-pointer rounded-full border-2 border-indigo-400 text-indigo-600 focus:ring-indigo-500" data-action="toggle" data-id="${item.id}">
+          <span class="text-xl font-medium transition-all ${item.bought ? 'line-through text-gray-400 italic' : 'text-gray-800'}">${item.text}</span>
         </div>
-        <button class="icon-btn text-red-500" title="Delete" data-action="remove" data-id="${item.id}"><i data-lucide="trash"></i></button>`;
+        <button class="icon-btn text-red-500 hover:text-white hover:bg-red-500 transition-all border border-red-200 bg-red-50 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 shadow-sm" title="Delete" data-action="remove" data-id="${item.id}">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>`;
       shopList.appendChild(li);
     });
     if (window.lucide) window.lucide.createIcons();

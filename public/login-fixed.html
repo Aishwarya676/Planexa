@@ -11,252 +11,404 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="./css/styles.css?v=role1">
   <style>
-    .login-bg {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    :root {
+      --brand-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --glass-bg: rgba(255, 255, 255, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    .login-container {
       min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .login-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png');
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 1000px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (min-width: 768px) {
+      .glass-card {
+        flex-direction: row;
+        min-height: 600px;
+      }
+    }
+
+    @keyframes slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-side {
+      background: var(--brand-gradient);
+      padding: 3rem;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      .info-side {
+        width: 45%;
+      }
+    }
+
+    .info-side::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: white;
+      opacity: 0.1;
+      border-radius: 50%;
+    }
+
+    .form-side {
+      padding: 3rem;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    @media (min-width: 768px) {
+      .form-side {
+        width: 55%;
+      }
+    }
+
+    .input-group:focus-within label {
+      color: #6366f1;
+    }
+
+    .btn-premium {
+      background: var(--brand-gradient);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+      filter: brightness(1.1);
+    }
+
+    .social-btn {
+      transition: all 0.2s ease;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .social-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
     }
   </style>
 </head>
 
 <body>
-  <div class="min-h-screen flex flex-col">
-    <!-- Simple header with back button -->
-    <header class="bg-white shadow-sm">
-      <div class="max-w-5xl mx-auto px-4 py-4 flex items-center">
-        <a href="./landing.html" class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800">
-          <i data-lucide="arrow-left" class="w-5 h-5"></i>
-          <span>Back to home</span>
+  <div class="login-container">
+    <div class="glass-card">
+      <!-- Info Pane -->
+      <div class="info-side">
+        <a href="./landing.html" class="flex items-center gap-3 mb-12 hover:opacity-80 transition-opacity">
+          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+            <i data-lucide="rocket" class="w-6 h-6 text-indigo-600"></i>
+          </div>
+          <span class="text-2xl font-black tracking-tight">Planexa</span>
         </a>
-      </div>
-    </header>
 
-    <main class="flex-grow flex items-center justify-center p-4">
-      <div class="w-full max-w-md">
-        <!-- Logo and title -->
-        <div class="text-center mb-8">
-          <h1 class="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p class="mt-1 text-gray-600">Sign in to continue to Planexa</p>
+        <h2 class="text-3xl font-bold mb-6 leading-tight">Master your day, conquer your goals.</h2>
+        <p class="text-indigo-100 mb-8 text-lg opacity-90">Join thousands of users who have transformed their
+          productivity with Planexa's seamless experience.</p>
+
+        <ul class="space-y-4">
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center"><i data-lucide="check"
+                class="w-4 h-4"></i></div>
+            <span>Smart Task Prioritization</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center"><i data-lucide="check"
+                class="w-4 h-4"></i></div>
+            <span>Cross-device Sync</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center"><i data-lucide="check"
+                class="w-4 h-4"></i></div>
+            <span>Privacy-first Architecture</span>
+          </li>
+        </ul>
+
+        <div class="mt-auto pt-12 text-sm text-indigo-200">
+          &copy; 2026 Planexa. All rights reserved.
         </div>
+      </div>
 
-        <!-- Login form -->
-        <div class="bg-white rounded-xl shadow-sm p-8">
-          <form id="loginForm" class="space-y-6">
+      <!-- Form Pane -->
+      <div class="form-side">
+        <!-- Login Section -->
+        <div id="login-section">
+          <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+            <p class="text-gray-500">Please enter your details to sign in.</p>
+          </div>
 
-            <!-- Email -->
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+          <form id="loginForm" class="space-y-5">
+            <div class="input-group">
+              <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Email address</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="mail" class="h-5 w-5"></i>
                 </div>
                 <input id="email" name="email" type="email" autocomplete="email" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="you@example.com">
+                  class="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                  placeholder="name@company.com">
               </div>
             </div>
 
-            <!-- Password -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <a href="#" id="forgot-password-link" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot password?
-                </a>
+            <div class="input-group">
+              <div class="flex items-center justify-between mb-1.5 ml-1">
+                <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
+                <a href="#" id="forgot-password-link"
+                  class="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Forgot password?</a>
               </div>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="lock" class="h-5 w-5"></i>
                 </div>
                 <input id="password" name="password" type="password" autocomplete="current-password" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="••••••••">
+                <button type="button"
+                  class="password-toggle absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                  data-target="password">
+                  <i data-lucide="eye" class="h-5 w-5"></i>
+                </button>
               </div>
             </div>
 
-            <!-- Remember me -->
-            <div class="flex items-center">
-              <input id="remember-me" name="remember-me" type="checkbox"
-                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-              <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-                Remember me
+            <div class="flex items-center justify-between py-1">
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <div class="relative">
+                  <input id="remember-me" name="remember-me" type="checkbox" class="sr-only peer">
+                  <div
+                    class="w-5 h-5 border-2 border-gray-300 rounded-md peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-all">
+                  </div>
+                  <i data-lucide="check"
+                    class="absolute inset-0 w-5 h-5 text-white opacity-0 peer-checked:opacity-100 p-0.5 pointer-events-none transition-opacity"></i>
+                </div>
+                <span class="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Remember me</span>
               </label>
             </div>
+
+            <button type="submit" form="loginForm"
+              class="btn-premium w-full py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2">
+              <i data-lucide="log-in" class="w-4 h-4"></i> Sign in
+            </button>
           </form>
 
-          <div class="mt-4">
-            <button type="submit" form="loginForm"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-              <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
-              Continue
-            </button>
-          </div>
-
-          <div class="mt-6">
-            <button id="show-register" type="button"
-              class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-              <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
-              Create account
-            </button>
+          <div class="mt-8 pt-8 border-t border-gray-100">
+            <p class="text-center text-sm text-gray-600">
+              Don't have an account?
+              <button id="show-register" type="button"
+                class="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">Create account</button>
+            </p>
           </div>
         </div>
 
-        <!-- Registration form (hidden by default) -->
-        <div id="register-form" class="bg-white rounded-xl shadow-sm p-8 hidden">
+        <!-- Registration Section -->
+        <div id="register-section" class="hidden">
           <div class="mb-6">
             <button id="back-to-login" type="button"
-              class="flex items-center gap-2 text-indigo-600 hover:text-indigo-500">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              Back to login
+              class="flex items-center gap-2 text-indigo-600 font-bold text-sm hover:text-indigo-500 transition-colors mb-6">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to login
             </button>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Join Planexa</h1>
+            <p class="text-gray-500">Start your journey to better productivity.</p>
           </div>
 
-          <form id="registerForm" class="space-y-6">
-            <div>
-              <label for="reg-user-type" class="block text-sm font-medium text-gray-700 mb-1">I am a</label>
-              <div class="relative mb-4">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="users" class="h-5 w-5 text-gray-400"></i>
-                </div>
-                <select id="reg-user-type" name="userType" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white">
-                  <option value="user" selected>User</option>
-                </select>
-              </div>
-
-              <label for="reg-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+          <form id="registerForm" class="space-y-4">
+            <div class="input-group">
+              <label for="reg-username" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Username</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="user" class="h-5 w-5"></i>
                 </div>
                 <input id="reg-username" name="username" type="text" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="yourname">
               </div>
-              <!-- Username Requirements UI -->
-              <div id="username-requirements" class="mt-2 text-xs text-gray-500 space-y-1 hidden">
-                <p class="font-semibold mb-1">Username rules:</p>
-                <div id="u-rule-length" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i>
-                  3-20 characters</div>
-                <div id="u-rule-chars" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> a-z,
-                  0-9, . _ (lowercase only)</div>
-                <div id="u-rule-format" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> No
-                  start/end symbols, no spaces</div>
-                <div id="u-rule-consecutive" class="flex items-center gap-2"><i data-lucide="circle"
-                    class="w-3 h-3"></i> No .. or __</div>
-                <div id="u-rule-reserved" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i>
-                  Not reserved word</div>
+              <div id="username-suggestions" class="mt-2 hidden">
+                <p class="text-xs text-red-500 font-medium mb-1.5">Username is taken. Try one of these:</p>
+                <div id="suggestion-buttons" class="flex flex-wrap gap-2"></div>
               </div>
             </div>
 
-            <div>
-              <label for="reg-email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+            <div class="input-group">
+              <label for="reg-email" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Email address</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="mail" class="h-5 w-5"></i>
                 </div>
                 <input id="reg-email" name="email" type="email" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="you@example.com">
               </div>
             </div>
 
-            <div>
-              <label for="reg-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+            <div class="input-group">
+              <label for="reg-password" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Password</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="lock" class="h-5 w-5"></i>
                 </div>
                 <input id="reg-password" name="password" type="password" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="••••••••">
+                <button type="button"
+                  class="password-toggle absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                  data-target="reg-password">
+                  <i data-lucide="eye" class="h-5 w-5"></i>
+                </button>
               </div>
               <!-- Password Requirements UI -->
-              <div id="password-requirements" class="mt-2 text-xs text-gray-500 space-y-1 hidden">
-                <p class="font-semibold mb-1">Password must match rules:</p>
-                <div id="rule-length" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
-                  least 8 characters</div>
-                <div id="rule-uppercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i>
-                  One uppercase letter</div>
-                <div id="rule-lowercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i>
-                  One lowercase letter</div>
+              <div id="password-requirements"
+                class="mt-3 p-3 bg-gray-50 rounded-xl text-[11px] text-gray-500 space-y-1.5 hidden border border-gray-100">
+                <p class="font-bold text-gray-700 mb-1 caps">Security Requirements</p>
+                <div id="rule-length" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> 8+
+                  characters</div>
+                <div id="rule-uppercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
+                  least one uppercase</div>
+                <div id="rule-lowercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
+                  least one lowercase</div>
               </div>
             </div>
 
-            <div>
-              <button type="submit"
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
-                Create account
-              </button>
-            </div>
+            <button type="submit"
+              class="btn-premium w-full py-3.5 mt-4 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+              <i data-lucide="user-plus" class="w-4 h-4"></i> Create account
+            </button>
           </form>
         </div>
 
-        <!-- Forgot Password form (hidden by default) -->
-        <div id="forgot-password-form" class="bg-white rounded-xl shadow-sm p-8 hidden">
+        <!-- Forgot Password Section -->
+        <div id="forgot-password-section" class="hidden">
           <div class="mb-6">
             <button id="back-to-login-forgot" type="button"
-              class="flex items-center gap-2 text-indigo-600 hover:text-indigo-500">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              Back to login
+              class="flex items-center gap-2 text-indigo-600 font-bold text-sm hover:text-indigo-500 transition-colors mb-6">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to login
             </button>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Reset Password</h1>
+            <p class="text-gray-500">We'll send you an OTP to your email.</p>
           </div>
 
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Reset Password</h2>
-
           <!-- Step 1: Request OTP -->
-          <form id="requestOtpForm" class="space-y-6">
-            <div>
-              <label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+          <form id="requestOtpForm" class="space-y-5">
+            <div class="input-group">
+              <label for="reset-email" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">Email
+                address</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="mail" class="h-5 w-5"></i>
                 </div>
                 <input id="reset-email" name="email" type="email" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="you@example.com">
               </div>
             </div>
-            <button type="submit"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-              Send OTP Code
-            </button>
+            <button type="submit" class="btn-premium w-full py-3.5 rounded-2xl text-white font-bold text-sm">Send OTP
+              Code</button>
           </form>
 
-          <!-- Step 2: Verify OTP & Reset (Hidden initially) -->
-          <form id="resetPasswordForm" class="space-y-6 hidden mt-6 pt-6 border-t border-gray-100">
-            <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-4">
+          <!-- Step 2: Verify OTP & Reset -->
+          <form id="resetPasswordForm" class="space-y-5 hidden">
+            <div class="p-3 bg-blue-50 text-blue-800 rounded-xl text-xs font-medium border border-blue-100 mb-4">
               Enter the OTP sent to your email. Check console if testing locally.
             </div>
 
             <input type="hidden" id="reset-email-confirm">
 
-            <div>
-              <label for="otp-code" class="block text-sm font-medium text-gray-700 mb-1">OTP Code</label>
+            <div class="input-group text-center">
+              <label for="otp-code" class="block text-sm font-semibold text-gray-700 mb-2">OTP Code</label>
               <input id="otp-code" name="otp" type="text" required placeholder="123456"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm tracking-widest text-center font-mono text-lg">
+                class="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all tracking-[0.5em] text-center font-mono text-xl">
             </div>
 
-            <div>
-              <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+            <div class="input-group">
+              <label for="new-password" class="block text-sm font-semibold text-gray-700 mb-1.5 ml-1">New
+                Password</label>
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                  <i data-lucide="lock" class="h-5 w-5"></i>
                 </div>
                 <input id="new-password" name="newPassword" type="password" required
-                  class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
                   placeholder="••••••••">
+                <button type="button"
+                  class="password-toggle absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                  data-target="new-password">
+                  <i data-lucide="eye" class="h-5 w-5"></i>
+                </button>
               </div>
             </div>
 
             <button type="submit"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-              Reset Password
-            </button>
+              class="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm shadow-lg shadow-green-600/20 transition-all hover:-translate-y-0.5">Reset
+              Password</button>
           </form>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 
   <script>
@@ -265,6 +417,26 @@
 
       const API_BASE = ''; // Use relative paths in production
       const NAME_KEY = 'planner.user';
+
+      // ---------------------------
+      // PASSWORD TOGGLE LOGIC
+      // ---------------------------
+      document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+          const targetId = button.getAttribute('data-target');
+          const input = document.getElementById(targetId);
+          const icon = button.querySelector('i');
+
+          if (input.type === 'password') {
+            input.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+          } else {
+            input.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
+          }
+          lucide.createIcons();
+        });
+      });
 
       <!-- Redundant manual redirect replaced by auth-helper.js -->
 
@@ -291,63 +463,17 @@
       const showRegisterBtn = document.getElementById('show-register');
       const backToLoginBtn = document.getElementById('back-to-login');
 
-      const loginBox = document.getElementById('loginForm').closest('.bg-white');
-      const registerBox = document.getElementById('register-form');
+      const loginSection = document.getElementById('login-section');
+      const registerSection = document.getElementById('register-section');
+      const forgotSection = document.getElementById('forgot-password-section');
 
       const registerForm = document.getElementById('registerForm');
       const regUsername = document.getElementById('reg-username');
-      const usernameRequirements = document.getElementById('username-requirements');
 
-      // Username Validation Logic
-      function validateUsername(username) {
-        const u = username;
-        const rules = {
-          length: u.length >= 3 && u.length <= 20,
-          chars: /^[a-z0-9._]+$/.test(u), // Only allowed chars
-          format: /^[a-z0-9](.*[a-z0-9])?$/.test(u), // Start/End with letter/num
-          consecutive: !/(\.\.|__)/.test(u),
-          reserved: !['admin', 'support', 'system', 'root'].includes(u)
-        };
-        return rules;
-      }
 
-      function updateUsernameUI(rules) {
-        usernameRequirements.classList.remove('hidden');
-        const updateItem = (id, isValid) => {
-          const el = document.getElementById(id);
-          const icon = el.querySelector('i');
-          if (isValid) {
-            el.classList.remove('text-gray-500', 'text-red-500');
-            el.classList.add('text-green-600');
-            icon.setAttribute('data-lucide', 'check-circle');
-          } else {
-            el.classList.remove('text-green-600');
-            el.classList.add('text-gray-500');
-            icon.setAttribute('data-lucide', 'circle');
-          }
-        };
 
-        updateItem('u-rule-length', rules.length);
-        updateItem('u-rule-chars', rules.chars);
-        updateItem('u-rule-format', rules.format);
-        updateItem('u-rule-consecutive', rules.consecutive);
-        updateItem('u-rule-reserved', rules.reserved);
 
-        if (window.lucide) lucide.createIcons();
-      }
 
-      regUsername.addEventListener('input', () => {
-        // Auto-convert to lowercase? Or just validate? 
-        // User asked "Only lowercase allowed", implying we should enforce it. 
-        // Let's validate it, maybe user typed Capital. 
-        // Actually, let's allow typing but show error.
-        const rules = validateUsername(regUsername.value);
-        updateUsernameUI(rules);
-      });
-
-      regUsername.addEventListener('focus', () => {
-        usernameRequirements.classList.remove('hidden');
-      });
 
       const regEmail = document.getElementById('reg-email');
 
@@ -429,19 +555,18 @@
       // SHOW / HIDE FORMS
       // ----------------------------------------------------
       showRegisterBtn?.addEventListener('click', () => {
-        loginBox.classList.add('hidden');
-        registerBox.classList.remove('hidden');
+        loginSection.classList.add('hidden');
+        registerSection.classList.remove('hidden');
       });
 
 
       backToLoginBtn?.addEventListener('click', () => {
-        registerBox.classList.add('hidden');
-        loginBox.classList.remove('hidden');
+        registerSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
       });
 
       /* ---------------- FORGOT PASSWORD UI ---------------- */
       const forgotLink = document.getElementById('forgot-password-link');
-      const forgotBox = document.getElementById('forgot-password-form');
       const backToLoginForgot = document.getElementById('back-to-login-forgot');
       const requestOtpForm = document.getElementById('requestOtpForm');
       const resetPasswordForm = document.getElementById('resetPasswordForm');
@@ -450,13 +575,13 @@
 
       forgotLink?.addEventListener('click', (e) => {
         e.preventDefault();
-        loginBox.classList.add('hidden');
-        forgotBox.classList.remove('hidden');
+        loginSection.classList.add('hidden');
+        forgotSection.classList.remove('hidden');
       });
 
       backToLoginForgot?.addEventListener('click', () => {
-        forgotBox.classList.add('hidden');
-        loginBox.classList.remove('hidden');
+        forgotSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
         // Reset forms
         requestOtpForm.reset();
         resetPasswordForm.reset();
@@ -523,8 +648,8 @@
           const data = await res.json();
           if (data.success) {
             alert("Password reset successfully! Please login.");
-            forgotBox.classList.add('hidden');
-            loginBox.classList.remove('hidden');
+            forgotSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
             requestOtpForm.reset();
             resetPasswordForm.reset();
           } else {
@@ -639,20 +764,14 @@
         const email = regEmail.value.trim();
         const password = regPassword.value;
         const username = regUsername.value;
-        const userType = document.getElementById('reg-user-type').value; // ADD THIS
+        const userType = 'user'; // Default user type
 
         if (!email || !password || !username) {
           alert('Please fill all fields');
           return;
         }
 
-        // Final Username Validation
-        const uRules = validateUsername(username);
-        const uValid = Object.values(uRules).every(r => r === true);
-        if (!uValid) {
-          alert("Please fix the username errors.");
-          return;
-        }
+
 
         // Final Password Validation
         const rules = validatePassword(password, username, email);
@@ -681,15 +800,22 @@
           const data = await res.json();
 
           if (!res.ok) {
-            throw new Error(data.error || 'Invalid credentials');
+            const err = new Error(data.error || 'Invalid credentials');
+            err.suggestions = data.suggestions || [];
+            throw err;
           }
 
           // SUCCESS: Do NOT auto-login.
           alert('Account created successfully! Please log in with your new credentials.');
 
+          // Clear any stale local session data
+          localStorage.removeItem('planner.user');
+          localStorage.removeItem('planner.theme');
+          localStorage.removeItem('planner.themeId');
+
           // Switch back to login form
-          registerBox.classList.add('hidden');
-          loginBox.classList.remove('hidden');
+          registerSection.classList.add('hidden');
+          loginSection.classList.remove('hidden');
 
           // Pre-fill email
           emailEl.value = email;
@@ -698,7 +824,31 @@
 
         } catch (err) {
           console.error('Register error:', err);
-          alert(err.message || 'Register failed. Please check your credentials and try again.');
+          // Check if it's a username-taken error with suggestions
+          if (err.suggestions && err.suggestions.length > 0) {
+            const suggestionsBox = document.getElementById('username-suggestions');
+            const buttonsContainer = document.getElementById('suggestion-buttons');
+            buttonsContainer.innerHTML = '';
+            err.suggestions.forEach(name => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.textContent = name;
+              btn.className = 'px-3 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-colors cursor-pointer';
+              btn.addEventListener('click', () => {
+                regUsername.value = name;
+                suggestionsBox.classList.add('hidden');
+                regUsername.classList.remove('border-red-400');
+                regUsername.classList.add('border-gray-300');
+              });
+              buttonsContainer.appendChild(btn);
+            });
+            suggestionsBox.classList.remove('hidden');
+            regUsername.classList.remove('border-gray-300');
+            regUsername.classList.add('border-red-400');
+            regUsername.focus();
+          } else {
+            alert(err.message || 'Register failed. Please check your credentials and try again.');
+          }
         } finally {
           if (btn) {
             btn.disabled = false;

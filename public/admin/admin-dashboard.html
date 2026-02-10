@@ -10,63 +10,85 @@
     <script src="/js/auth-helper.js"></script>
 </head>
 
-<body class="bg-indigo-50">
+<body class="bg-slate-900 text-slate-50 antialiased selection:bg-indigo-500 selection:text-white">
 
     <div class="flex">
 
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-white shadow-lg h-screen p-6 flex flex-col justify-between">
+        <aside
+            class="w-64 bg-slate-800 border-r border-slate-700 h-screen p-6 flex flex-col justify-between sticky top-0 overflow-y-auto">
 
             <div>
-                <h2 class="text-2xl font-bold text-indigo-700 mb-8">Admin Panel</h2>
+                <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="shield" class="w-5 h-5 text-white"></i>
+                    </div>
+                    Admin Panel
+                </h2>
 
                 <!-- ADMIN EMAIL BOX -->
-                <div class="mt-2 mb-6 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <p class="text-sm text-gray-600">Logged in as</p>
-                    <p class="text-md font-semibold text-indigo-700">pht.intern05@gmail.com</p>
+                <div class="mt-2 mb-6 p-4 bg-slate-700/50 rounded-xl border border-slate-600 backdrop-blur-sm">
+                    <p class="text-xs text-slate-100 uppercase tracking-wider font-semibold mb-1">Logged in as</p>
+                    <p class="text-sm font-medium text-indigo-300 truncate">pht.intern05@gmail.com</p>
                 </div>
 
 
-                <ul class="space-y-4">
+                <ul class="space-y-2">
                     <li><a href="#" onclick="showSection('users')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link active-nav">Users</a>
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link active-nav text-slate-100 hover:bg-slate-700 hover:text-white">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            <span class="font-medium">Users</span>
+                        </a>
                     </li>
                     <li><a href="#" onclick="showSection('coaches')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Coaches
-                            List</a></li>
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white">
+                            <i data-lucide="briefcase" class="w-5 h-5"></i>
+                            <span class="font-medium">Coaches</span>
+                        </a></li>
                     <li><a href="#" onclick="showSection('verification')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Verification
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white justify-between">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                <span class="font-medium">Verification</span>
+                            </div>
                             <span id="pendingCountBadge"
-                                class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">0</span></a>
+                                class="hidden bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                        </a>
                     </li>
                     <li><a href="#" onclick="showSection('notifications')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Notifications</a>
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            <span class="font-medium">Notifications</span>
+                        </a>
                     </li>
                     <li><a href="#" onclick="showSection('stats')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Stats
-                            & Reports</a></li>
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white">
+                            <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                            <span class="font-medium">Stats</span>
+                        </a></li>
                     <li><a href="#" onclick="showSection('blogs')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Blogs
-                            & Articles</a></li>
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                            <span class="font-medium">Blogs</span>
+                        </a></li>
                     <li><a href="#" onclick="showSection('complaints')"
-                            class="text-lg text-gray-700 hover:text-indigo-600 block px-4 py-2 rounded hover:bg-indigo-50 transition nav-link">Complaints
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 nav-link text-slate-100 hover:bg-slate-700 hover:text-white justify-between">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="message-square" class="w-5 h-5"></i>
+                                <span class="font-medium">Complaints</span>
+                            </div>
                             <span id="complaintCountBadge"
-                                class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">0</span></a>
+                                class="hidden bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                        </a>
                     </li>
                 </ul>
             </div>
 
             <!-- SIGN OUT BUTTON (BOTTOM) -->
             <button id="adminLogoutBtn" onclick="if(window.AuthHelper) window.AuthHelper.logout();"
-                class="flex items-center gap-3 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 
-      01-2 2H6a2 2 0 01-2-2V7a2 2 0 
-      012-2h5a2 2 0 012 2v1" />
-                </svg>
-
-                <span>Sign out</span>
+                class="flex items-center gap-3 px-4 py-3 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-600 hover:text-white border border-rose-500/30 transition-all group mt-6">
+                <i data-lucide="log-out" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                <span class="font-medium">Sign out</span>
             </button>
 
         </aside>
@@ -76,33 +98,34 @@
         <main class="flex-1 p-8">
 
             <div id="categoryManagerPanel"
-                class="hidden mb-6 bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 max-w-4xl mx-auto">
+                class="hidden mb-6 bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-4xl mx-auto shadow-2xl shadow-black/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h4 class="text-lg font-bold text-gray-800">Coach Categories Management</h4>
-                    <button onclick="toggleCategoryManager()" class="text-gray-400 hover:text-gray-600"><i
-                            data-lucide="x" class="w-5 h-5"></i></button>
+                    <h4 class="text-lg font-bold text-white">Coach Categories Management</h4>
+                    <button onclick="toggleCategoryManager()"
+                        class="text-slate-100 hover:text-white transition-colors"><i data-lucide="x"
+                            class="w-5 h-5"></i></button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Add New Category -->
-                    <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
-                        <h5 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">Add New Category
+                    <div class="bg-slate-700/30 p-4 rounded-xl border border-slate-600">
+                        <h5 class="text-xs font-bold text-slate-100 mb-3 uppercase tracking-wider">Add New Category
                         </h5>
                         <div class="flex gap-2">
                             <input type="text" id="newCategoryName" placeholder="e.g., Mental Health"
-                                class="flex-1 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border text-sm">
+                                class="flex-1 rounded-lg bg-slate-900 border-slate-600 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border text-sm">
                             <button onclick="addCategory()"
-                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition">Add</button>
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 text-sm font-medium transition shadow-lg shadow-indigo-500/20">Add</button>
                         </div>
                     </div>
 
                     <!-- Category List -->
-                    <div class="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
-                        <h5 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">All Categories
+                    <div class="bg-slate-700/30 p-4 rounded-xl border border-slate-600">
+                        <h5 class="text-xs font-bold text-slate-100 mb-3 uppercase tracking-wider">All Categories
                         </h5>
-                        <div id="categoriesList" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                        <div id="categoriesList" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                             <!-- Populated by JS -->
-                            <p class="text-sm text-gray-400 text-center py-2">Loading...</p>
+                            <p class="text-sm text-slate-300 text-center py-2">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -111,44 +134,74 @@
             <!-- USERS LOGIN ACTIVITY -->
             <section id="usersSection">
                 <!-- STATS ROW -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-indigo-500">
-                        <h4 class="text-gray-500 text-sm uppercase">Total Users</h4>
-                        <p class="text-3xl font-bold text-gray-800" id="statTotalUsers">Loading...</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div
+                        class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 relative overflow-hidden group hover:border-indigo-500/50 transition-all">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="users" class="w-16 h-16 text-indigo-500"></i>
+                        </div>
+                        <h4 class="text-slate-100 text-xs font-bold uppercase tracking-wider mb-2">Total Users</h4>
+                        <p class="text-3xl font-bold text-white flex items-baseline gap-2" id="statTotalUsers">
+                            Loading...
+                        </p>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-green-500">
-                        <h4 class="text-gray-500 text-sm uppercase">Daily Active Users</h4>
-                        <p class="text-3xl font-bold text-gray-800" id="statDAU">Loading...</p>
+                    <div
+                        class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 relative overflow-hidden group hover:border-emerald-500/50 transition-all">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="activity" class="w-16 h-16 text-emerald-500"></i>
+                        </div>
+                        <h4 class="text-slate-100 text-xs font-bold uppercase tracking-wider mb-2">Daily Active Users
+                        </h4>
+                        <p class="text-3xl font-bold text-white" id="statDAU">Loading...</p>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-blue-500">
-                        <h4 class="text-gray-500 text-sm uppercase">Monthly Active Users</h4>
-                        <p class="text-3xl font-bold text-gray-800" id="statMAU">Loading...</p>
+                    <div
+                        class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 relative overflow-hidden group hover:border-blue-500/50 transition-all">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="bar-chart" class="w-16 h-16 text-blue-500"></i>
+                        </div>
+                        <h4 class="text-slate-100 text-xs font-bold uppercase tracking-wider mb-2">Monthly Active Users
+                        </h4>
+                        <p class="text-3xl font-bold text-white" id="statMAU">Loading...</p>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 relative overflow-hidden group hover:border-rose-500/50 transition-all cursor-pointer"
+                        onclick="showSection('complaints')">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="message-square" class="w-16 h-16 text-rose-500"></i>
+                        </div>
+                        <h4 class="text-slate-100 text-xs font-bold uppercase tracking-wider mb-2">Pending Complaints
+                        </h4>
+                        <p class="text-3xl font-bold text-white" id="statPendingComplaints">0</p>
                     </div>
                 </div>
 
                 <!-- USERS SECTION -->
                 <section>
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-2xl font-bold text-indigo-700">Users Management</h3>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="users" class="w-8 h-8 text-indigo-500"></i>
+                            <h3 class="text-2xl font-bold text-white">Users Management</h3>
+                        </div>
                         <button onclick="fetchUsers()"
-                            class="text-sm text-indigo-600 hover:text-indigo-800 underline">Refresh List</button>
+                            class="text-sm font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-2 transition-colors">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh List
+                        </button>
                     </div>
 
-                    <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
+                    <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700">
                         <table class="w-full text-left">
                             <thead>
-                                <tr class="bg-indigo-100">
-                                    <th class="py-2 px-3">Name</th>
-                                    <th class="py-2 px-3">Email</th>
-                                    <th class="py-2 px-3">Role</th>
-                                    <th class="py-2 px-3">Status</th>
-                                    <th class="py-2 px-3">Actions</th>
+                                <tr class="bg-slate-700/50 text-slate-200 border-b border-slate-700">
+                                    <th class="py-4 px-6 font-semibold text-sm">Name</th>
+                                    <th class="py-4 px-6 font-semibold text-sm">Email</th>
+                                    <th class="py-4 px-6 font-semibold text-sm">Role</th>
+                                    <th class="py-4 px-6 font-semibold text-sm">Status</th>
+                                    <th class="py-4 px-6 font-semibold text-sm">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="usersTable">
+                            <tbody id="usersTable" class="divide-y divide-slate-700">
                                 <!-- Populated by JS -->
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">Loading users...</td>
+                                    <td colspan="5" class="text-center py-8 text-slate-300">Loading users...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -158,40 +211,48 @@
 
             <!-- COACHES (Initially Hidden) -->
             <section id="coachesSection" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold text-indigo-700">Coaches Directory</h3>
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="briefcase" class="w-8 h-8 text-indigo-500"></i>
+                        <h3 class="text-2xl font-bold text-white">Coaches Directory</h3>
+                    </div>
                     <button onclick="toggleCategoryManager()"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm flex items-center gap-2">
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 font-medium transition shadow-lg shadow-indigo-500/20 flex items-center gap-2">
                         <i data-lucide="settings-2" class="w-4 h-4"></i> Manage Categories
                     </button>
                 </div>
-                <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
+                <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700">
                     <table class="w-full text-left">
                         <thead>
-                            <tr class="bg-indigo-100">
-                                <th class="py-2 px-3">Name</th>
-                                <th class="py-2 px-3">Email</th>
-                                <th class="py-2 px-3">Clients</th>
-                                <th class="py-2 px-3">Category</th>
-                                <th class="py-2 px-3">Actions</th>
+                            <tr class="bg-slate-700/50 text-slate-200 border-b border-slate-700">
+                                <th class="py-4 px-6 font-semibold text-sm">Name</th>
+                                <th class="py-4 px-6 font-semibold text-sm">Email</th>
+                                <th class="py-4 px-6 font-semibold text-sm">Clients</th>
+                                <th class="py-4 px-6 font-semibold text-sm">Category</th>
+                                <th class="py-4 px-6 font-semibold text-sm">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="coachesTable"></tbody>
+                        <tbody id="coachesTable" class="divide-y divide-slate-700"></tbody>
                     </table>
                 </div>
             </section>
 
             <!-- VERIFICATION SECTION -->
             <section id="verificationSection" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold text-indigo-700">Pending Coach Verifications</h3>
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-indigo-500"></i>
+                        <h3 class="text-2xl font-bold text-white">Pending Coach Verifications</h3>
+                    </div>
                     <button onclick="fetchPendingCoaches()"
-                        class="text-sm text-indigo-600 hover:text-indigo-800 underline">Refresh</button>
+                        class="text-sm font-medium text-indigo-400 hover:text-indigo-300 underline flex items-center gap-2 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
+                    </button>
                 </div>
 
-                <div class="overflow-hidden bg-white shadow rounded-xl p-6">
+                <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700 p-6">
                     <div id="pendingContainer" class="space-y-6">
-                        <p class="text-gray-500 text-center py-8">Loading pending verifications...</p>
+                        <p class="text-slate-300 text-center py-8">Loading pending verifications...</p>
                     </div>
                 </div>
             </section>
@@ -199,44 +260,47 @@
 
             <!-- NOTIFICATIONS SECTION -->
             <section id="notificationsSection" class="hidden">
-                <h3 class="text-2xl font-bold text-indigo-700 mb-6">Push Notifications</h3>
-                <div class="bg-white p-8 rounded-xl shadow max-w-2xl">
-                    <form onsubmit="sendPushNotification(event)" class="space-y-5">
+                <div class="flex items-center gap-3 mb-6">
+                    <i data-lucide="bell" class="w-8 h-8 text-indigo-500"></i>
+                    <h3 class="text-2xl font-bold text-white">Push Notifications</h3>
+                </div>
+                <div class="bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700 max-w-2xl">
+                    <form onsubmit="sendPushNotification(event)" class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+                            <label class="block text-sm font-medium text-slate-100 mb-2">Target Audience</label>
                             <select id="pushTarget"
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full bg-slate-900 border-slate-600 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white p-3"
                                 onchange="toggleUserIdInput()">
                                 <option value="all">All Subscribers</option>
                                 <option value="single">Single User (by ID)</option>
                             </select>
                         </div>
                         <div id="userIdInputGroup" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                            <label class="block text-sm font-medium text-slate-100 mb-2">User ID</label>
                             <input type="text" id="pushUserId"
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full bg-slate-900 border-slate-600 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white p-3"
                                 placeholder="e.g. 123">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <label class="block text-sm font-medium text-slate-100 mb-2">Title</label>
                             <input type="text" id="pushTitle"
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full bg-slate-900 border-slate-600 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white p-3"
                                 placeholder="e.g. New Feature Alert!" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Message Body</label>
+                            <label class="block text-sm font-medium text-slate-100 mb-2">Message Body</label>
                             <textarea id="pushBody" rows="3"
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full bg-slate-900 border-slate-600 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white p-3"
                                 placeholder="Message content..." required></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Click URL (Optional)</label>
+                            <label class="block text-sm font-medium text-slate-100 mb-2">Click URL (Optional)</label>
                             <input type="text" id="pushUrl"
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full bg-slate-900 border-slate-600 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-white p-3"
                                 value="/app.html">
                         </div>
                         <button type="submit"
-                            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition font-medium">Send
+                            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-500 transition font-bold shadow-lg shadow-indigo-500/20">Send
                             Notification</button>
                     </form>
                 </div>
@@ -245,20 +309,23 @@
             <!-- BLOGS SECTION -->
             <section id="blogsSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-indigo-700">Blogs & Articles</h3>
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="file-text" class="w-8 h-8 text-indigo-500"></i>
+                        <h3 class="text-2xl font-bold text-white">Blogs & Articles</h3>
+                    </div>
 
                     <!-- Sub-navigation -->
-                    <div class="flex bg-white rounded-lg p-1 shadow-sm border border-indigo-100">
+                    <div class="flex bg-slate-800 rounded-lg p-1 shadow-sm border border-slate-700">
                         <button onclick="switchBlogView('list')" id="blogViewListBtn"
-                            class="px-4 py-2 rounded-md text-sm font-bold transition-all bg-indigo-600 text-white">
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all bg-indigo-600 text-white shadow-md">
                             All Articles
                         </button>
                         <button onclick="switchBlogView('create')" id="blogViewCreateBtn"
-                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-indigo-600">
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-slate-100 hover:text-white hover:bg-slate-700">
                             Create Article
                         </button>
                         <button onclick="switchBlogView('pending')" id="blogViewPendingBtn"
-                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-indigo-600">
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-all text-slate-100 hover:text-white hover:bg-slate-700">
                             Pending Approvals
                         </button>
                     </div>
@@ -267,33 +334,34 @@
                 <!-- PENDING ARTICLES VIEW -->
                 <div id="pendingArticlesView" class="hidden space-y-4">
                     <div
-                        class="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow border border-yellow-100">
-                        <p class="text-yellow-800 text-sm font-bold"> <i data-lucide="alert-circle"
-                                class="w-4 h-4 inline mr-1"></i> These articles are waiting for your approval before
+                        class="flex justify-between items-center bg-amber-500/10 p-4 rounded-xl shadow border border-amber-500/20">
+                        <p class="text-amber-200 text-sm font-bold"> <i data-lucide="alert-circle"
+                                class="w-4 h-4 inline mr-1 text-amber-400"></i> These articles are waiting for your
+                            approval before
                             going live.</p>
                         <button onclick="fetchPendingArticles()"
-                            class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                            class="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 transition-colors">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
                         </button>
                     </div>
 
-                    <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                    <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700">
                         <table class="w-full text-left">
                             <thead>
-                                <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Article</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Coach</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Category</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Submitted</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">
+                                <tr class="bg-slate-700/50 text-slate-200 border-b border-slate-700">
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Article</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Coach</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Category</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Submitted</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs text-right">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="pendingArticlesTable">
+                            <tbody id="pendingArticlesTable" class="divide-y divide-slate-700">
                                 <!-- Populated by JS -->
                                 <tr>
-                                    <td colspan="5" class="py-12 text-center text-gray-400">Loading pending
+                                    <td colspan="5" class="py-12 text-center text-slate-300">Loading pending
                                         articles...
                                     </td>
                                 </tr>
@@ -305,33 +373,33 @@
                 <!-- ALL ARTICLES LIST -->
                 <div id="allArticlesView" class="space-y-4">
                     <div
-                        class="flex justify-between items-center bg-white p-4 rounded-xl shadow border border-indigo-50">
-                        <p class="text-gray-600 text-sm">Review and manage all articles published on the platform.
+                        class="flex justify-between items-center bg-slate-800 p-4 rounded-xl shadow border border-slate-700">
+                        <p class="text-slate-100 text-sm">Review and manage all articles published on the platform.
                         </p>
                         <button onclick="fetchAllArticles()"
-                            class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                            class="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 transition-colors">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
                         </button>
                     </div>
 
-                    <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                    <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700">
                         <table class="w-full text-left">
                             <thead>
-                                <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Article</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Author</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Category</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Status</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Date</th>
-                                    <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">
+                                <tr class="bg-slate-700/50 text-slate-200 border-b border-slate-700">
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Article</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Author</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Category</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Status</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Date</th>
+                                    <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs text-right">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="adminArticlesTable">
+                            <tbody id="adminArticlesTable" class="divide-y divide-slate-700">
                                 <!-- Populated by JS -->
                                 <tr>
-                                    <td colspan="6" class="py-12 text-center text-gray-400">
+                                    <td colspan="6" class="py-12 text-center text-slate-300">
                                         <div class="flex flex-col items-center gap-2">
                                             <i data-lucide="loader" class="w-8 h-8 animate-spin text-indigo-400"></i>
                                             <p>Loading articles...</p>
@@ -345,10 +413,10 @@
 
                 <!-- CREATE ARTICLE FORM -->
                 <div id="createArticleView"
-                    class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-indigo-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
-                        <h2 class="text-xl font-bold text-gray-800">Create New Article</h2>
-                        <p class="text-sm text-gray-500">Fill in the details below to create a new article for your
+                    class="hidden max-w-4xl mx-auto bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+                    <div class="p-6 border-b border-slate-700 bg-slate-900/50">
+                        <h2 class="text-xl font-bold text-white">Create New Article</h2>
+                        <p class="text-sm text-slate-100">Fill in the details below to create a new article for your
                             business coaching blog.</p>
                     </div>
 
@@ -356,29 +424,29 @@
                         <form id="articleForm" onsubmit="publishArticle(event)" class="space-y-8">
                             <!-- Title & Description -->
                             <div class="space-y-4">
-                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <i data-lucide="heading" class="w-5 h-5 text-indigo-600"></i>
-                                    <h3 class="text-lg font-semibold text-gray-800">Title & Description</h3>
+                                <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
+                                    <i data-lucide="heading" class="w-5 h-5 text-indigo-400"></i>
+                                    <h3 class="text-lg font-semibold text-white">Title & Description</h3>
                                 </div>
 
                                 <div class="grid gap-4">
                                     <div>
                                         <label for="articleTitle"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Title Tag*</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">Title Tag*</label>
                                         <input type="text" id="articleTitle" oninput="generateSlug(this.value)"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg bg-slate-900 border-slate-600 border text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3"
                                             placeholder="Enter article title" required>
                                     </div>
 
                                     <div>
                                         <label for="articleDescription"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Meta
+                                            class="block text-sm font-medium text-slate-100 mb-1">Meta
                                             Description*</label>
                                         <textarea id="articleDescription" rows="3"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg bg-slate-900 border-slate-600 border text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3"
                                             placeholder="Enter a brief description for search engines (150-160 characters)"
                                             required></textarea>
-                                        <p class="text-xs text-gray-500 mt-1">This helps with SEO and appears in
+                                        <p class="text-xs text-slate-300 mt-1">This helps with SEO and appears in
                                             search
                                             results.</p>
                                     </div>
@@ -387,31 +455,31 @@
 
                             <!-- Content Section -->
                             <div class="space-y-4">
-                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
-                                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
-                                    <h3 class="text-lg font-semibold text-gray-800">Article Content</h3>
+                                <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-400"></i>
+                                    <h3 class="text-lg font-semibold text-white">Article Content</h3>
                                 </div>
 
                                 <div class="grid gap-4">
                                     <div>
                                         <label for="articleContent"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Content*</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">Content*</label>
                                         <textarea id="articleContent" rows="10"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg bg-slate-900 border-slate-600 border text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3"
                                             placeholder="Write your article content here..." required></textarea>
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Featured
+                                        <label class="block text-sm font-medium text-slate-100 mb-1">Featured
                                             Image</label>
                                         <div class="flex items-center gap-4">
                                             <input type="text" id="articleImage"
-                                                class="flex-1 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                                class="flex-1 rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
                                                 placeholder="Enter image URL (https://...)">
                                             <span class="text-gray-400 text-sm">or</span>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:bg-gray-50 transition-colors cursor-pointer flex-1"
+                                            <div class="border-2 border-dashed border-slate-600 rounded-lg p-3 text-center hover:bg-slate-700/50 transition-colors cursor-pointer flex-1"
                                                 onclick="document.getElementById('featuredImageFile').click()">
-                                                <p class="text-xs text-gray-600">Upload File</p>
+                                                <p class="text-xs text-slate-200">Upload File</p>
                                                 <input type="file" id="featuredImageFile" accept="image/*"
                                                     class="hidden">
                                             </div>
@@ -422,43 +490,43 @@
 
                             <!-- SEO & Technical -->
                             <div class="space-y-4">
-                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                                     <i data-lucide="search" class="w-5 h-5 text-indigo-600"></i>
-                                    <h3 class="text-lg font-semibold text-gray-800">SEO & Technical Details</h3>
+                                    <h3 class="text-lg font-semibold text-white">SEO & Technical Details</h3>
                                 </div>
 
                                 <div class="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label for="articleSlug"
-                                            class="block text-sm font-medium text-gray-700 mb-1">URL Slug*</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">URL Slug*</label>
                                         <input type="text" id="articleSlug"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
                                             placeholder="custom-url-slug" required>
-                                        <p class="text-xs text-gray-500 mt-1">Part of the article URL.</p>
+                                        <p class="text-xs text-slate-300 mt-1">Part of the article URL.</p>
                                     </div>
                                     <div>
                                         <label for="articleKeywords"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Focus
+                                            class="block text-sm font-medium text-slate-100 mb-1">Focus
                                             Keywords</label>
                                         <input type="text" id="articleKeywords"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
                                             placeholder="business, coaching, strategy">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Meta Robots</label>
+                                    <label class="block text-sm font-medium text-slate-100 mb-2">Meta Robots</label>
                                     <div class="space-y-2">
                                         <label class="flex items-center gap-2">
                                             <input type="checkbox" id="indexPage" checked
-                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                            <span class="text-sm text-gray-700">Allow search engines to index this
+                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-slate-600">
+                                            <span class="text-sm text-slate-100">Allow search engines to index this
                                                 page</span>
                                         </label>
                                         <label class="flex items-center gap-2">
                                             <input type="checkbox" id="followLinks" checked
-                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                            <span class="text-sm text-gray-700">Allow search engines to follow links
+                                                class="rounded text-indigo-600 focus:ring-indigo-500 border-slate-600">
+                                            <span class="text-sm text-slate-100">Allow search engines to follow links
                                                 on
                                                 this page</span>
                                         </label>
@@ -468,17 +536,17 @@
 
                             <!-- Categorization -->
                             <div class="space-y-4">
-                                <div class="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                <div class="flex items-center gap-2 border-b border-slate-700 pb-2">
                                     <i data-lucide="tag" class="w-5 h-5 text-indigo-600"></i>
-                                    <h3 class="text-lg font-semibold text-gray-800">Categorization</h3>
+                                    <h3 class="text-lg font-semibold text-white">Categorization</h3>
                                 </div>
 
                                 <div class="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label for="articleCategory"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">Category*</label>
                                         <select id="articleCategory"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
                                             required>
                                             <option value="">Select a category</option>
                                             <option value="Business">Business Strategy</option>
@@ -491,24 +559,24 @@
                                     </div>
                                     <div>
                                         <label for="articleTags"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">Tags</label>
                                         <input type="text" id="articleTags"
-                                            class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
+                                            class="w-full rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-3 border"
                                             placeholder="Add tags separated by commas">
                                     </div>
                                 </div>
                                 <div>
                                     <label class="flex items-center gap-2 mt-2">
                                         <input type="checkbox" id="featured"
-                                            class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                        <span class="text-sm text-gray-700 font-medium">Mark as featured
+                                            class="rounded text-indigo-600 focus:ring-indigo-500 border-slate-600">
+                                        <span class="text-sm text-slate-100 font-medium">Mark as featured
                                             article</span>
                                     </label>
                                     <div class="mt-4">
                                         <label for="articleStatus"
-                                            class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                            class="block text-sm font-medium text-slate-100 mb-1">Status</label>
                                         <select id="articleStatus"
-                                            class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border">
+                                            class="rounded-lg border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm p-2 border">
                                             <option value="published">Published</option>
                                             <option value="draft">Draft</option>
                                         </select>
@@ -517,9 +585,9 @@
                             </div>
 
                             <!-- Actions -->
-                            <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
+                            <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-700">
                                 <button type="button" onclick="document.getElementById('articleForm').reset()"
-                                    class="px-6 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+                                    class="px-6 py-2 rounded-lg border border-slate-600 text-slate-200 hover:bg-slate-700/50 flex items-center gap-2">
                                     <i data-lucide="x" class="w-4 h-4"></i> Cancel
                                 </button>
                                 <button type="submit" id="publishBtn"
@@ -535,30 +603,37 @@
             <!-- COMPLAINTS SECTION -->
             <section id="complaintsSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-indigo-700">User Complaints & Feedback</h3>
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="message-square" class="w-8 h-8 text-rose-500"></i>
+                        <h3 class="text-2xl font-bold text-white">User Complaints & Feedback</h3>
+                    </div>
                     <button onclick="fetchComplaints()"
-                        class="text-indigo-600 hover:text-indigo-800 text-sm font-bold flex items-center gap-1">
+                        class="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1 transition-colors">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
                     </button>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border border-indigo-50">
+                <!-- Description bar -->
+                <div
+                    class="flex justify-between items-center bg-slate-800 p-4 rounded-xl shadow border border-slate-700 mb-4">
+                    <p class="text-slate-100 text-sm">Review and manage user feedback and support tickets.
+                    </p>
+                </div>
+
+                <div class="overflow-hidden bg-slate-800 shadow-xl rounded-2xl border border-slate-700">
                     <table class="w-full text-left">
                         <thead>
-                            <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100">
-                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">User Information
-                                </th>
-                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Subject & Message
-                                </th>
-                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Status</th>
-                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs">Submitted At</th>
-                                <th class="py-4 px-4 font-bold uppercase tracking-wider text-xs text-right">Actions
-                                </th>
+                            <tr class="bg-slate-700/50 text-slate-200 border-b border-slate-700">
+                                <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">User Information</th>
+                                <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Subject & Message</th>
+                                <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Status</th>
+                                <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs">Submitted At</th>
+                                <th class="py-4 px-6 font-bold uppercase tracking-wider text-xs text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="complaintsTable">
+                        <tbody id="complaintsTable" class="divide-y divide-slate-700">
                             <tr>
-                                <td colspan="5" class="py-12 text-center text-gray-400">Loading complaints...</td>
+                                <td colspan="5" class="py-12 text-center text-slate-300">Loading complaints...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -570,12 +645,14 @@
 
     <!-- COACH DETAILS MODAL -->
     <div id="coachDetailsModal"
-        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative border border-slate-700">
 
-            <div class="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
-                <h3 class="text-2xl font-bold text-gray-800">Coach Application Details</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+            <div
+                class="sticky top-0 bg-slate-800/95 backdrop-blur border-b border-slate-700 p-6 flex justify-between items-center z-10">
+                <h3 class="text-2xl font-bold text-white">Coach Application Details</h3>
+                <button onclick="closeModal()" class="text-slate-200 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                         </path>
@@ -583,13 +660,13 @@
                 </button>
             </div>
 
-            <div class="p-8 space-y-8" id="modalContent">
+            <div class="p-8 space-y-8 text-slate-100" id="modalContent">
                 <!-- Populated by JS -->
             </div>
 
-            <div class="bg-gray-50 p-6 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl sticky bottom-0">
+            <div class="bg-slate-800 p-6 border-t border-slate-700 flex justify-end gap-3 rounded-b-xl sticky bottom-0">
                 <button onclick="closeModal()"
-                    class="px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                    class="px-5 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 font-medium hover:bg-slate-600 transition">
                     Close
                 </button>
                 <div id="modalActions" class="flex gap-3">
@@ -601,11 +678,12 @@
 
     <!-- USER HISTORY MODAL -->
     <div id="userHistoryModal"
-        class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-800">Login History</h3>
-                <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600">
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col border border-slate-700">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Login History</h3>
+                <button onclick="closeHistoryModal()" class="text-slate-200 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                         </path>
@@ -614,21 +692,21 @@
             </div>
             <div class="p-6 overflow-y-auto flex-1">
                 <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 text-gray-600">
+                    <thead class="bg-slate-700/50 text-slate-100">
                         <tr>
-                            <th class="py-2 px-3">Date/Time</th>
+                            <th class="py-2 px-3 pl-4">Date/Time</th>
                             <th class="py-2 px-3">IP Address</th>
                             <th class="py-2 px-3">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="historyTableBody">
+                    <tbody id="historyTableBody" class="text-slate-100 divide-y divide-slate-700">
                         <!-- Populated by JS -->
                     </tbody>
                 </table>
             </div>
-            <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-xl text-right">
+            <div class="p-4 border-t border-slate-700 bg-slate-800 rounded-b-xl text-right">
                 <button onclick="closeHistoryModal()"
-                    class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50">Close</button>
+                    class="px-4 py-2 bg-slate-700 border border-slate-600 rounded text-slate-200 hover:bg-slate-600 transition">Close</button>
             </div>
         </div>
     </div>
@@ -681,33 +759,33 @@
 
                 users.forEach(user => {
                     const statusColor = user.status === 'active' ? 'text-green-600' :
-                        user.status === 'banned' ? 'text-red-600' : 'text-gray-500';
+                        user.status === 'banned' ? 'text-red-600' : 'text-slate-300';
 
                     tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="py-2 px-3">
-                                <span class="font-medium">${user.username || 'N/A'}</span>
+                        <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                            <td class="py-4 px-6">
+                                <span class="font-medium text-white">${user.username || 'N/A'}</span>
                             </td>
-                            <td class="py-2 px-3 text-sm text-gray-600">${user.email}</td>
-                            <td class="py-2 px-3">
-                                <span class="px-2 py-1 bg-gray-100 rounded text-xs">${user.role}</span>
+                            <td class="py-4 px-6 text-sm text-slate-200">${user.email}</td>
+                            <td class="py-4 px-6">
+                                <span class="px-2 py-1 bg-slate-700 text-slate-100 rounded text-xs font-bold uppercase border border-slate-600">${user.role}</span>
                             </td>
-                            <td class="py-2 px-3 font-semibold ${statusColor}">
+                            <td class="py-4 px-6 font-semibold ${statusColor}">
                                 ${user.status || 'Active'}
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-4 px-6">
                                 <div class="relative group inline-block">
-                                    <button class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Actions ▼</button>
+                                    <button class="text-indigo-400 hover:text-indigo-300 font-medium text-sm flex items-center gap-1">Actions <i data-lucide="chevron-down" class="w-3 h-3"></i></button>
                                     <!-- Dropdown -->
-                                    <div class="absolute right-0 top-full mt-1 hidden group-hover:block bg-white border border-gray-200 shadow-lg rounded z-10 w-32">
+                                    <div class="absolute right-0 top-full mt-1 hidden group-hover:block bg-slate-800 border border-slate-600 shadow-xl rounded-lg z-10 w-40 overflow-hidden">
                                         ${user.status !== 'active' ?
-                            `<button onclick="updateUserStatus('${user.id}', 'active')" class="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50">Activate</button>` :
-                            `<button onclick="updateUserStatus('${user.id}', 'inactive')" class="block w-full text-left px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50">Deactivate</button>`
+                            `<button onclick="updateUserStatus('${user.id}', 'active')" class="block w-full text-left px-4 py-3 text-sm text-emerald-400 hover:bg-slate-700 transition">Activate</button>` :
+                            `<button onclick="updateUserStatus('${user.id}', 'inactive')" class="block w-full text-left px-4 py-3 text-sm text-amber-400 hover:bg-slate-700 transition">Deactivate</button>`
                         }
-                                        <button onclick="updateUserStatus('${user.id}', 'banned')" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Block/Ban</button>
-                                        <button onclick="viewUserHistory('${user.id}')" class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50">View Login History</button>
-                                        <hr class="my-1">
-                                        <button onclick="deleteUser('${user.id}')" class="block w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-red-100 hover:text-red-700">Delete</button>
+                                        <button onclick="updateUserStatus('${user.id}', 'banned')" class="block w-full text-left px-4 py-3 text-sm text-rose-400 hover:bg-slate-700 transition">Block/Ban</button>
+                                        <button onclick="viewUserHistory('${user.id}')" class="block w-full text-left px-4 py-3 text-sm text-indigo-400 hover:bg-slate-700 transition">View History</button>
+                                        <div class="border-t border-slate-700 my-0"></div>
+                                        <button onclick="deleteUser('${user.id}')" class="block w-full text-left px-4 py-3 text-sm text-slate-200 hover:bg-rose-900/20 hover:text-rose-400 transition">Delete</button>
                                     </div>
                                 </div>
                             </td>
@@ -794,32 +872,34 @@
                         if (coach.status === 'blocked' || coach.status === 'banned') return;
 
                         tbody.innerHTML += `
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="py-2 px-3 font-medium text-gray-900">
+                            <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                                <td class="py-4 px-6 font-medium text-white">
                                     <div class="flex items-center gap-3">
-                                        <img src="${coach.profile_photo || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover">
+                                        <img src="${coach.profile_photo || 'https://via.placeholder.com/32'}" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600">
                                         ${coach.name}
                                     </div>
                                 </td>
-                                <td class="py-2 px-3 text-sm text-gray-600">${coach.email}</td>
-                                <td class="py-2 px-3">${coach.hours_coached || 0} hrs</td>
-                                <td class="py-2 px-3">
+                                <td class="py-4 px-6 text-sm text-slate-200">${coach.email}</td>
+                                <td class="py-4 px-6 text-slate-100 font-mono">${coach.hours_coached || 0} hrs</td>
+                                <td class="py-4 px-6">
                                     <span class="px-2 py-1 rounded text-xs uppercase font-bold 
-                                        ${coach.status === 'blocked' ? 'bg-orange-100 text-orange-700' :
-                                coach.status === 'banned' ? 'bg-red-100 text-red-700' :
-                                    'bg-indigo-100 text-indigo-700'}">
+                                        ${coach.status === 'blocked' ? 'bg-orange-900/30 text-orange-400 border border-orange-900/50' :
+                                coach.status === 'banned' ? 'bg-rose-900/30 text-rose-400 border border-rose-900/50' :
+                                    'bg-indigo-900/30 text-indigo-400 border border-indigo-900/50'}">
                                         ${coach.status || coach.coach_type}
                                     </span>
                                 </td>
-                                <td class="py-2 px-3">
-                                    <button onclick="viewCoachDetails(${index}, 'approved')" class="text-indigo-600 hover:underline text-sm font-medium mr-2">View Profile</button>
-                                    
-                                    ${coach.status === 'blocked' || coach.status === 'banned' ? `
-                                        <button onclick="updateCoachStatus(${coach.id}, 'approved')" class="text-green-600 hover:text-green-800 text-xs font-bold uppercase border border-green-200 px-2 py-1 rounded">Unblock</button>
-                                    ` : `
-                                        <button onclick="updateCoachStatus(${coach.id}, 'blocked')" class="text-orange-500 hover:text-orange-700 text-xs font-bold uppercase mr-1" title="Block Temporarily"><i data-lucide="slash" class="w-3 h-3"></i></button>
-                                        <button onclick="updateCoachStatus(${coach.id}, 'banned')" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase" title="Ban Permanently"><i data-lucide="x-circle" class="w-3 h-3"></i></button>
-                                    `}
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="viewCoachDetails(${index}, 'approved')" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium hover:underline">View Profile</button>
+                                        
+                                        ${coach.status === 'blocked' || coach.status === 'banned' ? `
+                                            <button onclick="updateCoachStatus(${coach.id}, 'approved')" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold uppercase border border-emerald-500/50 px-2 py-1 rounded hover:bg-emerald-900/20 transition">Unblock</button>
+                                        ` : `
+                                            <button onclick="updateCoachStatus(${coach.id}, 'blocked')" class="text-amber-500 hover:text-amber-400 p-1 hover:bg-amber-900/20 rounded transition" title="Block Temporarily"><i data-lucide="slash" class="w-4 h-4"></i></button>
+                                            <button onclick="updateCoachStatus(${coach.id}, 'banned')" class="text-rose-500 hover:text-rose-400 p-1 hover:bg-rose-900/20 rounded transition" title="Ban Permanently"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                                        `}
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -880,7 +960,7 @@
         // --- VERIFICATION API ---
         async function fetchPendingCoaches() {
             const container = document.getElementById('pendingContainer');
-            container.innerHTML = '<p class="text-center text-gray-500 py-4">Checking for new applications...</p>';
+            container.innerHTML = '<p class="text-center text-slate-300 py-4">Checking for new applications...</p>';
 
             try {
                 const res = await fetch('/api/admin/verifications/coaches');
@@ -903,7 +983,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <h4 class="text-lg font-medium text-gray-900">All caught up!</h4>
-                            <p class="text-gray-500">No pending coach verifications.</p>
+                            <p class="text-slate-300">No pending coach verifications.</p>
                         </div>
                     `;
                     return;
@@ -914,22 +994,22 @@
 
                 pending.forEach((coach, index) => {
                     container.innerHTML += `
-                        <div class="border border-gray-200 rounded-lg p-6 bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="border border-slate-700 rounded-xl p-6 bg-slate-700/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-indigo-500/30 transition-all">
                             <div>
-                                <div class="flex items-center gap-3">
-                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wide">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="bg-indigo-900/50 text-indigo-300 border border-indigo-700/50 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
                                         ${coach.coach_type || 'General'}
                                     </span>
-                                    <span class="text-sm text-gray-500"><i class="far fa-clock mr-1"></i> Applied: ${new Date(coach.created_at).toLocaleDateString()}</span>
+                                    <span class="text-xs text-slate-300 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Applied: ${new Date(coach.created_at).toLocaleDateString()}</span>
                                 </div>
-                                <h4 class="text-xl font-bold text-gray-900 mt-2">${coach.name}</h4>
-                                <p class="text-sm text-gray-600">${coach.email}</p>
+                                <h4 class="text-xl font-bold text-white">${coach.name}</h4>
+                                <p class="text-sm text-slate-200 font-mono">${coach.email}</p>
                             </div>
                             
                             <div class="flex gap-3">
                                 <button onclick="viewCoachDetails(${index}, 'pending')" 
-                                    class="px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 font-medium transition shadow-sm">
-                                    View Details
+                                    class="px-4 py-2 bg-slate-800 text-indigo-400 border border-slate-600 rounded-lg hover:bg-indigo-900/20 hover:border-indigo-500/50 font-medium transition shadow-sm flex items-center gap-2">
+                                    View Details <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </div>
@@ -1041,21 +1121,21 @@
             content.innerHTML = `
                 <!-- Header Info -->
                 <div class="flex flex-col md:flex-row gap-6 items-start">
-                    <img src="${coach.profile_photo || 'https://via.placeholder.com/150'}" alt="Profile" class="w-32 h-32 rounded-lg object-cover shadow-sm border border-gray-200 bg-gray-50">
+                    <img src="${coach.profile_photo || 'https://via.placeholder.com/150'}" alt="Profile" class="w-32 h-32 rounded-lg object-cover shadow-lg border-2 border-slate-600 bg-slate-700">
                     <div class="flex-1">
-                        <h4 class="text-3xl font-bold text-gray-900 mb-2">${coach.name}</h4>
-                        <p class="text-lg text-indigo-600 font-medium mb-4">${coach.coach_type} Coach</p>
+                        <h4 class="text-3xl font-bold text-white mb-2">${coach.name}</h4>
+                        <p class="text-lg text-indigo-400 font-medium mb-4">${coach.coach_type} Coach</p>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-200">
                             <div class="flex items-center"><i class="far fa-envelope w-6"></i> ${coach.email}</div>
                             <div class="flex items-center"><i class="fas fa-map-marker-alt w-6"></i> ${coach.location || 'N/A'}</div>
                             <div class="flex items-center"><i class="far fa-calendar w-6"></i> DOB: ${coach.dob ? new Date(coach.dob).toLocaleDateString() : 'N/A'}</div>
                             <div class="flex items-center"><i class="fas fa-briefcase w-6"></i> Exp: ${coach.years_experience || 0} Years</div>
                             <div class="flex items-center"><i class="far fa-clock w-6"></i> ${coach.hours_coached || 0} Hours Coached</div>
-                            <div class="flex items-center text-indigo-700 font-bold bg-indigo-50 px-2 py-1 rounded">
+                            <div class="flex items-center text-indigo-300 font-bold bg-indigo-900/30 px-2 py-1 rounded border border-indigo-500/30">
                                 <i class="fas fa-rupee-sign w-6"></i> Price: ₹${coach.hourly_rate || 0}/hr
                             </div>
-                            <div class="flex items-center text-red-600 font-medium bg-red-50 px-2 py-1 rounded">
+                            <div class="flex items-center text-emerald-400 font-medium bg-emerald-900/30 px-2 py-1 rounded border border-emerald-500/30">
                                 <i class="fas fa-percentage w-6"></i> Net (80%): ₹${(coach.hourly_rate * 0.8).toFixed(2)}/hr
                             </div>
                         </div>
@@ -1064,55 +1144,55 @@
 
                 <!-- Bio -->
                 <section>
-                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">About</h5>
-                    <p class="text-gray-600 leading-relaxed whitespace-pre-line">${coach.bio || 'No bio provided.'}</p>
+                    <h5 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">About</h5>
+                    <p class="text-slate-200 leading-relaxed whitespace-pre-line">${coach.bio || 'No bio provided.'}</p>
                 </section>
 
                 <!-- Specialties -->
                 <section>
-                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Specialties</h5>
+                    <h5 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">Specialties</h5>
                     <div class="flex flex-wrap gap-2">
-                        ${specs.length > 0 ? specs.map(s => `<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">${s}</span>`).join('') : '<p class="text-gray-500">None listed</p>'}
+                        ${specs.length > 0 ? specs.map(s => `<span class="bg-indigo-900/30 text-indigo-300 border border-indigo-700/50 px-3 py-1 rounded-full text-sm font-medium">${s}</span>`).join('') : '<p class="text-slate-300">None listed</p>'}
                     </div>
                 </section>
                 
                  <!-- Socials -->
                 <section>
-                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Online Presence</h5>
+                    <h5 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">Online Presence</h5>
                     <div class="flex gap-4">
-                        ${socials.linkedin ? `<a href="${socials.linkedin}" target="_blank" class="text-blue-700 hover:text-blue-900"><i class="fab fa-linkedin fa-lg"></i> LinkedIn</a>` : ''}
-                        ${socials.twitter ? `<a href="${socials.twitter}" target="_blank" class="text-blue-400 hover:text-blue-600"><i class="fab fa-twitter fa-lg"></i> Twitter</a>` : ''}
-                        ${socials.website ? `<a href="${socials.website}" target="_blank" class="text-gray-700 hover:text-black"><i class="fas fa-globe fa-lg"></i> Website</a>` : ''}
+                        ${socials.linkedin ? `<a href="${socials.linkedin}" target="_blank" class="text-blue-400 hover:text-blue-300 flex items-center gap-2"><i class="fab fa-linkedin fa-lg"></i> LinkedIn</a>` : ''}
+                        ${socials.twitter ? `<a href="${socials.twitter}" target="_blank" class="text-sky-400 hover:text-sky-300 flex items-center gap-2"><i class="fab fa-twitter fa-lg"></i> Twitter</a>` : ''}
+                        ${socials.website ? `<a href="${socials.website}" target="_blank" class="text-slate-200 hover:text-white flex items-center gap-2"><i class="fas fa-globe fa-lg"></i> Website</a>` : ''}
                     </div>
                 </section>
 
                 <!-- Certifications -->
                 <section>
-                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Certifications</h5>
+                    <h5 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">Certifications</h5>
                     <div class="space-y-3">
                         ${certs.length > 0 ? certs.map(c => `
-                            <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                                <p class="font-bold text-gray-900">${c.name}</p>
-                                <p class="text-sm text-gray-600">${c.org} • ${c.year} ${c.id ? '• ID: ' + c.id : ''}</p>
+                            <div class="bg-slate-700/30 p-3 rounded border border-slate-600">
+                                <p class="font-bold text-slate-200">${c.name}</p>
+                                <p class="text-sm text-slate-200">${c.org} • ${c.year} ${c.id ? '• ID: ' + c.id : ''}</p>
                             </div>
-                        `).join('') : '<p class="text-gray-500">None listed</p>'}
+                        `).join('') : '<p class="text-slate-300">None listed</p>'}
                     </div>
                 </section>
 
                 <!-- Files -->
                 <section>
-                    <h5 class="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2 mb-3">Uploaded Documents</h5>
+                    <h5 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">Uploaded Documents</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         ${files.length > 0 ? files.map((f, i) => `
-                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded border hover:bg-gray-100 transition cursor-pointer" onclick="downloadFile('${coach.user_id}', ${i})">
-                                <div class="bg-red-100 text-red-600 p-2 rounded"><i class="fas fa-file-pdf"></i></div>
+                            <div class="flex items-center gap-3 p-3 bg-slate-700/30 rounded border border-slate-600 hover:bg-slate-700/50 transition cursor-pointer" onclick="downloadFile('${coach.user_id}', ${i})">
+                                <div class="bg-red-900/30 text-red-400 p-2 rounded"><i class="fas fa-file-pdf"></i></div>
                                 <div class="overflow-hidden">
-                                    <p class="font-medium text-gray-900 truncate">${f.name}</p>
-                                    <p class="text-xs text-gray-500">${f.size ? (f.size / 1024).toFixed(1) + ' KB' : ''}</p>
+                                    <p class="font-medium text-slate-200 truncate">${f.name}</p>
+                                    <p class="text-xs text-slate-300">${f.size ? (f.size / 1024).toFixed(1) + ' KB' : ''}</p>
                                 </div>
-                                <a href="${f.data}" download="${f.name}" class="ml-auto text-indigo-600 hover:text-indigo-800 px-2 py-1 text-sm font-medium">Download</a>
+                                <a href="${f.data}" download="${f.name}" class="ml-auto text-indigo-400 hover:text-indigo-300 px-2 py-1 text-sm font-medium">Download</a>
                             </div>
-                        `).join('') : '<p class="text-gray-500">No documents uploaded</p>'}
+                        `).join('') : '<p class="text-slate-300">No documents uploaded</p>'}
                     </div>
                 </section>
             `;
@@ -1121,15 +1201,15 @@
             actions.innerHTML = `
                 <div class="flex items-center gap-3 w-full">
                     ${coach.status === 'blocked' || coach.status === 'banned' ? `
-                        <button onclick="updateCoachStatus('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition shadow-sm">Unblock / Activate Coach</button>
+                        <button onclick="updateCoachStatus('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 font-medium transition shadow-lg shadow-emerald-500/20">Unblock / Activate Coach</button>
                     ` : `
-                        <button onclick="updateCoachStatus('${coach.id}', 'blocked')" class="flex-1 px-4 py-2 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 font-medium transition">Block Coach</button>
-                        <button onclick="updateCoachStatus('${coach.id}', 'banned')" class="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 font-medium transition">Ban Coach</button>
+                        <button onclick="updateCoachStatus('${coach.id}', 'blocked')" class="flex-1 px-4 py-2 border border-slate-600 text-amber-500 rounded-lg hover:bg-amber-900/20 hover:border-amber-500/50 font-medium transition">Block Coach</button>
+                        <button onclick="updateCoachStatus('${coach.id}', 'banned')" class="flex-1 px-4 py-2 border border-slate-600 text-rose-500 rounded-lg hover:bg-rose-900/20 hover:border-rose-500/50 font-medium transition">Ban Coach</button>
                     `}
                     
                     ${type === 'pending' ? `
-                        <button onclick="verifyCoach('${coach.id}', 'rejected')" class="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 font-medium transition">Reject Application</button>
-                        <button onclick="verifyCoach('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm shadow-indigo-200">Approve Coach</button>
+                        <button onclick="verifyCoach('${coach.id}', 'rejected')" class="flex-1 px-4 py-2 border border-slate-600 text-rose-500 rounded-lg hover:bg-rose-900/20 hover:border-rose-500/50 font-medium transition">Reject Application</button>
+                        <button onclick="verifyCoach('${coach.id}', 'approved')" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-sm shadow-indigo-500/20">Approve Coach</button>
                     ` : ''}
                 </div>
             `;
@@ -1231,7 +1311,7 @@
 
             // Defines
             const activeBtnClass = ['bg-indigo-600', 'text-white'];
-            const inactiveBtnClass = ['text-gray-500'];
+            const inactiveBtnClass = ['text-slate-300'];
 
             // Reset
             [listBtn, createBtn, pendingBtn].forEach(btn => {
@@ -1274,33 +1354,33 @@
                 tbody.innerHTML = '';
 
                 if (articles.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500">No pending articles found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-300">No pending articles found.</td></tr>';
                     return;
                 }
 
                 articles.forEach(article => {
                     tbody.innerHTML += `
-                         <tr class="border-b hover:bg-gray-50 transition-colors">
-                             <td class="py-4 px-4">
-                                 <p class="font-bold text-gray-800 text-sm">${article.title}</p>
-                                 <p class="text-xs text-gray-500 mt-1 line-clamp-1">${article.description || ''}</p>
-                             </td>
-                             <td class="py-4 px-4">
-                                 <div class="flex flex-col">
-                                     <span class="text-sm font-medium text-gray-700">${article.coach_name || 'Unknown'}</span>
-                                     <span class="text-xs text-gray-500">${article.coach_email || ''}</span>
-                                 </div>
-                             </td>
-                             <td class="py-4 px-4 text-sm text-gray-600">${article.category || 'N/A'}</td>
-                             <td class="py-4 px-4 text-sm text-gray-500">${new Date(article.created_at).toLocaleDateString()}</td>
-                             <td class="py-4 px-4 text-right">
-                                 <div class="flex justify-end gap-2">
-                                     <button onclick="reviewArticle(${article.id})" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold border border-indigo-200 px-3 py-1.5 rounded-md hover:bg-indigo-50 transition-colors">Review</button>
-                                     <button onclick="updateArticleStatus(${article.id}, 'published')" class="text-green-600 hover:text-green-800 text-xs font-bold bg-green-50 px-3 py-1.5 rounded-md hover:bg-green-100 transition-colors border border-green-200">Approve</button>
-                                     <button onclick="updateArticleStatus(${article.id}, 'draft')" class="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-3 py-1.5 rounded-md hover:bg-red-100 transition-colors border border-red-200">Reject</button>
-                                 </div>
-                             </td>
-                         </tr>
+                     <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                            <td class="py-4 px-6">
+                                <p class="font-bold text-white text-sm">${article.title}</p>
+                                <p class="text-xs text-slate-200 mt-1 line-clamp-1">${article.description || ''}</p>
+                            </td>
+                            <td class="py-4 px-6">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium text-slate-100">${article.coach_name || 'Unknown'}</span>
+                                    <span class="text-xs text-slate-300">${article.coach_email || ''}</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6 text-sm text-slate-100">${article.category || 'N/A'}</td>
+                            <td class="py-4 px-6 text-sm text-slate-300">${new Date(article.created_at).toLocaleDateString()}</td>
+                            <td class="py-4 px-6 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="reviewArticle(${article.id})" class="text-indigo-400 hover:text-indigo-300 text-xs font-bold border border-indigo-500/50 px-3 py-1.5 rounded-md hover:bg-indigo-900/20 transition-colors">Review</button>
+                                    <button onclick="updateArticleStatus(${article.id}, 'published')" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold bg-emerald-900/20 px-3 py-1.5 rounded-md hover:bg-emerald-900/40 transition-colors border border-emerald-500/30">Approve</button>
+                                    <button onclick="updateArticleStatus(${article.id}, 'draft')" class="text-rose-400 hover:text-rose-300 text-xs font-bold bg-rose-900/20 px-3 py-1.5 rounded-md hover:bg-rose-900/40 transition-colors border border-rose-500/30">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
                      `;
                 });
 
@@ -1352,32 +1432,32 @@
                 }
 
                 tbody.innerHTML = articles.map(article => `
-                    <tr class="border-b hover:bg-indigo-50/30 transition-colors">
-                        <td class="py-4 px-4">
+                    <tr class="border-b border-slate-700 hover:bg-indigo-900/10 transition-colors">
+                        <td class="py-4 px-6">
                             <div class="flex flex-col">
-                                <span class="font-bold text-gray-900">${article.title}</span>
-                                <span class="text-xs text-gray-500">slug: ${article.slug}</span>
+                                <span class="font-bold text-white">${article.title}</span>
+                                <span class="text-xs text-slate-300">slug: ${article.slug}</span>
                             </div>
                         </td>
-                        <td class="py-4 px-4 text-sm">
+                        <td class="py-4 px-6 text-sm">
                             <div class="flex flex-col">
-                                <span class="font-medium text-gray-800">${article.coach_name || 'Admin'}</span>
-                                <span class="text-xs text-gray-500">${article.coach_email || 'pht.intern05@gmail.com'}</span>
+                                <span class="font-medium text-slate-100">${article.coach_name || 'Admin'}</span>
+                                <span class="text-xs text-slate-300">${article.coach_email || 'pht.intern05@gmail.com'}</span>
                             </div>
                         </td>
-                        <td class="py-4 px-4">
-                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold uppercase">${article.category || 'Uncategorized'}</span>
+                        <td class="py-4 px-6">
+                            <span class="px-2 py-1 bg-indigo-900/30 text-indigo-300 border border-indigo-500/30 rounded text-xs font-bold uppercase">${article.category || 'Uncategorized'}</span>
                         </td>
-                        <td class="py-4 px-4">
-                            <span class="px-2 py-1 ${article.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} rounded text-xs font-bold uppercase">
+                        <td class="py-4 px-6">
+                            <span class="px-2 py-1 ${article.status === 'published' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-200 border border-slate-600'} rounded text-xs font-bold uppercase">
                                 ${article.status}
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-sm text-gray-500">
+                        <td class="py-4 px-6 text-sm text-slate-300">
                             ${new Date(article.published_at || article.created_at).toLocaleDateString()}
                         </td>
-                        <td class="py-4 px-4 text-right">
-                            <button onclick="deleteArticle(${article.id})" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider flex items-center gap-1 justify-end ml-auto">
+                        <td class="py-4 px-6 text-right">
+                            <button onclick="deleteArticle(${article.id})" class="text-rose-400 hover:text-rose-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1 justify-end ml-auto hover:bg-rose-900/20 p-1.5 rounded transition">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
                             </button>
                         </td>
@@ -1464,12 +1544,12 @@
                 const data = await res.json();
 
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No login history found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-slate-300">No login history found.</td></tr>';
                 } else {
                     tbody.innerHTML = data.map(log => `
-                        <tr class="border-b hover:bg-gray-50">
+                        <tr class="border-b hover:bg-slate-700/50">
                             <td class="py-2 px-3 text-sm">${new Date(log.created_at).toLocaleString()}</td>
-                            <td class="py-2 px-3 text-sm font-mono text-gray-600">${log.ip_address || 'N/A'}</td>
+                            <td class="py-2 px-3 text-sm font-mono text-slate-200">${log.ip_address || 'N/A'}</td>
                             <td class="py-2 px-3 text-sm">
                                 ${log.success ?
                             '<span class="text-green-600 font-bold">Success</span>' :
@@ -1507,8 +1587,8 @@
                     list.innerHTML = '<p class="text-sm text-gray-400 text-center py-2">No categories found.</p>';
                 } else {
                     list.innerHTML = categories.map(cat => `
-                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100 group">
-                            <span class="text-sm font-medium text-gray-700">${cat.name}</span>
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded border border-slate-700 group">
+                            <span class="text-sm font-medium text-slate-100">${cat.name}</span>
                             <button onclick="deleteCategory(${cat.id})" 
                                 class="flex items-center gap-1.5 px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Category">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -1595,44 +1675,51 @@
                     badge.classList.add('hidden');
                 }
 
+                // Update top stat card
+                const statCard = document.getElementById('statPendingComplaints');
+                if (statCard) {
+                    statCard.innerText = pendingCount;
+                    statCard.parentElement.classList.toggle('border-rose-500/20', pendingCount > 0);
+                }
+
                 if (complaints.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">No complaints found.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = complaints.map(complaint => `
-                    <tr class="border-b hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-4">
+                    <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                        <td class="py-4 px-6">
                             <div class="flex flex-col">
-                                <span class="font-bold text-gray-900">${complaint.name}</span>
-                                <span class="text-xs text-gray-500">${complaint.email}</span>
+                                <span class="font-bold text-white">${complaint.name}</span>
+                                <span class="text-xs text-slate-300">${complaint.email}</span>
                             </div>
                         </td>
-                        <td class="py-4 px-4">
+                        <td class="py-4 px-6">
                             <div class="max-w-md">
-                                <p class="font-bold text-indigo-700 text-sm mb-1">${complaint.subject}</p>
-                                <p class="text-xs text-gray-600 line-clamp-2" title="${complaint.message}">${complaint.message}</p>
+                                <p class="font-bold text-indigo-400 text-sm mb-1">${complaint.subject}</p>
+                                <p class="text-xs text-slate-200 line-clamp-2" title="${complaint.message}">${complaint.message}</p>
                             </div>
                         </td>
-                        <td class="py-4 px-4">
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${complaint.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                        <td class="py-4 px-6">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${complaint.status === 'pending' ? 'bg-amber-900/30 text-amber-400 border-amber-500/30' : 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30'
                     }">
                                 ${complaint.status}
                             </span>
                         </td>
-                        <td class="py-4 px-4 text-xs text-gray-500">
+                        <td class="py-4 px-6 text-xs text-slate-300">
                             ${new Date(complaint.created_at).toLocaleString()}
                         </td>
-                        <td class="py-4 px-4 text-right">
+                        <td class="py-4 px-6 text-right">
                             <div class="flex justify-end gap-2">
                                 ${complaint.status === 'pending' ? `
                                     <button onclick="updateComplaintStatus(${complaint.id}, 'resolved')" 
-                                        class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors border border-emerald-100" title="Mark as Resolved">
+                                        class="text-emerald-400 hover:bg-emerald-900/20 p-2 rounded-lg transition-colors border border-emerald-500/30" title="Mark as Resolved">
                                         <i data-lucide="check-circle" class="w-4 h-4"></i>
                                     </button>
                                 ` : ''}
                                 <button onclick="deleteComplaint(${complaint.id})" 
-                                    class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors border border-red-100" title="Delete">
+                                    class="text-rose-400 hover:bg-rose-900/20 p-2 rounded-lg transition-colors border border-rose-500/30" title="Delete">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>

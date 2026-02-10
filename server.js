@@ -1411,6 +1411,13 @@ function validatePassword(password) {
 
 /* ---------------- REGISTER ---------------- */
 app.post("/api/register", async (req, res) => {
+  // Ensure no existing session persists after registration starts
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) console.error("Error destroying session during registration:", err);
+    });
+  }
+
   const { username, email, password, userType } = req.body;
   const type = userType || "user";
 
@@ -1435,6 +1442,42 @@ app.post("/api/register", async (req, res) => {
   }
 
   try {
+    // Check if username is already taken
+    const [existingUser] = await db.query(
+      "SELECT id FROM users WHERE username = ? UNION SELECT id FROM coaches WHERE name = ?",
+      [username, username]
+    );
+    if (existingUser.length > 0) {
+      // Generate 4 unique suggestions
+      const suggestions = [];
+      const bases = [
+        username + Math.floor(Math.random() * 900 + 100),
+        username + '_' + Math.floor(Math.random() * 99 + 1),
+        username + new Date().getFullYear(),
+        username + Math.floor(Math.random() * 9000 + 1000),
+      ];
+      for (const suggestion of bases) {
+        const [check] = await db.query(
+          "SELECT id FROM users WHERE username = ? UNION SELECT id FROM coaches WHERE name = ?",
+          [suggestion, suggestion]
+        );
+        if (check.length === 0) suggestions.push(suggestion);
+      }
+      // Fill remaining slots if any collided
+      while (suggestions.length < 4) {
+        const fallback = username + Math.floor(Math.random() * 90000 + 10000);
+        const [check] = await db.query(
+          "SELECT id FROM users WHERE username = ? UNION SELECT id FROM coaches WHERE name = ?",
+          [fallback, fallback]
+        );
+        if (check.length === 0 && !suggestions.includes(fallback)) suggestions.push(fallback);
+      }
+      return res.status(409).json({
+        error: "Username is already taken",
+        suggestions: suggestions.slice(0, 4)
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // COACH REGISTRATION
@@ -1443,13 +1486,7 @@ app.post("/api/register", async (req, res) => {
         "INSERT INTO coaches (name, email, hashed_password) VALUES (?, ?, ?)",
         [username, email, hashedPassword]
       );
-      const coachId = result.insertId;
-      req.session.coachId = coachId;
-      req.session.userType = 'coach';
-      req.session.userId = null; // Explicitly null for coaches to avoid confusion
-
-      const token = jwt.sign({ coachId }, JWT_SECRET, { expiresIn: "7d" });
-      return res.json({ user: { id: coachId, name: username, email, user_type: 'coach' }, token });
+      return res.json({ success: true, message: "Account created successfully! Please log in." });
     }
 
     // USER REGISTRATION
@@ -1457,12 +1494,8 @@ app.post("/api/register", async (req, res) => {
       "INSERT INTO users (username, email, password_hash, user_type) VALUES (?, ?, ?, ?)",
       [username, email, hashedPassword, type]
     );
-    const userId = result.insertId;
-    req.session.userId = userId;
-    req.session.userType = type;
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.json({ user: { id: userId, username, email, user_type: type }, token });
+    res.json({ success: true, message: "Account created successfully! Please log in." });
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY") return res.status(400).json({ error: "Email already registered" });
     console.error("Registration error:", err);

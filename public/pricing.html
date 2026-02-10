@@ -12,120 +12,70 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
+            color: #f8fafc;
         }
 
         .pricing-card {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(229, 231, 235, 0.6);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
             position: relative;
             overflow: hidden;
         }
 
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
         .pricing-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-color: rgba(199, 210, 254, 0.5);
-        }
-
-        .pricing-card:hover::before {
-            opacity: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .popular {
-            position: relative;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-            transform: scale(1.02);
+            border: 2px solid #6366f1;
+            background: rgba(99, 102, 241, 0.05);
         }
 
-        .popular:hover {
-            transform: scale(1.03) translateY(-8px);
-        }
-
-        .popular-tag {
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        .btn-premium {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             color: white;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
         }
 
-        .feature-table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .feature-table th,
-        .feature-table td {
-            padding: 1rem 1.5rem;
+        .btn-premium:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
         }
 
         .feature-table tbody tr:nth-child(odd) {
-            background-color: rgba(249, 250, 251, 0.8);
+            background-color: rgba(255, 255, 255, 0.02);
         }
 
         .feature-table tbody tr:hover {
-            background-color: rgba(243, 244, 246, 0.8);
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-5px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        .floating {
-            animation: float 6s ease-in-out infinite;
+            background-color: rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-50 to-gray-100">
-    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+<body class="selection:bg-indigo-500/30">
+    <header class="sticky top-0 z-50 bg-[#0f172a]/80 backdrop-blur-md border-b border-gray-800 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="landing.html" class="flex items-center gap-2">
+            <a href="landing.html" class="flex items-center gap-3 group">
                 <div
-                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/20">
                     <i data-lucide="rocket" class="w-6 h-6 text-white"></i>
                 </div>
-                <span
-                    class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Planexa</span>
+                <span class="text-2xl font-bold text-white tracking-tight">Planexa</span>
             </a>
             <nav>
                 <ul class="flex items-center space-x-6">
                     <li><a href="app.html#profile"
-                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition">Get
+                            class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">Get
                             Started</a></li>
                 </ul>
             </nav>
@@ -134,217 +84,223 @@
 
     <main class="max-w-7xl mx-auto px-4 py-16">
         <div class="text-center mb-16 transform hover:scale-[1.01] transition-all duration-300">
-            <h1 class="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Choose the perfect plan for your needs. Start with a
+            <h1 class="text-5xl font-extrabold text-white mb-6 tracking-tight">Simple, Transparent Pricing</h1>
+            <p class="text-xl text-indigo-100/60 max-w-2xl mx-auto">Choose the perfect plan for your needs. Start with a
                 7-day free trial, no credit card required.</p>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center mt-8 space-y-4 sm:space-y-0 sm:space-x-4">
-                <span class="text-gray-700">Billed Monthly</span>
+            <div
+                class="flex flex-col sm:flex-row items-center justify-center mt-10 space-y-4 sm:space-y-0 sm:space-x-6">
+                <span class="text-gray-400 font-medium">Billed Monthly</span>
                 <label class="relative inline-flex items-center cursor-pointer mx-2">
                     <input type="checkbox" class="sr-only peer" id="billing-toggle">
                     <div
-                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                        class="w-12 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 shadow-inner">
                     </div>
                 </label>
-                <span class="text-gray-700">Billed Annually <span class="text-purple-600 font-medium">(Save
+                <span class="text-gray-400 font-medium">Billed Annually <span
+                        class="text-indigo-400 font-bold ml-1">(Save
                         20%)</span></span>
             </div>
         </div>
 
         <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Free Plan -->
-            <div class="pricing-card bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Free</h3>
-                <p class="text-gray-600 mb-6">Perfect for getting started</p>
+            <div class="pricing-card p-8 group">
+                <h3 class="text-xl font-semibold text-white mb-2">Free</h3>
+                <p class="text-gray-400 mb-6 font-medium">Perfect for getting started</p>
                 <div class="mb-6">
-                    <span class="text-4xl font-bold text-gray-900">₹0</span>
-                    <span class="text-gray-500">/month</span>
+                    <span class="text-5xl font-extrabold text-white">₹0</span>
+                    <span class="text-gray-500 font-medium">/month</span>
                 </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                <ul class="space-y-4 mb-10">
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Up to 5 tasks</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Basic reminders</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Local storage</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>For individual usage</span>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>For limited tasks</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>Cloud Sync</span>
-                    </li>
                     </li>
                 </ul>
                 <button
-                    class="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
+                    class="w-full py-4 px-6 border border-gray-700 rounded-2xl text-gray-300 font-bold hover:bg-white/5 hover:text-white transition-all text-sm uppercase tracking-wider">
                     Get Started
                 </button>
             </div>
 
             <!-- Pro Plan -->
-            <div
-                class="pricing-card rounded-2xl p-8 shadow-xl popular transform hover:shadow-2xl transition-all duration-300">
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Pro</h3>
-                <p class="text-gray-600 mb-6">For individuals and small teams</p>
+            <div class="pricing-card p-10 popular group shadow-2xl shadow-indigo-500/10">
+                <div
+                    class="absolute top-6 right-6 px-4 py-1.5 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg shadow-indigo-600/20">
+                    Most Popular</div>
+                <h3 class="text-xl font-semibold text-white mb-2">Pro</h3>
+                <p class="text-indigo-200/60 mb-6 font-medium">For power users & professionals</p>
                 <div class="mb-6">
-                    <span class="text-4xl font-bold text-gray-900">₹999</span>
-                    <span class="text-gray-500">/month</span>
-                    <p class="text-sm text-gray-500 mt-1">Billed as ₹11,988 per year</p>
+                    <span class="text-5xl font-extrabold text-white">₹999</span>
+                    <span class="text-gray-500 font-medium">/month</span>
+                    <p class="text-sm text-indigo-300/40 mt-1">Billed as ₹11,988 per year</p>
                 </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                <ul class="space-y-4 mb-10">
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-indigo-400"></i>
+                        </div>
                         <span>Unlimited tasks</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-indigo-400"></i>
+                        </div>
                         <span>Advanced reminders</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-indigo-400"></i>
+                        </div>
                         <span>Cloud sync</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>Priority support</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>Custom categories</span>
                     </li>
                 </ul>
                 <button
-                    class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition">
+                    class="w-full py-4 px-6 btn-premium rounded-2xl text-white font-bold transition-all text-sm uppercase tracking-wider">
                     Start Free Trial
                 </button>
             </div>
 
             <!-- Team Plan -->
-            <div class="pricing-card bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Team</h3>
-                <p class="text-gray-600 mb-6">For growing teams</p>
+            <div class="pricing-card p-8 group">
+                <h3 class="text-xl font-semibold text-white mb-2">Team</h3>
+                <p class="text-gray-400 mb-6 font-medium">For growing organizations</p>
                 <div class="mb-6">
-                    <span class="text-4xl font-bold text-gray-900">₹1499</span>
-                    <span class="text-gray-500">/user/month</span>
+                    <span class="text-5xl font-extrabold text-white">₹1499</span>
+                    <span class="text-gray-500 font-medium">/user/mo</span>
                     <p class="text-sm text-gray-500 mt-1">Billed annually, min 3 users</p>
                 </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                <ul class="space-y-4 mb-10">
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Everything in Pro</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Team workspaces</span>
                     </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
+                    <li class="flex items-center text-gray-300">
+                        <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500"></i>
+                        </div>
                         <span>Admin controls</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>Advanced analytics</span>
-                    </li>
-                    <li class="flex items-center">
-                        <i data-lucide="check" class="w-5 h-5 text-green-500 mr-2"></i>
-                        <span>Single sign-on (SSO)</span>
                     </li>
                 </ul>
                 <button
-                    class="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
-                    Get Started
+                    class="w-full py-4 px-6 border border-gray-700 rounded-2xl text-gray-300 font-bold hover:bg-white/5 hover:text-white transition-all text-sm uppercase tracking-wider">
+                    Contact Sales
                 </button>
             </div>
         </div>
 
         <!-- Feature Comparison -->
-        <div id="features" class="mt-32 mb-16">
-            <h2 class="text-3xl font-bold text-center mb-12">Compare Features</h2>
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+        <div id="features" class="mt-32 mb-16 px-4">
+            <h2 class="text-3xl font-bold text-center text-white mb-12">Compare Features</h2>
+            <div class="bg-white/5 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
                 <table class="w-full">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-white/5">
                         <tr>
-                            <th class="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-8 py-6 text-left text-xs font-bold text-indigo-300 uppercase tracking-widest border-b border-white/10">
                                 Features</th>
                             <th
-                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-8 py-6 text-center text-xs font-bold text-indigo-300 uppercase tracking-widest border-b border-white/10">
                                 Free</th>
                             <th
-                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-8 py-6 text-center text-xs font-bold text-indigo-300 uppercase tracking-widest border-b border-white/10 border-x border-white/5">
                                 Pro</th>
                             <th
-                                class="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-8 py-6 text-center text-xs font-bold text-indigo-300 uppercase tracking-widest border-b border-white/10">
                                 Team</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-white/5 text-gray-300">
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tasks</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Up to 5</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Unlimited</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Unlimited</td>
-                        </tr>
-                        <tr class="bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Cloud Sync</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                            <td class="px-8 py-5 whitespace-nowrap text-sm font-semibold text-white">Tasks</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm font-medium">Up to 5</td>
+                            <td
+                                class="px-8 py-5 whitespace-nowrap text-center text-sm font-medium border-x border-white/5">
+                                Unlimited</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm font-medium">Unlimited</td>
                         </tr>
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Team Members</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">1</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">1</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">3+</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-sm font-semibold text-white">Cloud Sync</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm">-</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm border-x border-white/5"><i
+                                    data-lucide="check" class="w-5 h-5 text-indigo-400 mx-auto"></i></td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm"><i data-lucide="check"
+                                    class="w-5 h-5 text-indigo-400 mx-auto"></i></td>
                         </tr>
-                        <tr class="bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Priority Support
+                        <tr>
+                            <td class="px-8 py-5 whitespace-nowrap text-sm font-semibold text-white">Priority Support
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Advanced Analytics
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">-</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500"><i
-                                    data-lucide="check" class="w-5 h-5 text-green-500 mx-auto"></i></td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm">-</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm border-x border-white/5"><i
+                                    data-lucide="check" class="w-5 h-5 text-indigo-400 mx-auto"></i></td>
+                            <td class="px-8 py-5 whitespace-nowrap text-center text-sm"><i data-lucide="check"
+                                    class="w-5 h-5 text-indigo-400 mx-auto"></i></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        <script>
-            // Initialize Lucide icons
-            lucide.createIcons();
+    </main>
 
-            // Toggle billing period
-            const toggle = document.getElementById('billing-toggle');
-            const priceElements = document.querySelectorAll('.price-monthly, .price-annually');
+    <!-- Footer -->
+    <footer class="bg-[#0f172a] text-gray-500 py-12 px-6 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto flex flex-col items-center">
+            <!-- Simplified Links -->
+            <div
+                class="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-8 text-xs font-medium uppercase tracking-widest">
+                <a href="landing.html" class="hover:text-indigo-400 transition-colors">Home</a>
+                <a href="about.html" class="hover:text-indigo-400 transition-colors">About Us</a>
+                <a href="blogmain.html" class="hover:text-indigo-400 transition-colors">Blog</a>
+                <a href="pricing.html" class="hover:text-indigo-400 transition-colors">Pricing</a>
+                <a href="contact.html" class="hover:text-indigo-400 transition-colors">Contact</a>
+                <a href="faq.html" class="hover:text-indigo-400 transition-colors">FAQ</a>
+            </div>
 
-            toggle?.addEventListener('change', function () {
-                priceElements.forEach(el => {
-                    el.classList.toggle('hidden');
-                });
+            <!-- Minimal Copyright -->
+            <div class="text-xs tracking-tight text-gray-600 flex flex-col items-center gap-2 text-center">
+                <p>&copy; 2026 Planexa. All rights reserved.</p>
+                <p class="opacity-50 text-[10px]">Designed & Powered by Purple Hue Technosoft Pvt. Ltd.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Toggle billing period
+        const toggle = document.getElementById('billing-toggle');
+        const priceElements = document.querySelectorAll('.price-monthly, .price-annually');
+
+        toggle?.addEventListener('change', function () {
+            priceElements.forEach(el => {
+                el.classList.toggle('hidden');
             });
-        </script>
+        });
+    </script>
 </body>
 
 </html>

@@ -3,28 +3,29 @@
 
 /* Base UI helpers */
 :root {
-  /* Brand palette */
-  --brand: #845ec2;
-  /* Main purple */
+  /* Catchy Vibrant Palette */
+  --brand: #6366f1;
+  /* Indigo 500 */
+  --brand-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   --site-bg: #AFC1D6;
-  /* Slightly darker blue background */
-  --accent: #368eaa;
-  /* Accent teal */
-  --text: #232323;
-  /* Very dark for contrast */
-  --secondary: #3b3b3b;
-  /* Slightly lighter dark */
-  --btn-bg: #845ec2;
-  /* Button background */
+  /* Original blue-grey background */
+  --accent: #0ea5e9;
+  /* Sky 500 */
+  --text: #0f172a;
+  /* Slate 900 */
+  --secondary: #475569;
+  /* Slate 600 */
+  --btn-bg: #6366f1;
   --btn-text: #ffffff;
 
-  --card: #ffffff;
-  --border: #c2d0e0;
-  --hover: #dbeafe;
+  --card: rgba(255, 255, 255, 0.8);
+  --border: rgba(226, 232, 240, 0.8);
+  --hover: rgba(241, 245, 249, 1);
 
-  --header-bg: #e0f4fd;
-  --header-fg: #232323;
-  --header-border: #c2d0e0;
+  --header-bg: rgba(15, 23, 42, 0.9);
+  /* Dark Slate / Indigo tone */
+  --header-fg: #ffffff;
+  --header-border: rgba(255, 255, 255, 0.1);
 }
 
 /* Custom Scrollbar for Chat */
@@ -278,16 +279,22 @@ body {
 
 .card {
   background: var(--card);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 1.5rem 1.25rem;
-  font-size: 1.12rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .card-lg {
-  padding: 2.75rem 2.5rem;
-  font-size: 1.25rem;
+  padding: 2.5rem;
+  border-radius: 2rem;
 }
 
 .raise {
@@ -297,7 +304,6 @@ body {
 
 .raise:hover,
 .raise:focus-within {
-  transform: translateY(-4px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
@@ -336,7 +342,6 @@ body {
 
 .review-card:hover,
 .card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
@@ -379,13 +384,15 @@ body {
 }
 
 .btn-primary {
-  background: var(--btn-bg);
+  background: var(--brand-gradient);
   color: var(--btn-text);
-  border-color: var(--btn-bg);
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
 }
 
 .btn-primary:hover {
-  filter: brightness(0.92);
+  filter: brightness(1.1);
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.5);
 }
 
 .icon-btn {
@@ -420,13 +427,12 @@ body {
 /* Header banner (white like screenshot) */
 .header-dark {
   background: var(--header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: var(--header-fg);
   border-bottom: 1px solid var(--header-border);
-}
-
-.header-dark {
-  backdrop-filter: saturate(140%) blur(8px);
-  transition: background-color .2s ease, backdrop-filter .2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .header-dark a,
@@ -439,13 +445,14 @@ body {
 }
 
 .header-dark .tab-btn:hover {
-  color: var(--header-fg);
-  background: rgba(17, 24, 39, 0.04);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .header-dark .tab-btn.active {
-  background: var(--brand);
+  background: var(--brand-gradient);
   color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .header-dark .icon-btn,
@@ -621,6 +628,72 @@ body {
 
 .tab-panel.active {
   display: block;
+}
+
+/* Notepad Aesthetic for Shopping List */
+.notepad-container {
+  perspective: 1000px;
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.notepad-paper {
+  background: #fffdf0;
+  /* Classic yellowish paper color */
+  background-image: repeating-linear-gradient(transparent,
+      transparent 31px,
+      #e5e7eb 31px,
+      #e5e7eb 32px);
+  padding: 40px 20px 40px 60px;
+  /* More padding on left for margin line */
+  min-height: 600px;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border-radius: 4px;
+  transform: rotateZ(-0.5deg);
+  /* Subtle tilt */
+  line-height: 32px;
+}
+
+.notepad-paper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 45px;
+  height: 100%;
+  width: 2px;
+  background: #fecaca;
+  /* Light red margin line */
+}
+
+/* Rings for the notepad */
+.notepad-paper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5px;
+  height: 100%;
+  width: 30px;
+  background-image: radial-gradient(circle, #d1d5db 40%, transparent 45%);
+  background-size: 30px 40px;
+  background-position: 0 10px;
+}
+
+.notepad-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  color: #374151;
+  border-bottom: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.notepad-item input[type="checkbox"] {
+  accent-color: var(--brand);
 }
 
 /* Calendar Container */
