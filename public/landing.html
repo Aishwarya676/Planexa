@@ -899,7 +899,8 @@
       <div class="flex flex-wrap items-center justify-center gap-4">
         <a id="get-started" href="./app.html#todo" class="btn btn-primary btn-lg"><i data-lucide="rocket"></i><span>Get
             Started Free</span></a>
-        <a href="./login-fixed.html" class="btn btn-lg"><i data-lucide="user"></i><span>Sign In</span></a>
+        <a href="./login-fixed.html" onclick="event.preventDefault(); window.location.replace('./login-fixed.html');"
+          class="btn btn-lg"><i data-lucide="user"></i><span>Sign In</span></a>
       </div>
     </section>
 
@@ -988,11 +989,13 @@
 
       // Update profile link
       if (profileLink) {
+        profileLink.onclick = !user ? (e) => { e.preventDefault(); window.location.replace('./login-fixed.html'); } : null;
         profileLink.href = user ? './app.html#profile' : './login-fixed.html';
       }
 
       // Update avatar link and appearance
       if (avatarLink) {
+        avatarLink.onclick = !user ? (e) => { e.preventDefault(); window.location.replace('./login-fixed.html'); } : null;
         avatarLink.href = user ? './app.html#profile' : './login-fixed.html';
         avatarLink.title = user ? 'Profile' : 'Log In';
       }
@@ -1139,7 +1142,7 @@
             return;
           }
           // If still not authed, go to login
-          window.location.href = './login-fixed.html';
+          window.location.replace('./login-fixed.html');
         });
       });
     })();
@@ -1148,7 +1151,7 @@
     document.querySelectorAll('.cta-button[href*="get-started.html"], .hero-cta[href*="get-started.html"]').forEach(button => {
       button.addEventListener('click', function (e) {
         e.preventDefault();
-        window.location.href = this.getAttribute('href');
+        window.location.replace(this.getAttribute('href'));
       });
     });
 

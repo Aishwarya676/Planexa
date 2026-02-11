@@ -289,7 +289,7 @@
 
                 if (res.ok) {
                     localStorage.removeItem('planner.user');
-                    window.location.href = 'landing.html';
+                    window.location.replace('landing.html');
                 } else {
                     alert("Failed to delete account");
                 }
