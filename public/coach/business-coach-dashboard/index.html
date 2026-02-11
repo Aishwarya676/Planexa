@@ -42,6 +42,62 @@
     .fade-in {
       animation: fade-in 0.3s ease-in-out;
     }
+
+    /* Premium Card Styles */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+    }
+
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle at center, var(--glow-color, rgba(99, 102, 241, 0.1)) 0%, transparent 70%);
+      transform: translate(30%, -30%);
+      pointer-events: none;
+    }
+
+    .user-card {
+      background: white;
+      border: 1px solid #f1f5f9;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .user-card:hover {
+      border-color: #e2e8f0;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Dropdown Animation */
+    #coach-profile-dropdown.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(100%);
+    }
+
+    .dropdown-item {
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -65,12 +121,90 @@
         <ul class="flex gap-2 items-center" id="tabs">
           <li><button data-tab="users" class="tab-btn active">Users</button></li>
           <li><button data-tab="analytics" class="tab-btn">Analytics</button></li>
-          <li><button data-tab="payments" class="tab-btn">Payments</button></li>
           <li><button data-tab="approvals" class="tab-btn flex items-center gap-1">Approvals <span id="approval-count"
-                class="hidden bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span></button></li>
-          <li><button data-tab="profile" class="tab-btn">Profile</button></li>
-          <li><button data-tab="create" class="tab-btn">Create</button></li>
-          <li><button data-tab="settings" class="tab-btn">Settings</button></li>
+                class="hidden bg-orange-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg shadow-orange-200 animate-pulse">0</span></button>
+          </li>
+          <li><button data-tab="messages" class="tab-btn flex items-center gap-1.5">
+              <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Messages
+            </button></li>
+
+          <!-- Profile Dropdown -->
+          <li class="relative ml-4" id="coach-profile-dropdown-container">
+            <button id="coach-profile-btn"
+              class="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10 group">
+              <div id="nav-profile-img-container"
+                class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </div>
+              <span class="font-black text-white text-xs uppercase tracking-widest hidden sm:block">Profile</span>
+              <i data-lucide="chevron-down" id="nav-profile-chevron"
+                class="w-4 h-4 text-white/40 transition-transform"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="coach-profile-dropdown"
+              class="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-200/50 overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-300 z-50 origin-top-right">
+              <div class="p-4 space-y-1.5">
+                <!-- Edit Profile -->
+                <button data-tab="profile"
+                  class="dropdown-item w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 transition-all group text-left">
+                  <div
+                    class="w-10 h-10 bg-indigo-50 rounded-xl text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <span class="block font-black text-slate-800 text-xs uppercase tracking-tight">Edit Profile</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase leading-none mt-1">Public
+                      Portfolio</span>
+                  </div>
+                </button>
+
+                <!-- Create Article -->
+                <button data-tab="create"
+                  class="dropdown-item w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 transition-all group text-left">
+                  <div
+                    class="w-10 h-10 bg-purple-50 rounded-xl text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <span class="block font-black text-slate-800 text-xs uppercase tracking-tight">Create Article</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase leading-none mt-1">Publish to
+                      Blog</span>
+                  </div>
+                </button>
+
+                <!-- Settings -->
+                <button data-tab="settings"
+                  class="dropdown-item w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 transition-all group text-left text-red-600">
+                  <div
+                    class="w-10 h-10 bg-red-50 rounded-xl text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <span class="block font-black text-slate-800 text-xs uppercase tracking-tight">Settings</span>
+                    <span class="block text-[10px] font-bold text-red-400 uppercase leading-none mt-1">Danger
+                      Zone</span>
+                  </div>
+                </button>
+
+                <div class="h-px bg-slate-100 my-2 mx-2"></div>
+
+                <!-- Log Out -->
+                <button id="logoutBtn"
+                  class="dropdown-item w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-red-50 transition-all group text-left">
+                  <div
+                    class="w-10 h-10 bg-white border border-red-100 rounded-xl text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <span class="block font-black text-red-600 text-xs uppercase tracking-tight">Log Out</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase leading-none mt-1">Secure Sign
+                      Out</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </li>
         </ul>
       </nav>
 
@@ -84,76 +218,76 @@
     <section id="tab-users" class="tab-panel active fade-in">
 
       <!-- Stats Row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div class="card p-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="glass-card stat-card p-6 rounded-3xl" style="--glow-color: rgba(59, 130, 246, 0.15)">
           <div class="flex justify-between items-start">
             <div>
-              <p class="text-sm font-medium text-gray-500">Total Clients</p>
-              <h3 class="text-2xl font-bold text-gray-800 mt-1">0</h3>
+              <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Clients</p>
+              <h3 class="text-4xl font-black text-slate-800 mt-2">0</h3>
             </div>
-            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="users" class="w-5 h-5"></i></div>
+            <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl shadow-inner"><i data-lucide="users"
+                class="w-6 h-6"></i></div>
           </div>
-          <div class="mt-2 text-xs text-gray-500 flex items-center gap-1">No active clients</div>
+          <div class="mt-4 text-xs font-medium text-slate-400 flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-blue-400"></span>
+            <span>Active learning sessions</span>
+          </div>
         </div>
 
-        <div class="card p-5">
+        <div class="glass-card stat-card p-6 rounded-3xl" style="--glow-color: rgba(168, 85, 247, 0.15)">
           <div class="flex justify-between items-start">
             <div>
-              <p class="text-sm font-medium text-gray-500">Revenue</p>
-              <h3 class="text-2xl font-bold text-gray-800 mt-1">₹0</h3>
+              <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Total Revenue</p>
+              <h3 class="text-4xl font-black text-slate-800 mt-2">₹0</h3>
             </div>
-            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="dollar-sign" class="w-5 h-5"></i>
-            </div>
+            <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl shadow-inner"><i data-lucide="banknote"
+                class="w-6 h-6"></i></div>
+          </div>
+          <div class="mt-4 text-xs font-medium text-slate-400 flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-purple-400"></span>
+            <span>Platform earnings</span>
           </div>
         </div>
       </div>
 
-      <!-- Clients List -->
-      <div class="card p-0 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-          <h2 class="text-lg font-bold text-gray-800">My Clients</h2>
+      <!-- Clients Section -->
+      <div class="glass-card p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800">My Clients</h2>
+            <p class="text-sm text-slate-500 font-medium">Manage and monitor your active students</p>
+          </div>
         </div>
 
-        <div class="overflow-x-auto bg-white">
-          <table class="w-full text-left">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-              <tr>
-                <th class="px-6 py-4">Client</th>
-                <th class="px-6 py-4">Status</th>
-                <th class="px-6 py-4">Plan</th>
-                <th class="px-6 py-4">Progress</th>
-                <th class="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-              <!-- Empty State -->
-              <tr id="no-clients-msg">
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                  <div class="flex flex-col items-center justify-center">
-                    <i data-lucide="users" class="w-12 h-12 text-gray-300 mb-3"></i>
-                    <p>No clients found.</p>
-                    <p class="text-xs text-gray-400 mt-1">Add your first client to get started.</p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Empty State Container -->
+        <div id="no-clients-msg" class="flex flex-col items-center justify-center p-16 text-center hidden">
+          <div class="w-20 h-20 bg-indigo-50 text-indigo-200 rounded-3xl flex items-center justify-center mb-6">
+            <i data-lucide="users" class="w-10 h-10"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800">No clients yet</h3>
+          <p class="text-slate-500 max-w-xs mx-auto mt-2">When you approve student requests, they will appear here as
+            your active clients.</p>
+        </div>
+
+        <!-- Users Grid (Now a Vertical Stack) -->
+        <div id="users-grid" class="flex flex-col gap-4">
+          <!-- Populated by JS -->
         </div>
       </div>
     </section>
 
     <!-- TAB: ANALYTICS -->
     <section id="tab-analytics" class="tab-panel fade-in">
-      <div
-        class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div class="glass-card mb-8 flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2rem] gap-4">
         <div>
-          <h2 class="text-xl font-bold text-gray-800">Performance Tracking</h2>
-          <p class="text-sm text-gray-500">Analyze overall growth or individual student progress</p>
+          <h2 class="text-2xl font-black text-slate-800">Performance Tracking</h2>
+          <p class="text-sm text-slate-500 font-medium">Analyze overall growth or individual student progress</p>
         </div>
-        <div class="flex items-center gap-3">
-          <label for="analytics-filter" class="text-sm font-medium text-gray-600">View For:</label>
+        <div class="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+          <label for="analytics-filter"
+            class="text-xs font-bold text-slate-500 uppercase px-2 tracking-wider">Viewing:</label>
           <select id="analytics-filter" onchange="handleAnalyticsFilterChange()"
-            class="rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 bg-gray-50 border">
+            class="rounded-xl border-none focus:ring-0 text-sm font-bold p-2.5 bg-white text-indigo-600 shadow-sm cursor-pointer min-w-[180px]">
             <option value="overall">Overall Workspace</option>
             <!-- Students populated via JS -->
           </select>
@@ -162,179 +296,208 @@
 
       <!-- OVERALL VIEW -->
       <div id="overall-analytics-view" class="space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="card p-6 bg-white">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Student Activity Overview</h3>
-            <canvas id="activityChart" height="200"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-600"></i> Activity Overview
+              </h3>
+            </div>
+            <div class="relative h-[250px]">
+              <canvas id="activityChart"></canvas>
+            </div>
           </div>
-          <div class="card p-6 bg-white">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Client Acquisition</h3>
-            <canvas id="growthChart" height="200"></canvas>
+          <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Client Acquisition
+              </h3>
+            </div>
+            <div class="relative h-[250px]">
+              <canvas id="growthChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- INDIVIDUAL STUDENT VIEW -->
-      <div id="student-analytics-view" class="hidden space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div id="student-analytics-view" class="hidden space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Main Chart -->
-          <div class="lg:col-span-2 card p-6 bg-white">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <div
+            class="lg:col-span-2 glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
                 <i data-lucide="activity" class="w-5 h-5 text-indigo-600"></i> Task Completion Trend
               </h3>
               <div id="student-productivity-badge"
-                class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold font-mono">
+                class="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-wider">
                 Productivity: --%
               </div>
             </div>
-            <canvas id="individualTaskChart" height="250"></canvas>
+            <div class="relative h-[300px]">
+              <canvas id="individualTaskChart"></canvas>
+            </div>
           </div>
 
           <!-- Goal Stats -->
-          <div class="card p-6 bg-white">
-            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <h3 class="text-lg font-black text-slate-800 mb-8 flex items-center gap-2">
               <i data-lucide="target" class="w-5 h-5 text-orange-500"></i> Active Goals
             </h3>
-            <div id="individual-goals-list" class="space-y-5">
+            <div id="individual-goals-list" class="space-y-6">
               <!-- Populated by JS -->
             </div>
           </div>
         </div>
 
-        <!-- Recent Tasks -->
-        <div class="card p-6 bg-white">
-          <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <i data-lucide="check-square" class="w-5 h-5 text-green-600"></i> Recently Completed Tasks
+        <!-- Recent Activity Summary -->
+        <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+          <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
+            <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i> Engagement Summary
           </h3>
-          <div id="individual-recent-tasks" class="space-y-3">
+          <div id="individual-recent-tasks">
             <!-- Populated by JS -->
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB: PAYMENTS -->
-    <section id="tab-payments" class="tab-panel fade-in">
-      <!-- Payment Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="card p-6 bg-white border-l-4 border-green-500">
-          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Earnings</p>
-          <div class="flex items-baseline gap-2 mt-2">
-            <h3 class="text-3xl font-bold text-gray-900">₹0.00</h3>
-            <span class="text-sm text-gray-600 font-medium">No earnings yet</span>
-          </div>
-        </div>
-        <div class="card p-6 bg-white border-l-4 border-yellow-500">
-          <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Pending Payouts</p>
-          <div class="flex items-baseline gap-2 mt-2">
-            <h3 class="text-3xl font-bold text-gray-900">₹0.00</h3>
-            <span class="text-sm text-gray-500">No pending payouts</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transaction History -->
-      <div class="card p-0 overflow-hidden bg-white">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 class="text-lg font-bold text-gray-800">Transaction History</h2>
-          <button class="btn btn-outline btn-sm">
-            <i data-lucide="download" class="w-4 h-4"></i> Export
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-              <tr>
-                <th class="px-6 py-4">Date</th>
-                <th class="px-6 py-4">Client</th>
-                <th class="px-6 py-4">Amount</th>
-                <th class="px-6 py-4">Status</th>
-                <th class="px-6 py-4 text-right">Invoice</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-              <tr>
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No transactions found</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
     <!-- TAB: APPROVALS -->
-    <section id="tab-approvals" class="tab-panel">
-      <!-- New Coaching Requests -->
-      <div class="card p-0 overflow-hidden mb-8 bg-white">
-        <div class="p-6 border-b border-gray-100 bg-white">
-          <div class="flex items-center gap-2">
-            <div class="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></div>
-            <h2 class="text-lg font-bold text-gray-800">New Coaching Requests</h2>
+    <section id="tab-approvals" class="tab-panel fade-in">
+      <div class="glass-card p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="flex h-2 w-2 rounded-full bg-orange-500 animate-ping"></span>
+              <h2 class="text-2xl font-black text-slate-800">New Coaching Requests</h2>
+            </div>
+            <p class="text-sm text-slate-500 font-medium">Review and approve new potential clients wanting to join you
+            </p>
           </div>
-          <p class="text-xs text-gray-500 mt-1">Review and approve new potential clients</p>
         </div>
 
-        <div class="overflow-x-auto bg-white">
-          <table class="w-full text-left">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-              <tr>
-                <th class="px-6 py-4">User</th>
-                <th class="px-6 py-4">Goal / Interest</th>
-                <th class="px-6 py-4">Requested</th>
-                <th class="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-              <!-- Request 1 -->
-              <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">No new requests</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Empty State Container -->
+        <div id="approvals-empty" class="flex flex-col items-center justify-center p-16 text-center hidden">
+          <div class="w-20 h-20 bg-orange-50 text-orange-200 rounded-3xl flex items-center justify-center mb-6">
+            <i data-lucide="shield-check" class="w-10 h-10"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800">All caught up!</h3>
+          <p class="text-slate-500 max-w-xs mx-auto mt-2">There are no pending coaching requests at the moment. Great
+            job!</p>
+        </div>
+
+        <!-- Requests Stack -->
+        <div id="approvals-list" class="flex flex-col gap-4">
+          <!-- Populated by JS -->
         </div>
       </div>
     </section>
-    <section id="tab-profile" class="tab-panel">
-      <div class="max-w-2xl mx-auto card p-0 overflow-hidden bg-white">
-        <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-        <div class="px-8 pb-8">
-          <div class="relative flex justify-between items-end -mt-12 mb-6">
-            <img id="profile-img" src="https://ui-avatars.com/api/?name=Coach&background=random"
-              class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-white">
-            <a href="edit-profile.html"
-              class="btn btn-sm bg-black text-white hover:bg-gray-800 border-none flex items-center gap-2">
-              <i data-lucide="edit-2" class="w-4 h-4"></i> Edit Profile
-            </a>
+    <section id="tab-profile" class="tab-panel fade-in">
+      <div class="max-w-4xl mx-auto">
+        <!-- Profile Header / Banner -->
+        <div
+          class="glass-card mb-8 overflow-hidden rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
+          <div class="h-44 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+            <!-- Mesh Glow Effects -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/20 rounded-full blur-2xl -ml-10 -mb-10"></div>
           </div>
 
-          <div>
-            <h2 id="profile-name" class="text-2xl font-bold text-gray-900">Loading...</h2>
-            <p id="profile-email" class="text-gray-500">...</p>
-          </div>
+          <div class="relative px-10 pb-10">
+            <div class="flex flex-col md:flex-row md:items-end justify-between -mt-16 gap-6">
+              <div class="flex flex-col md:flex-row md:items-end gap-6">
+                <div class="relative group">
+                  <div
+                    class="absolute -inset-1.5 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-[2.5rem] blur opacity-20 transition duration-500 group-hover:opacity-40">
+                  </div>
+                  <img id="profile-img" src="https://ui-avatars.com/api/?name=Coach&background=random"
+                    class="relative w-36 h-36 rounded-[2.2rem] border-4 border-white shadow-2xl object-cover bg-white">
+                </div>
+                <div class="pb-2">
+                  <h2 id="profile-name" class="text-4xl font-black text-slate-800 tracking-tight">Loading...</h2>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span id="profile-category"
+                      class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest border border-indigo-100/50">Business</span>
+                    <span class="text-slate-400 font-bold text-sm" id="profile-email">...</span>
+                  </div>
+                </div>
+              </div>
 
-          <div class="mt-8 space-y-6 divide-y divide-gray-100">
-            <!-- Bio -->
-            <div class="pt-4">
-              <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">About</h3>
-              <p id="profile-bio" class="text-gray-600 leading-relaxed">
+              <div class="flex gap-3 pb-2">
+                <a href="edit-profile.html"
+                  class="px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
+                  <i data-lucide="settings" class="w-4 h-4"></i> Edit Profile
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Left: About Section -->
+          <div class="lg:col-span-2 space-y-8">
+            <div class="glass-card p-10 rounded-[2.5rem] border border-slate-100">
+              <div class="flex items-center gap-3 mb-8">
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl">
+                  <i data-lucide="user-plus" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">Professional Bio</h3>
+              </div>
+              <p id="profile-bio" class="text-lg font-medium text-slate-500 leading-relaxed italic">
                 ...
               </p>
             </div>
 
-            <!-- Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-              <div>
-                <p class="text-xs font-medium text-gray-500 uppercase">Category</p>
-                <p id="profile-category" class="text-gray-900 font-medium mt-1">Business</p>
-              </div>
-              <div>
-                <p class="text-xs font-medium text-gray-500 uppercase">Years Experience</p>
-                <p id="profile-experience" class="text-gray-900 font-medium mt-1">...</p>
-              </div>
-              <div>
-                <p class="text-xs font-medium text-gray-500 uppercase">Hours Coached</p>
-                <p id="profile-hours" class="text-gray-900 font-medium mt-1">0 hrs</p>
+          </div>
+
+          <!-- Right: Stats & Quick Info -->
+          <div class="space-y-8">
+            <div
+              class="glass-card p-8 rounded-[2.5rem] border border-slate-100 bg-gradient-to-br from-white to-slate-50">
+              <h3
+                class="text-xs font-black text-slate-400 uppercase tracking-widest mb-8 border-b border-slate-100 pb-4">
+                Activity Stats</h3>
+
+              <div class="space-y-8">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-50">
+                      <i data-lucide="briefcase" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Experience</p>
+                      <p id="profile-experience" class="text-sm font-black text-slate-800">...</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-purple-600 shadow-sm border border-slate-50">
+                      <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Hours Coached</p>
+                      <p id="profile-hours" class="text-sm font-black text-slate-800">0 hrs</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm border border-slate-50">
+                      <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Response Time</p>
+                      <p class="text-sm font-black text-slate-800">&lt; 2 hours</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -512,117 +675,133 @@
       </div>
     </section>
 
+    <!-- TAB: MESSAGES (Full Page Redesign) -->
+    <section id="tab-messages" class="tab-panel fade-in h-[calc(100vh-12rem)]">
+      <div
+        class="h-full glass-card rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-2xl shadow-slate-200/50 flex">
+        <!-- Sidebar: Client List -->
+        <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/50 text-slate-800">
+          <div class="p-6 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <h3 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-indigo-600"></i> Clients
+            </h3>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Select a client to chat</p>
+          </div>
 
-    <!-- TAB: SETTINGS -->
-    <section id="tab-settings" class="tab-panel">
-      <div class="max-w-2xl mx-auto card p-0 overflow-hidden bg-white">
-        <div class="p-6 border-b border-gray-100">
-          <h2 class="text-xl font-bold text-gray-800">Settings</h2>
-          <p class="text-gray-500 text-sm">Manage your account preferences</p>
+          <div id="full-chat-user-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            <!-- Populated by JS -->
+            <div class="animate-pulse p-4 space-y-3 font-semibold">
+              <div class="h-12 bg-slate-200 rounded-2xl w-full"></div>
+              <div class="h-12 bg-slate-200 rounded-2xl w-full"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="divide-y divide-gray-100">
-          <!-- Danger Zone -->
-          <div class="p-6 bg-red-50/30">
-            <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide mb-4">Danger Zone</h3>
-
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <p class="font-medium text-gray-800">Deactivate Account</p>
-                <p class="text-xs text-gray-500">Hide your profile and pause client interactions</p>
+        <!-- Main Area: Conversation -->
+        <div class="flex-1 flex flex-col bg-white relative">
+          <!-- Active Header -->
+          <div id="full-chat-header"
+            class="p-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10 hidden">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <div id="full-chat-user-avatar"
+                  class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200">
+                  ?
+                </div>
+                <div id="full-chat-status-dot"
+                  class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-slate-300 shadow-sm">
+                </div>
               </div>
-              <button id="deactivateAccBtn"
-                class="px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200 rounded-lg transition-colors">
-                Deactivate
-              </button>
-            </div>
-
-            <div class="flex items-center justify-between">
               <div>
-                <p class="font-medium text-red-700">Delete Account</p>
-                <p class="text-xs text-gray-500">Permanently remove your account and data</p>
+                <h3 id="full-chat-user-name" class="text-lg font-black text-slate-800 tracking-tight">Active Client</h3>
+                <p id="full-chat-status-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Offline</p>
               </div>
-              <button id="deleteAccBtn"
-                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
-                Delete Account
-              </button>
             </div>
           </div>
 
-          <div class="p-6 mt-4">
-            <button id="logoutBtn"
-              class="w-full btn bg-red-50 text-red-600 hover:bg-red-100 border-red-200 justify-center">
-              <i data-lucide="log-out" class="w-5 h-5"></i> Log Out
-            </button>
+          <!-- Messages Container -->
+          <div id="full-chat-messages" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-slate-50/20">
+            <div id="full-chat-empty-state"
+              class="h-full flex flex-col items-center justify-center text-center space-y-4">
+              <div
+                class="w-20 h-20 bg-indigo-50 text-indigo-200 rounded-[2rem] flex items-center justify-center shadow-inner">
+                <i data-lucide="message-circle" class="w-10 h-10"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-800">Your Communication Hub</h3>
+                <p class="text-slate-500 max-w-xs mt-2 text-sm font-semibold">Select a client from the sidebar to start
+                  a real-time
+                  conversation.</p>
+              </div>
+            </div>
+            <!-- Messages populated here -->
+          </div>
+
+          <!-- Input Area -->
+          <div id="full-chat-input-container" class="p-6 border-t border-slate-100 bg-white hidden">
+            <form id="full-chat-form"
+              class="flex gap-4 items-center bg-slate-50 p-3 rounded-[1.5rem] border border-slate-200 focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+              <input id="full-chat-input" type="text" autocomplete="off" placeholder="Type your message..."
+                class="flex-1 bg-transparent border-none py-2 px-4 text-sm text-slate-800 focus:ring-0 outline-none font-medium">
+              <button type="submit"
+                class="p-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95">
+                <i data-lucide="send-horizontal" class="w-5 h-5"></i>
+              </button>
+            </form>
           </div>
         </div>
       </div>
     </section>
 
 
-  </main>
-
-  <!-- Floating Chat Button -->
-  <button id="coach-chat-fab"
-    class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 group hidden">
-    <i data-lucide="message-square" class="w-8 h-8 group-hover:rotate-12 transition-transform"></i>
-    <span id="coach-chat-notif-dot"
-      class="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full hidden"></span>
-  </button>
-
-  <!-- Coach Chat Overlay Container -->
-  <div id="coach-chat-overlay"
-    class="fixed bottom-28 right-8 w-[700px] h-[800px] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 origin-bottom-right">
-    <div class="flex h-full">
-      <!-- Sidebar: User List -->
-      <div id="coach-chat-sidebar" class="w-[220px] border-r border-slate-100 flex flex-col bg-slate-50">
-        <div class="p-4 border-b border-slate-100 bg-white">
-          <h3 class="font-extrabold text-slate-800 text-base">Clients</h3>
-        </div>
-        <div id="chat-user-list" class="flex-1 overflow-y-auto custom-scrollbar">
-          <!-- Users populate here -->
-        </div>
-      </div>
-
-      <!-- Main: Chat Window -->
-      <div class="flex-1 flex flex-col bg-white">
-        <!-- Header -->
-        <div class="p-4 border-b border-slate-100 bg-white flex items-center justify-between sticky top-0 z-10">
-          <div class="flex items-center gap-2">
-            <div id="active-user-status" class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-            <h3 id="active-user-name" class="font-extrabold text-slate-800 text-sm">Select Client</h3>
-          </div>
-          <button id="close-coach-chat" class="p-1 text-slate-400 hover:text-slate-600 transition-colors">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-
-        <!-- Messages Area -->
-        <div id="coach-messages"
-          class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50/20 to-white/20 custom-scrollbar">
-          <div id="coach-chat-empty" class="flex flex-col items-center justify-center h-full text-center space-y-3 p-4">
-            <div class="w-12 h-12 bg-white/80 rounded-xl shadow-lg flex items-center justify-center text-indigo-500">
-              <i data-lucide="message-circle" class="w-6 h-6"></i>
+    <!-- TAB: SETTINGS -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm mb-8">
+          <div class="p-8 border-b border-slate-100 bg-red-50/20">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-800">Danger Zone</h3>
+                <p class="text-sm text-slate-500 font-medium tracking-tight">Irreversible account actions</p>
+              </div>
             </div>
-            <p class="text-xs font-bold text-slate-800">Communication Hub</p>
+          </div>
+
+          <div class="divide-y divide-slate-100">
+            <div class="p-8 flex items-center justify-between hover:bg-slate-50 transition-colors">
+              <div>
+                <p class="font-bold text-slate-800">Deactivate Account</p>
+                <p class="text-xs text-slate-500 mt-1">Hide your profile and pause client interactions</p>
+              </div>
+              <button id="deactivateAccBtn"
+                class="px-5 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-xs font-bold hover:bg-amber-100 transition-all border border-amber-100">
+                Deactivate
+              </button>
+            </div>
+
+            <div class="p-8 flex items-center justify-between hover:bg-red-50/30 transition-colors">
+              <div>
+                <p class="font-bold text-red-600">Delete Account</p>
+                <p class="text-xs text-slate-500 mt-1">Permanently remove your account and all data</p>
+              </div>
+              <button id="deleteAccBtn"
+                class="px-5 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-all shadow-md">
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Input -->
-        <div id="coach-chat-input-container" class="p-4 border-t border-slate-100 bg-white hidden">
-          <form id="coach-chat-form"
-            class="flex gap-2 items-center bg-slate-50 p-2 rounded-2xl border border-slate-200">
-            <input id="coach-chat-input" type="text" autocomplete="off" placeholder="Write a message..."
-              class="flex-1 bg-transparent border-none py-2 px-4 text-sm text-slate-800 focus:ring-0 outline-none font-medium">
-            <button type="submit"
-              class="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors shadow-md">
-              <i data-lucide="send-horizontal" class="w-4 h-4"></i>
-            </button>
-          </form>
-        </div>
+        <!-- Logout button removed from here and moved to navbar -->
       </div>
-    </div>
-  </div>
+    </section>
+
+
+  </main>
 
   <script>
     // INITIALIZATION
@@ -637,11 +816,11 @@
       initArticleImageUpload();
 
       // Chat specific listeners
-      const chatForm = document.getElementById('coach-chat-form');
-      if (chatForm) {
-        chatForm.addEventListener('submit', (e) => {
+      const fullChatForm = document.getElementById('full-chat-form');
+      if (fullChatForm) {
+        fullChatForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const input = document.getElementById('coach-chat-input');
+          const input = document.getElementById('full-chat-input');
           const content = input?.value.trim();
           if (!content || !activeChatUser || !chatSocket) return;
 
@@ -655,15 +834,6 @@
           chatSocket.emit('send_message', { receiverId: Number(activeChatUser.id), content });
           if (input) input.value = '';
         });
-      }
-
-      const coachChatFab = document.getElementById('coach-chat-fab');
-      const coachChatOverlay = document.getElementById('coach-chat-overlay');
-      const closeCoachChat = document.getElementById('close-coach-chat');
-
-      if (coachChatFab && coachChatOverlay && closeCoachChat) {
-        coachChatFab.addEventListener('click', toggleCoachChat);
-        closeCoachChat.addEventListener('click', toggleCoachChat);
       }
 
       initCoachChat();
@@ -722,41 +892,52 @@
           }
         }
 
-        const tbody = document.querySelector('#tab-approvals table tbody');
+        const container = document.getElementById('approvals-list');
+        const emptyState = document.getElementById('approvals-empty');
 
         if (requests.length === 0) {
-          tbody.innerHTML = `
-              <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">No pending requests</td>
-              </tr>`;
+          if (emptyState) emptyState.classList.remove('hidden');
+          if (container) container.innerHTML = '';
         } else {
-          tbody.innerHTML = requests.map(req => `
-              <tr>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold text-xs uppercase">
-                      ${req.username.substring(0, 2)}
-                    </div>
-                    <div>
-                      <div class="font-medium text-gray-900">${req.username}</div>
-                      <div class="text-xs text-gray-500">${req.email}</div>
+          if (emptyState) emptyState.classList.add('hidden');
+          if (container) {
+            container.innerHTML = requests.map(req => `
+              <div class="user-card fade-in flex flex-col md:flex-row md:items-center gap-6 border-l-4 border-l-orange-500">
+                <div class="flex items-center gap-4 min-w-[240px]">
+                  <div class="w-14 h-14 rounded-2xl bg-orange-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-100 shrink-0">
+                    ${req.username.substring(0, 1).toUpperCase()}
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-slate-800 truncate">${req.username}</h4>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">${req.email}</p>
+                    <div class="mt-1">
+                       <span class="text-[9px] font-black text-orange-600 uppercase tracking-widest">Wants to join you</span>
                     </div>
                   </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-gray-900">Coaching Session</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">${new Date(req.created_at).toLocaleDateString()}</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button onclick="rejectRequest(${req.id})" class="btn btn-sm btn-outline text-red-600 border-red-200 hover:bg-red-50">Reject</button>
-                    <button onclick="approveRequest(${req.id})" class="btn btn-sm btn-primary bg-indigo-600 hover:bg-indigo-700">Approve</button>
+                </div>
+
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Received On</span>
                   </div>
-                </td>
-              </tr>
+                  <p class="text-sm font-black text-slate-700">${new Date(req.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <button onclick="rejectRequest(${req.id})" 
+                    class="px-6 py-3 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-2xl text-xs font-black uppercase tracking-wider transition-all">
+                    Reject
+                  </button>
+                  <button onclick="approveRequest(${req.id})" 
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 cursor-pointer">
+                    Approve Request
+                  </button>
+                </div>
+              </div>
             `).join('');
+            lucide.createIcons();
+          }
         }
       } catch (e) {
         console.error("Error loading requests:", e);
@@ -804,14 +985,11 @@
         const students = await res.json();
 
         // Update Stats
-        const totalClientsEl = document.querySelector('.card h3');
-        if (totalClientsEl) totalClientsEl.textContent = students.length;
+        const statsHeaders = document.querySelectorAll('.stat-card h3');
+        if (statsHeaders[0]) statsHeaders[0].textContent = students.length;
 
-        const statsHint = document.querySelector('.card .text-xs');
-        if (statsHint) statsHint.textContent = students.length > 0 ? `${students.length} active students` : 'No active students';
-
-        // Update Table
-        const tbody = document.querySelector('table tbody');
+        // Update Grid
+        const grid = document.getElementById('users-grid');
         const noClientsMsg = document.getElementById('no-clients-msg');
         const filterSelect = document.getElementById('analytics-filter');
 
@@ -823,46 +1001,58 @@
         if (students.length > 0) {
           if (noClientsMsg) noClientsMsg.style.display = 'none';
 
-          tbody.innerHTML = ''; // Clear old rows
+          grid.innerHTML = ''; // Clear old cards
           students.forEach(student => {
             const progress = student.totalTasks > 0 ? Math.round((student.tasksDone / student.totalTasks) * 100) : 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs uppercase">
-                    ${student.username.substring(0, 2)}
+            const card = document.createElement('div');
+            card.className = 'user-card fade-in flex flex-col md:flex-row md:items-center gap-6';
+            card.innerHTML = `
+                <div class="flex items-center gap-4 min-w-[240px]">
+                  <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0">
+                    ${student.username.substring(0, 1).toUpperCase()}
                   </div>
-                  <div>
-                    <div class="font-medium text-gray-900">${student.username}</div>
-                    <div class="text-xs text-gray-500">${student.email}</div>
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-slate-800 truncate">${student.username}</h4>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">${student.email}</p>
+                    <div class="mt-1 flex items-center gap-2">
+                       <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[9px] font-black uppercase tracking-wider">Active</span>
+                    </div>
                   </div>
                 </div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100 italic">Active</span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="text-gray-900">${student.totalGoals} Goals</div>
-              </td>
-              <td class="px-6 py-4 w-48">
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-indigo-600 h-full rounded-full" style="width: ${progress}%"></div>
+
+                <div class="flex-1">
+                  <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Task Progress</span>
+                    <span class="text-xs font-black text-indigo-600">${progress}%</span>
                   </div>
-                  <span class="text-xs font-bold text-gray-600">${progress}%</span>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="bg-indigo-600 h-full rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(99,102,241,0.4)]" style="width: ${progress}%"></div>
+                  </div>
                 </div>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-3">
-                  <button onclick="openChatWithStudent(${student.id}, '${student.username}')" class="text-indigo-600 hover:text-indigo-900 p-2 bg-indigo-50 rounded-lg transition-colors">
-                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+
+                <div class="flex items-center gap-8 px-4">
+                  <div class="text-center">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Goals</p>
+                    <p class="text-base font-black text-slate-800 leading-tight">${student.totalGoals || 0}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Tasks</p>
+                    <p class="text-base font-black text-slate-800 leading-tight">${student.tasksDone || 0}</p>
+                  </div>
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                  <button onclick="openChatWithStudent(${student.id}, '${student.username}')" 
+                    class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl hover:bg-indigo-100 transition-colors" title="Message">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
                   </button>
-                  <button onclick="viewStudentDetails(${student.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Analysis</button>
+                  <button onclick="viewStudentDetails(${student.id})" 
+                    class="px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-black transition-all shadow-lg shadow-slate-200">
+                    Analytics
+                  </button>
                 </div>
-              </td>
             `;
-            tbody.appendChild(tr);
+            grid.appendChild(card);
 
             // Add to dropdown
             if (filterSelect) {
@@ -872,7 +1062,12 @@
               filterSelect.appendChild(opt);
             }
           });
+        } else {
+          if (noClientsMsg) noClientsMsg.style.display = 'flex';
+          grid.innerHTML = '';
         }
+
+        lucide.createIcons();
 
         // Show FAB only if there are active students
         const coachChatFab = document.getElementById('coach-chat-fab');
@@ -920,21 +1115,28 @@
         const goalsList = document.getElementById('individual-goals-list');
         goalsList.innerHTML = '';
         if (data.goals.length === 0) {
-          goalsList.innerHTML = '<p class="text-gray-500 text-sm italic">No goals set yet.</p>';
+          goalsList.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+              <div class="w-12 h-12 bg-slate-50 text-slate-200 rounded-2xl flex items-center justify-center mb-3">
+                <i data-lucide="target" class="w-6 h-6"></i>
+              </div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">No goals set yet</p>
+            </div>`;
         } else {
           data.goals.forEach(goal => {
             const prog = goal.total > 0 ? Math.round((goal.spent / goal.total) * 100) : 0;
             goalsList.insertAdjacentHTML('beforeend', `
-              <div>
-                <div class="flex justify-between mb-1.5">
-                  <span class="text-sm font-semibold text-gray-700">${goal.title || goal.category}</span>
-                  <span class="text-sm font-bold text-indigo-600">${prog}%</span>
+              <div class="group">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs font-black text-slate-700 uppercase tracking-tight">${goal.title || goal.category}</span>
+                  <span class="text-xs font-black text-indigo-600">${prog}%</span>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${prog}%"></div>
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div class="bg-indigo-600 h-full rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(99,102,241,0.3)]" style="width: ${prog}%"></div>
                 </div>
-                <div class="flex justify-between mt-1">
-                  <span class="text-[10px] text-gray-400">Budget: ₹${goal.spent} / ₹${goal.total}</span>
+                <div class="flex justify-between mt-2">
+                  <span class="text-[10px] font-bold text-slate-400 capitalize">Efficiency Level</span>
+                  <span class="text-[10px] font-black text-slate-500">₹${goal.spent} / ₹${goal.total}</span>
                 </div>
               </div>
             `);
@@ -958,42 +1160,61 @@
             datasets: [{
               label: 'Daily Tasks Completed',
               data: values.length > 0 ? values : [0],
-              borderColor: '#4f46e5',
-              backgroundColor: 'rgba(79, 70, 229, 0.05)',
-              borderWidth: 3,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.05)',
+              borderWidth: 4,
               fill: true,
               tension: 0.4,
               pointBackgroundColor: '#fff',
-              pointBorderColor: '#4f46e5',
-              pointBorderWidth: 2,
-              pointRadius: 4
+              pointBorderColor: '#6366f1',
+              pointBorderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7
             }]
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: { display: false },
               tooltip: {
                 backgroundColor: '#1e293b',
-                titleColor: '#fff',
-                bodyColor: '#fff',
-                padding: 10,
+                titleFont: { size: 12, weight: '900' },
+                bodyFont: { size: 12, weight: 'bold' },
+                padding: 12,
+                cornerRadius: 12,
                 displayColors: false
               }
             },
             scales: {
-              y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } },
-              x: { grid: { display: false } }
+              y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { stepSize: 1, font: { weight: 'bold' } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { weight: 'bold' } }
+              }
             }
           }
         });
 
-        // 4. Recent Tasks
+        // 4. Activity Summary
         const tasksDiv = document.getElementById('individual-recent-tasks');
         tasksDiv.innerHTML = `
-          <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
-             <i data-lucide="info" class="w-4 h-4"></i>
-             <span>Client has completed <strong class="text-indigo-600">${data.tasksCompleted}</strong> tasks in total.</span>
+          <div class="flex flex-col md:flex-row items-center gap-6 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+             <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-amber-500 shrink-0 border border-slate-100">
+               <i data-lucide="award" class="w-8 h-8"></i>
+             </div>
+             <div class="flex-1 text-center md:text-left">
+                <h4 class="text-lg font-black text-slate-800 mb-1">Productivity Insight</h4>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">This client has maintained a consistent pace, completing a total of <span class="text-indigo-600 font-black">${data.tasksCompleted} tasks</span>. Their engagement remains high across all active goals.</p>
+             </div>
+             <div class="px-6 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm text-center min-w-[120px]">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Total Items</p>
+                <p class="text-2xl font-black text-slate-800">${data.tasksCompleted}</p>
+             </div>
           </div>
         `;
         lucide.createIcons();
@@ -1185,10 +1406,9 @@
 
     // TAB LOGIC matching app.html
     function initTabs() {
-      const btns = document.querySelectorAll('.tab-btn');
+      const btns = document.querySelectorAll('.tab-btn, .dropdown-item[data-tab]');
       const panels = document.querySelectorAll('.tab-panel');
 
-      // Helper to show/hide
       const updateVisibility = (targetId) => {
         panels.forEach(p => {
           if (p.id === `tab-${targetId}`) {
@@ -1204,15 +1424,49 @@
       btns.forEach(btn => {
         btn.addEventListener('click', () => {
           const target = btn.dataset.tab;
+          if (!target) return;
 
-          // Update Buttons
-          btns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
+          // Update Active States for Navbar Buttons (not dropdown items)
+          if (btn.classList.contains('tab-btn')) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+          } else {
+            // If from dropdown, remove active from all navbar buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          }
 
-          // Update Panels
           updateVisibility(target);
+          if (target === 'messages') {
+            initCoachChat();
+          }
+
+          // Close dropdown if it was a dropdown item
+          if (btn.classList.contains('dropdown-item')) {
+            document.getElementById('coach-profile-dropdown')?.classList.remove('show');
+            document.getElementById('nav-profile-chevron')?.classList.remove('rotate-180');
+          }
         });
       });
+
+      // Dropdown Toggle Logic
+      const profileBtn = document.getElementById('coach-profile-btn');
+      const profileDropdown = document.getElementById('coach-profile-dropdown');
+      const profileChevron = document.getElementById('nav-profile-chevron');
+
+      if (profileBtn && profileDropdown) {
+        profileBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          profileDropdown.classList.toggle('show');
+          profileChevron?.classList.toggle('rotate-180');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+            profileDropdown.classList.remove('show');
+            profileChevron?.classList.remove('rotate-180');
+          }
+        });
+      }
 
       // Initialize state based on active button
       const activeBtn = document.querySelector('.tab-btn.active');
@@ -1244,6 +1498,14 @@
         }
 
         document.getElementById('profile-name').textContent = data.name || data.email;
+
+        // Update Navbar Avatar
+        const navImgContainer = document.getElementById('nav-profile-img-container');
+        if (navImgContainer) {
+          const photoUrl = data.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'C')}&background=6366f1&color=fff`;
+          navImgContainer.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+        }
+
         document.getElementById('profile-email').textContent = data.email;
         document.getElementById('profile-bio').textContent = data.bio || 'Professional Coach';
         document.getElementById('profile-category').textContent = data.coach_type || 'General';
@@ -1278,8 +1540,9 @@
     // CHARTS (Real Data)
     async function initCharts() {
       // Defaults to match app style
-      Chart.defaults.font.family = "'Inter', sans-serif";
-      Chart.defaults.color = '#64748b';
+      Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+      Chart.defaults.font.weight = '700';
+      Chart.defaults.color = '#94a3b8';
 
       try {
         const res = await fetch('/api/coach/analytics');
@@ -1288,17 +1551,6 @@
 
         const actCtx = document.getElementById('activityChart')?.getContext('2d');
         if (actCtx) {
-          // Merge labels from both datasets to ensure coverage
-          const taskMonths = data.performance.map(p => p.month);
-          const goalMonths = data.goalPerformance ? data.goalPerformance.map(p => p.month) : [];
-          const allMonths = [...new Set([...taskMonths, ...goalMonths])].sort((a, b) => {
-            // Simple sort for months (Jan, Feb...) might be tricky. 
-            // Assuming API returns sorted by time, but standard sort is alphabetical.
-            // Let's just trust performance for now or use a mapping if needed.
-            // For robustness, let's just use what we have.
-            return 0;
-          });
-          // Actually, let's just use performance labels for simplicity as it's the primary metric.
           const labels = data.performance.map(p => p.month);
 
           new Chart(actCtx, {
@@ -1309,24 +1561,52 @@
                 label: 'Tasks Completed',
                 data: data.performance.map(p => p.count),
                 backgroundColor: '#6366f1',
-                borderRadius: 4
+                borderRadius: 8,
+                barThickness: 24
               },
               {
                 label: 'Goals Active',
                 data: data.goalPerformance ? data.goalPerformance.map(p => p.count) : [],
                 backgroundColor: '#10b981',
-                borderRadius: 4
+                borderRadius: 8,
+                barThickness: 24
               }]
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
-                legend: { display: true, position: 'bottom' },
-                tooltip: { mode: 'index', intersect: false }
+                legend: {
+                  display: true,
+                  position: 'top',
+                  align: 'end',
+                  labels: {
+                    boxWidth: 8,
+                    boxHeight: 8,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 20,
+                    font: { size: 11, weight: 'bold' }
+                  }
+                },
+                tooltip: {
+                  backgroundColor: '#1e293b',
+                  padding: 12,
+                  cornerRadius: 12,
+                  titleFont: { size: 12, weight: '900' },
+                  bodyFont: { size: 12, weight: 'bold' }
+                }
               },
               scales: {
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
+                y: {
+                  beginAtZero: true,
+                  grid: { color: '#f8fafc', drawBorder: false },
+                  ticks: { font: { weight: 'bold' } }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { weight: 'bold' } }
+                }
               }
             }
           });
@@ -1341,13 +1621,40 @@
               datasets: [{
                 label: 'New Clients',
                 data: data.growth.map(g => g.count),
-                borderColor: '#22c55e',
+                borderColor: '#10b981',
+                borderWidth: 4,
                 tension: 0.4,
                 fill: true,
-                backgroundColor: 'rgba(34, 197, 94, 0.1)'
+                backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#10b981',
+                pointBorderWidth: 3,
+                pointRadius: 5
               }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#1e293b',
+                  padding: 12,
+                  cornerRadius: 12
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: '#f8fafc', drawBorder: false },
+                  ticks: { font: { weight: 'bold' } }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { weight: 'bold' } }
+                }
+              }
+            }
           });
         }
       } catch (err) {
@@ -1398,22 +1705,11 @@
       return '../..';
     }
 
-    function toggleCoachChat() {
-      const coachChatOverlay = document.getElementById('coach-chat-overlay');
-      if (!coachChatOverlay) return;
-      const isOpen = coachChatOverlay.classList.contains('opacity-100');
-      if (isOpen) {
-        coachChatOverlay.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-        coachChatOverlay.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-      } else {
-        coachChatOverlay.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-        coachChatOverlay.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-        if (!chatSocket) initCoachChat();
-      }
-    }
-
     async function initCoachChat() {
-      if (chatSocket) return;
+      if (chatSocket) {
+        loadChatUsers(); // Refresh on tab click
+        return;
+      }
       chatSocket = io(getBackendUrl(), { withCredentials: true });
 
       chatSocket.on('connect', () => {
@@ -1429,7 +1725,7 @@
           appendCoachMessage(msg, 'incoming');
         } else {
           loadChatUsers();
-          document.getElementById('coach-chat-notif-dot')?.classList.remove('hidden');
+          // Optional: Add notification indicator to tab?
         }
       });
     }
@@ -1438,81 +1734,394 @@
       try {
         const res = await fetch(getBackendUrl() + '/api/coach/students');
         const students = await res.json();
-        const list = document.getElementById('chat-user-list');
+        const list = document.getElementById('full-chat-user-list');
         if (!list) return;
         list.innerHTML = '';
 
         if (students.length === 0) {
-          list.innerHTML = '<div class="p-4 text-center text-gray-400 text-[10px]">No students.</div>';
+          list.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
+              <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
+              <p class="text-[10px] font-black uppercase text-slate-400">No students yet</p>
+            </div>`;
+          lucide.createIcons();
           return;
         }
 
         students.forEach(student => {
+          const isActive = activeChatUser?.id === student.id;
           const div = document.createElement('div');
-          div.className = `p-3 flex items-center gap-2 cursor-pointer hover:bg-white/40 transition-colors ${activeChatUser?.id === student.id ? 'bg-white/60 shadow-sm' : ''}`;
+          div.className = `p-4 flex items-center gap-4 cursor-pointer transition-all rounded-2xl group ${isActive
+            ? 'bg-white shadow-xl shadow-indigo-100/50 border border-slate-100 translate-x-1'
+            : 'hover:bg-white/60 hover:translate-x-1'}`;
+
           div.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              ${student.username.charAt(0)}
+            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors group-hover:scale-105">
+              ${student.username.charAt(0).toUpperCase()}
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-bold text-gray-800 truncate text-xs">${student.username}</h4>
+              <div class="flex justify-between items-start mb-0.5">
+                <h4 class="font-black text-slate-800 truncate text-sm tracking-tight">${student.username}</h4>
+                <span class="text-[9px] font-bold text-slate-400 uppercase">Active</span>
+              </div>
+              <p class="text-[10px] font-bold text-slate-400 truncate tracking-tight uppercase">Platform User</p>
             </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 transition-transform group-hover:translate-x-1"></i>
           `;
           div.onclick = () => selectChatUser(student);
           list.appendChild(div);
         });
+        lucide.createIcons();
       } catch (e) { console.error(e); }
     }
 
     async function selectChatUser(user) {
       activeChatUser = user;
-      document.getElementById('coach-chat-empty')?.classList.add('hidden');
-      const nameEl = document.getElementById('active-user-name');
-      if (nameEl) nameEl.textContent = user.username;
-      const statusEl = document.getElementById('active-user-status');
-      if (statusEl) statusEl.className = 'w-2 h-2 rounded-full bg-green-500';
-      document.getElementById('coach-chat-input-container')?.classList.remove('hidden');
 
-      loadChatUsers();
+      // UI Transitions
+      document.getElementById('full-chat-empty-state')?.classList.add('hidden');
+      document.getElementById('full-chat-header')?.classList.remove('hidden');
+      document.getElementById('full-chat-input-container')?.classList.remove('hidden');
+
+      const nameEl = document.getElementById('full-chat-user-name');
+      if (nameEl) nameEl.textContent = user.username;
+
+      const avatarEl = document.getElementById('full-chat-user-avatar');
+      if (avatarEl) avatarEl.textContent = user.username.charAt(0).toUpperCase();
+
+      const statusEl = document.getElementById('full-chat-status-dot');
+      if (statusEl) statusEl.className = 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-green-500 shadow-sm';
+
+      const statusText = document.getElementById('full-chat-status-text');
+      if (statusText) statusText.textContent = 'Online & Active';
+
+      loadChatUsers(); // Refresh sidebar to show active state
 
       try {
         const res = await fetch(getBackendUrl() + `/api/messages/${user.id}`);
         const messages = await res.json();
-        const msgContainer = document.getElementById('coach-messages');
+        const msgContainer = document.getElementById('full-chat-messages');
         if (msgContainer) {
           msgContainer.innerHTML = '';
-          messages.forEach(msg => {
-            const myId = Number(coachInfo.id);
-            const type = (Number(msg.sender_id) === myId && msg.sender_type === 'coach') ? 'outgoing' : 'incoming';
-            appendCoachMessage(msg, type);
-          });
+          if (messages.length === 0) {
+            msgContainer.innerHTML = `
+              <div class="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-40">
+                <i data-lucide="message-square-dashed" class="w-8 h-8 text-slate-300"></i>
+                <p class="text-xs font-bold text-slate-800 uppercase tracking-widest">No conversation history</p>
+              </div>`;
+            lucide.createIcons();
+          } else {
+            messages.forEach(msg => {
+              const myId = Number(coachInfo.id);
+              const type = (Number(msg.sender_id) === myId && msg.sender_type === 'coach') ? 'outgoing' : 'incoming';
+              appendCoachMessage(msg, type);
+            });
+          }
           msgContainer.scrollTop = msgContainer.scrollHeight;
         }
       } catch (e) { console.error(e); }
     }
 
     function appendCoachMessage(msg, type) {
-      const msgContainer = document.getElementById('coach-messages');
+      const msgContainer = document.getElementById('full-chat-messages');
       if (!msgContainer) return;
+
+      // Remove empty state if present
+      const emptyMsg = msgContainer.querySelector('.opacity-40');
+      if (emptyMsg) emptyMsg.remove();
+
       const div = document.createElement('div');
-      div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in`;
+      div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
       const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
       div.innerHTML = `
-        <div class="max-w-[85%]">
-          <div class="px-4 py-3 rounded-2xl text-sm shadow-sm font-medium ${type === 'outgoing'
-          ? 'bg-indigo-500 text-white rounded-tr-none'
-          : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'
-        }">${msg.content}</div>
-          <p class="text-[10px] text-slate-400 mt-1.5 ${type === 'outgoing' ? 'text-right' : 'text-left'} font-semibold">${time}</p>
+        <div class="max-w-[70%] flex flex-col ${type === 'outgoing' ? 'items-end' : 'items-start'}">
+          <div class="px-6 py-4 rounded-[1.8rem] text-sm shadow-sm font-semibold tracking-tight ${type === 'outgoing'
+          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none shadow-xl shadow-indigo-100'
+          : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+        }">
+            ${msg.content}
+          </div>
+          <div class="flex items-center gap-1.5 mt-2 px-1 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            <span>${time}</span>
+            ${type === 'outgoing' ? '<i data-lucide="check-check" class="w-2.5 h-2.5 text-indigo-400"></i>' : ''}
+          </div>
         </div>
       `;
       msgContainer.appendChild(div);
       msgContainer.scrollTop = msgContainer.scrollHeight;
-      const coachOverlay = document.getElementById('coach-chat-overlay');
-      if (coachOverlay && !coachOverlay.classList.contains('opacity-100')) {
-        document.getElementById('coach-chat-notif-dot')?.classList.remove('hidden');
+      lucide.createIcons();
+    }
+    /* ---------------- APPROVALS LOGIC ---------------- */
+    async function loadPendingRequests() {
+      const list = document.getElementById('approvals-list');
+      const emptyMsg = document.getElementById('approvals-empty');
+      const countBadge = document.getElementById('approval-count');
+
+      if (!list) return;
+
+      try {
+        const res = await fetch('/api/coach/pending-requests');
+        if (!res.ok) throw new Error('Failed to fetch requests');
+        const requests = await res.json();
+
+        // Update badge
+        if (countBadge) {
+          countBadge.textContent = requests.length;
+          if (requests.length > 0) countBadge.classList.remove('hidden');
+          else countBadge.classList.add('hidden');
+        }
+
+        if (requests.length === 0) {
+          list.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
+              <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
+              <p class="text-[10px] font-black uppercase text-slate-400">No pending requests</p>
+            </div>`;
+          lucide.createIcons();
+          emptyMsg.classList.remove('hidden');
+          return;
+        }
+
+        emptyMsg.classList.add('hidden');
+        list.innerHTML = '';
+
+        requests.forEach(req => {
+          const card = document.createElement('div');
+          card.className = 'glass-card p-6 rounded-[1.5rem] border border-slate-100 flex flex-col gap-6 fade-in';
+
+          const reqDate = req.requested_time ? new Date(req.requested_time).toLocaleString() : 'Flexible';
+          const userPhoto = req.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.user_name_input || req.username)}&background=random`;
+
+          card.innerHTML = `
+            <div class="flex flex-col md:flex-row gap-6">
+              <!-- User Info -->
+              <div class="flex items-start gap-4 min-w-[200px]">
+                <img src="${userPhoto}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-slate-100">
+                <div>
+                  <h4 class="font-black text-slate-800 text-lg">${req.user_name_input || req.username}</h4>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${req.booking_category || 'General'}</p>
+                  <div class="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
+                    ${req.session_type || '1:1 Session'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Request Details -->
+              <div class="flex-1 space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goal / Reason</p>
+                  <p class="text-sm text-slate-600 leading-relaxed font-medium">"${req.booking_goal || 'No details provided'}"</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-4">
+                  <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                    <i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i>
+                    <span>Requested: <span class="text-slate-700">${reqDate}</span></span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                    <i data-lucide="globe" class="w-4 h-4 text-purple-500"></i>
+                    <span>${req.user_timezone || 'UTC'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions: View Profile Only -->
+              <div class="flex flex-col gap-2 min-w-[140px] justify-center">
+                <button onclick="viewUserProfile(${req.user_id})" 
+                  class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                  <i data-lucide="eye" class="w-4 h-4"></i> View Profile
+                </button>
+              </div>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+        lucide.createIcons();
+
+      } catch (e) {
+        console.error("Error loading requests:", e);
       }
     }
+
+    // View User Profile Modal
+    async function viewUserProfile(userId) {
+      try {
+        const res = await fetch(`/api/coach/user-profile/${userId}`);
+        if (!res.ok) throw new Error('Failed to load profile');
+        const data = await res.json();
+
+        const { user, booking, stats, goals, recentTasks } = data;
+        const userPhoto = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user_name_input || user.username)}&background=6366f1&color=fff&size=128`;
+        const completionRate = stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0;
+        const memberSince = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const reqDate = booking.requested_time ? new Date(booking.requested_time).toLocaleString() : 'Flexible';
+
+        // Build goals HTML
+        let goalsHtml = '';
+        if (goals.length > 0) {
+          goalsHtml = goals.map(g => `
+            <div class="flex items-center gap-3 py-2">
+              <div class="w-2 h-2 rounded-full ${g.status === 'completed' ? 'bg-green-400' : 'bg-indigo-400'}"></div>
+              <span class="text-sm text-slate-700 font-medium flex-1">${g.title}</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider ${g.status === 'completed' ? 'text-green-500' : 'text-indigo-500'}">${g.status || 'active'}</span>
+            </div>
+          `).join('');
+        } else {
+          goalsHtml = '<p class="text-sm text-slate-400 italic">No goals set yet</p>';
+        }
+
+        // Build recent tasks HTML
+        let tasksHtml = '';
+        if (recentTasks.length > 0) {
+          tasksHtml = recentTasks.map(t => `
+            <div class="flex items-center gap-3 py-2">
+              <div class="w-5 h-5 rounded-md flex items-center justify-center ${t.done ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}">
+                <i data-lucide="${t.done ? 'check' : 'circle'}" class="w-3 h-3"></i>
+              </div>
+              <span class="text-sm text-slate-700 font-medium flex-1 ${t.done ? 'line-through text-slate-400' : ''}">${t.task}</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">${t.category || ''}</span>
+            </div>
+          `).join('');
+        } else {
+          tasksHtml = '<p class="text-sm text-slate-400 italic">No tasks yet</p>';
+        }
+
+        // Create modal
+        const existingModal = document.getElementById('userProfileModal');
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'userProfileModal';
+        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center';
+        modal.innerHTML = `
+          <!-- Backdrop -->
+          <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeUserProfileModal()"></div>
+          
+          <!-- Modal -->
+          <div class="relative z-10 bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-t-[2rem] relative">
+              <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
+              <div class="flex items-center gap-6">
+                <img src="${userPhoto}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white/30 shadow-lg">
+                <div>
+                  <h2 class="text-2xl font-black text-white">${booking.user_name_input || user.username}</h2>
+                  <p class="text-indigo-200 text-sm font-bold">${user.email}</p>
+                  <p class="text-indigo-300 text-xs font-bold mt-1">Member since ${memberSince}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-cols-3 gap-4 p-6 -mt-4">
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-indigo-600">${stats.totalTasks}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tasks</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-green-600">${completionRate}%</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-purple-600">${stats.totalGoals}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Goals</p>
+              </div>
+            </div>
+
+            <!-- Booking Details -->
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Booking Request</h3>
+              <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
+                <div>
+                  <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Goal / Reason</p>
+                  <p class="text-sm text-slate-700 font-medium">"${booking.booking_goal || 'No details provided'}"</p>
+                </div>
+                <div class="flex flex-wrap gap-4 text-xs font-bold">
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="tag" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="users" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i> ${reqDate}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Goals -->
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Goals</h3>
+              <div class="bg-white rounded-2xl p-4 border border-slate-100">${goalsHtml}</div>
+            </div>
+
+            <!-- Recent Tasks -->
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Recent Tasks</h3>
+              <div class="bg-white rounded-2xl p-4 border border-slate-100">${tasksHtml}</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="px-6 pb-8 flex gap-3">
+              <button onclick="respondToRequest(${userId}, 'approve')" 
+                class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i> Approve
+              </button>
+              <button onclick="respondToRequest(${userId}, 'reject')" 
+                class="flex-1 py-4 bg-white border-2 border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <i data-lucide="x-circle" class="w-5 h-5"></i> Decline
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+        lucide.createIcons();
+
+      } catch (e) {
+        console.error("Error loading profile:", e);
+        alert('Failed to load user profile');
+      }
+    }
+
+    function closeUserProfileModal() {
+      const modal = document.getElementById('userProfileModal');
+      if (modal) modal.remove();
+    }
+
+    async function respondToRequest(userId, action) {
+      if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+
+      try {
+        const res = await fetch('/api/coach/respond-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, action })
+        });
+
+        if (!res.ok) throw new Error('Failed to update request');
+
+        // Close profile modal if open
+        closeUserProfileModal();
+
+        // Refresh list
+        loadPendingRequests();
+
+        // Update stats/clients if approved
+        if (action === 'approve') {
+          fetchStudents();
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    // Auto-load approvals count
+    loadPendingRequests();
+
+    // Tab listener
+    document.querySelector('[data-tab="approvals"]')?.addEventListener('click', loadPendingRequests);
+
   </script>
 </body>
 

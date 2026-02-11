@@ -77,7 +77,7 @@ app.use(
 );
 
 /* ---------------- Cache-Control + Route Guards ---------------- */
-const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html"]);
+const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html", "/landing.html", "/index.html"]);
 const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
@@ -110,8 +110,19 @@ app.use((req, res, next) => {
 
   if (isLoginPage && isAuthenticated) {
     if (userType === 'admin') return res.redirect("/admin/admin-dashboard.html");
-    if (userType === 'coach') return res.redirect("/coach/business-coach-dashboard/index.html");
-    return res.redirect("/landing.html");
+    if (userType === 'coach') {
+      const coachStatus = req.session.coachStatus || '';
+      if (coachStatus === 'approved' || coachStatus === 'active') {
+        return res.redirect("/coach/business-coach-dashboard/index.html");
+      }
+      // If pending, allow staying on landing/login or redirect to a wait page
+      // For now, let's keep them on landing if they are already there, but redirect from login
+      if (reqPath.includes('login') || reqPath.includes('get-started')) {
+        return res.redirect("/landing.html");
+      }
+    } else {
+      return res.redirect("/app.html");
+    }
   }
 
   // ----------------- ROLE-BASED ACCESS CONTROL -----------------
@@ -361,6 +372,7 @@ app.post("/api/admin/login", async (req, res) => {
   // Hardcoded admin credentials (in production, use environment variables)
   if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
     req.session.userId = 'admin';
+    req.session.userType = 'user'; // Admin acts as a user
     req.session.isAdmin = true;
     return res.json({
       message: 'Admin login successful',
@@ -581,7 +593,8 @@ app.post("/api/login", async (req, res) => {
 
     // Store session
     req.session.userId = user.id;
-    req.session.userType = user.user_type;
+    req.session.userType = 'user';
+    req.session.isAdmin = (user.user_type === 'admin');
 
     if (rememberMe) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -689,7 +702,7 @@ app.post("/api/coach/login", async (req, res) => {
     // Note: deactivated coaches can still log in to manage their account or reactivate.
 
     // 3. Login Success
-    req.session.userId = null; // Ensure not logged in as user
+    req.session.userId = null;
     req.session.coachId = coach.id;
     req.session.userType = 'coach';
 
@@ -755,12 +768,36 @@ function authenticateToken(req, res, next) {
 }
 
 /* ---------------- CURRENT USER ---------------- */
-app.get("/api/me", authenticateToken, async (req, res) => {
-  const [rows] = await db.query("SELECT id, username, email, user_type FROM users WHERE id = ?", [
-    req.user.userId,
-  ]);
-  if (rows.length === 0) return res.status(404).json({ error: "User not found" });
-  res.json(rows[0]);
+app.get("/api/me", async (req, res) => {
+  try {
+    let userId = null;
+
+    // 1. Try JWT first (middleware legacy)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.userId;
+      } catch (e) {
+        // Invalid token
+      }
+    }
+
+    // 2. Try Session fallback
+    if (!userId && req.session && req.session.userId) {
+      userId = req.session.userId;
+    }
+
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const [rows] = await db.query("SELECT id, username, email, user_type FROM users WHERE id = ?", [userId]);
+    if (rows.length === 0) return res.status(404).json({ error: "User not found" });
+    res.json(rows[0]);
+  } catch (e) {
+    console.error("/api/me error:", e);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 /* ---------------- DELETE ACCOUNT ---------------- */
@@ -950,7 +987,7 @@ app.get("/api/public/coaches", async (req, res) => {
       SELECT user_id as id, name, coach_type, bio, years_experience, 
              profile_photo, specialties, status, hourly_rate
       FROM coach_details 
-      WHERE status = 'approved' 
+      WHERE status = 'approved' AND user_id IS NOT NULL
       ORDER BY created_at DESC
     `);
     res.json(coaches);
@@ -1388,9 +1425,12 @@ function validateEmailFormat(email) {
 function validatePassword(password) {
   const errors = [];
 
-  // 1. Length check (8+ characters)
+  // 1. Length check (8-20 characters)
   if (password.length < 8) {
     errors.push("Password must be at least 8 characters long");
+  }
+  if (password.length > 20) {
+    errors.push("Password must be at most 20 characters long");
   }
 
   // 2. Uppercase letter check
@@ -1401,6 +1441,11 @@ function validatePassword(password) {
   // 3. Lowercase letter check
   if (!/[a-z]/.test(password)) {
     errors.push("Password must contain at least 1 lowercase letter (a-z)");
+  }
+
+  // 4. Special character check
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push("Password must contain at least 1 special character (!@#$%^&*...)");
   }
 
   return {
@@ -2003,11 +2048,24 @@ app.put("/api/me/username", async (req, res) => {
 
     // Check for duplicates
     const [existing] = await db.query("SELECT id FROM users WHERE username = ?", [username]);
-    if (existing.length > 0) {
-      // If found someone else with this name
-      if (existing[0].id != userId) {
-        return res.status(400).json({ error: "Username is already taken" });
+    if (existing.length > 0 && existing[0].id != userId) {
+      // Generate 4 suggestions
+      const suggestions = [];
+      let attempt = 0;
+      while (suggestions.length < 4 && attempt < 20) {
+        attempt++;
+        const suffix = Math.floor(100 + Math.random() * 9000);
+        const suggestedName = `${username}${suffix}`;
+
+        const [check] = await db.query("SELECT id FROM users WHERE username = ?", [suggestedName]);
+        if (check.length === 0) {
+          suggestions.push(suggestedName);
+        }
       }
+      return res.status(400).json({
+        error: "Username is already taken",
+        suggestions: suggestions
+      });
     }
 
     // Update
@@ -2392,21 +2450,39 @@ ensureCoachRelationshipTables();
 // Migration: Ensure coach_articles status has 'pending'
 async function migrateArticleStatus() {
   try {
-    // We can't easily "ADD" to an ENUM in MySQL without redefining it.
-    // This command modifies the column to include 'pending'.
     await db.query("ALTER TABLE coach_articles MODIFY COLUMN status ENUM('published', 'draft', 'pending') DEFAULT 'draft'");
-    console.log("Migrated coach_articles status enum");
-  } catch (e) {
-    // If table doesn't exist yet, this might fail, but ensureCoachArticlesTable handles creation.
-    // If it fails for other reasons, just log it.
-    console.log("Article status migration notice:", e.message);
-  }
+  } catch (e) { }
 }
 migrateArticleStatus();
 
-// 2. Book Coach Endpoint (Creates Pending Request)
+async function upgradeBookingSchema() {
+  try {
+    // 1. Update status ENUM to include pending/rejected
+    await db.query("ALTER TABLE user_coach_connections MODIFY COLUMN status ENUM('active', 'inactive', 'pending', 'rejected') DEFAULT 'pending'");
+  } catch (e) { }
+
+  // 2. Add new booking columns
+  const cols = [
+    "booking_goal TEXT",
+    "booking_category VARCHAR(100)",
+    "session_type VARCHAR(50)",
+    "requested_time VARCHAR(100)", // Keeping as string for flexibility (ISO format)
+    "user_timezone VARCHAR(50)",
+    "user_photo LONGTEXT",  // In case they upload a base64 image
+    "user_name_input VARCHAR(255)"
+  ];
+
+  for (const col of cols) {
+    try {
+      await db.query(`ALTER TABLE user_coach_connections ADD COLUMN ${col}`);
+    } catch (e) { }
+  }
+}
+upgradeBookingSchema();
+
+// 2. Book Coach Endpoint (Creates Pending Request with Details)
 app.post("/api/book-coach", requireAuth, async (req, res) => {
-  const { coachId } = req.body;
+  const { coachId, goal, category, sessionType, requestedTime, timezone, userPhoto, userName } = req.body;
 
   if (!coachId) return res.status(400).json({ error: "Coach ID required" });
 
@@ -2418,25 +2494,35 @@ app.post("/api/book-coach", requireAuth, async (req, res) => {
     );
 
     if (existing.length > 0) {
-      if (existing[0].status === 'active') { // Changed logic: if active, do nothing
+      if (existing[0].status === 'active') {
         return res.status(200).json({ success: true, message: "Already connected", status: 'active' });
       }
       if (existing[0].status === 'pending') {
-        return res.status(200).json({ success: true, message: "Request already sent", status: 'pending' });
+        // Update details even if pending
+        await db.query(`
+          UPDATE user_coach_connections 
+          SET booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
+          WHERE user_id = ? AND coach_id = ?
+        `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+
+        return res.status(200).json({ success: true, message: "Request updated", status: 'pending' });
       }
-      // If inactive or rejected, we might want to re-open it? Let's update to pending
-      await db.query(
-        "UPDATE user_coach_connections SET status = 'pending' WHERE user_id = ? AND coach_id = ?",
-        [req.userId, coachId]
-      );
+
+      // If inactive/rejected, re-open as pending with new details
+      await db.query(`
+        UPDATE user_coach_connections 
+        SET status = 'pending', booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
+        WHERE user_id = ? AND coach_id = ?
+      `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+
       return res.json({ success: true, message: "Booking request sent", status: 'pending' });
     }
 
     // Insert new pending connection
     await db.query(`
-      INSERT INTO user_coach_connections (user_id, coach_id, status)
-      VALUES (?, ?, 'pending')
-    `, [req.userId, coachId]);
+      INSERT INTO user_coach_connections (user_id, coach_id, status, booking_goal, booking_category, session_type, requested_time, user_timezone, user_photo, user_name_input)
+      VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
+    `, [req.userId, coachId, goal, category, sessionType, requestedTime, timezone, userPhoto, userName]);
 
     res.json({ success: true, message: "Booking request sent", status: 'pending' });
   } catch (e) {
@@ -2471,6 +2557,120 @@ app.get("/api/coach/students", async (req, res) => {
   } catch (e) {
     console.error("Get students error:", e);
     res.status(500).json({ error: "Failed to fetch students" });
+  }
+});
+
+// 4. Get Coach's Pending Requests
+app.get("/api/coach/pending-requests", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  try {
+    const [requests] = await db.query(`
+      SELECT 
+        u.id as user_id, 
+        u.username, 
+        u.email, 
+        ucc.created_at,
+        ucc.booking_goal,
+        ucc.booking_category,
+        ucc.session_type,
+        ucc.requested_time,
+        ucc.user_timezone,
+        ucc.user_photo,
+        ucc.user_name_input
+      FROM user_coach_connections ucc
+      JOIN users u ON ucc.user_id = u.id
+      WHERE ucc.coach_id = ? AND ucc.status = 'pending'
+      ORDER BY ucc.created_at DESC
+    `, [coachId]);
+    res.json(requests);
+  } catch (e) {
+    console.error("Get pending requests error:", e);
+    res.status(500).json({ error: "Failed to fetch requests" });
+  }
+});
+
+// 5. Respond to Request (Approve/Reject)
+app.post("/api/coach/respond-request", async (req, res) => {
+  const coachId = req.session?.coachId;
+  const { userId, action } = req.body; // action: 'approve' or 'reject'
+
+  if (!coachId) return res.status(401).json({ error: "Not authenticated" });
+  if (!userId || !action) return res.status(400).json({ error: "Missing fields" });
+
+  const newStatus = action === 'approve' ? 'active' : 'rejected';
+
+  try {
+    await db.query(
+      "UPDATE user_coach_connections SET status = ? WHERE coach_id = ? AND user_id = ?",
+      [newStatus, coachId, userId]
+    );
+
+    // If approved, maybe send a notification? (Future task)
+    res.json({ success: true, message: `Request ${newStatus}` });
+  } catch (e) {
+    console.error("Respond request error:", e);
+    res.status(500).json({ error: "Failed to update request" });
+  }
+});
+
+// 6. Get User Profile for Coach Review
+app.get("/api/coach/user-profile/:userId", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated" });
+
+  const { userId } = req.params;
+
+  try {
+    // Get user info
+    const [users] = await db.query(
+      "SELECT id, username, email, created_at FROM users WHERE id = ?",
+      [userId]
+    );
+    if (users.length === 0) return res.status(404).json({ error: "User not found" });
+
+    const user = users[0];
+
+    // Get booking details
+    const [booking] = await db.query(
+      `SELECT booking_goal, booking_category, session_type, requested_time, user_timezone, user_photo, user_name_input 
+       FROM user_coach_connections WHERE user_id = ? AND coach_id = ?`,
+      [userId, coachId]
+    );
+
+    // Get task stats
+    const [taskStats] = await db.query(
+      `SELECT COUNT(*) as total, SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed FROM todos WHERE user_id = ?`,
+      [userId]
+    );
+
+    // Get goals
+    const [goals] = await db.query(
+      "SELECT text, category, done, created_at FROM goals WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+      [userId]
+    );
+
+    // Get recent activity (tasks created recently)
+    const [recentTasks] = await db.query(
+      "SELECT text, priority, done, created_at FROM todos WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+      [userId]
+    );
+
+    res.json({
+      user,
+      booking: booking[0] || {},
+      stats: {
+        totalTasks: taskStats[0]?.total || 0,
+        completedTasks: taskStats[0]?.completed || 0,
+        totalGoals: goals.length
+      },
+      goals,
+      recentTasks
+    });
+  } catch (e) {
+    console.error("User profile fetch error:", e);
+    res.status(500).json({ error: "Failed to fetch profile" });
   }
 });
 
@@ -2590,7 +2790,7 @@ app.get("/api/coach/student/:id/analytics", async (req, res) => {
     // 1. Basic Stats
     const [tasksCompleted] = await db.query("SELECT COUNT(*) as count FROM todos WHERE user_id = ? AND done = 1", [studentId]);
     const [allTodos] = await db.query("SELECT COUNT(*) as count FROM todos WHERE user_id = ?", [studentId]);
-    const [goals] = await db.query("SELECT category, total, spent, title FROM goals WHERE user_id = ?", [studentId]);
+    const [goals] = await db.query("SELECT category, total, spent, text FROM goals WHERE user_id = ?", [studentId]);
 
     // 2. Historical Task Data (Last 7 Days)
     const [taskHistory] = await db.query(`

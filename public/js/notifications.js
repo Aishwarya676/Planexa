@@ -145,7 +145,7 @@
 
     // Load notifications on page load and periodically
     loadNotifications();
-    setInterval(loadNotifications, 30000); // Refresh every 30 seconds
+    setInterval(loadNotifications, 120000); // Refresh every 2 minutes
 
     // Reload when switching to notifications tab
     document.addEventListener('click', (e) => {

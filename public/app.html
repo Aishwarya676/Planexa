@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Your Planner | PlanIT</title>
+  <title>Your Planner | Planexa</title>
   <script src="/js/auth-helper.js"></script>
   <meta name="description" content="Planner app with To‑Do, Reminders, Goals, and Events" />
 
@@ -59,6 +59,34 @@
       color: #0369a1;
       font-weight: 500;
     }
+
+    /* Profile Dropdown Styles */
+    #profile-dropdown.show {
+      transform: scale(100%);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      color: #374151;
+      transition: all 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f9fafb;
+    }
+
+    /* Caps class for heading */
+    .caps {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 
@@ -79,15 +107,7 @@
           <li><a href="#reminders" data-tab="reminders" class="tab-btn">Reminders</a></li>
           <li><a href="#goals" data-tab="goals" class="tab-btn">Goals</a></li>
           <li><a href="#calendar" data-tab="calendar" class="tab-btn">Events</a></li>
-          <li><a href="#profile" data-tab="profile" class="tab-btn">Settings</a></li>
-          <li class="flex items-center gap-2">
-            <button id="openSidebar" class="p-2 rounded-full bg-purple-100 text-purple-700
-         hover:bg-purple-200 transition-all shadow-sm hover:shadow-md" style="display: none;">
-              <i data-lucide="menu" class="w-5 h-5"></i>
-            </button>
-          </li>
-
-          <!-- Notifications Bell Icon (Far Right) -->
+          <!-- Notifications -->
           <li class="ml-2">
             <a href="#notifications" data-tab="notifications"
               class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
@@ -97,6 +117,71 @@
                 style="display:none;"></span>
             </a>
           </li>
+          <!-- Profile Button & Dropdown -->
+          <li class="relative ml-2" id="profile-dropdown-container">
+            <button id="profile-btn"
+              class="flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all border border-indigo-100 shadow-sm">
+              <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+                <i data-lucide="user" class="w-5 h-5"></i>
+              </div>
+              <span class="font-bold text-sm hidden sm:block">Profile</span>
+              <i data-lucide="chevron-down" id="profile-chevron"
+                class="w-4 h-4 text-indigo-400 transition-transform"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="profile-dropdown"
+              class="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-200 z-50 origin-top-right">
+              <div class="p-3 space-y-1">
+                <a href="#profile" data-tab="profile"
+                  class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 transition-all group">
+                  <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="line-chart" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-medium text-gray-800 text-sm">Analytics</span>
+                </a>
+                <a href="account.html"
+                  class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group">
+                  <div class="p-2 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-gray-100 transition-colors">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-medium text-gray-800 text-sm">Account Settings</span>
+                </a>
+                <a href="#" id="dropdown-review-btn"
+                  class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-yellow-50 transition-all group">
+                  <div class="p-2 bg-yellow-50 rounded-lg text-yellow-600 group-hover:bg-yellow-100 transition-colors">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-medium text-gray-800 text-sm">Review Coach</span>
+                </a>
+                <a href="customization.html"
+                  class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 transition-all group">
+                  <div class="p-2 bg-purple-50 rounded-lg text-purple-600 group-hover:bg-purple-100 transition-colors">
+                    <i data-lucide="palette" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-medium text-gray-800 text-sm">Customization</span>
+                </a>
+                <div class="border-t border-gray-100 my-1"></div>
+                <button id="dropdown-logout-btn"
+                  class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 transition-all group">
+                  <div class="p-2 bg-red-50 rounded-lg text-red-600 group-hover:bg-red-100 transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-medium text-sm">Log Out</span>
+                </button>
+              </div>
+            </div>
+          </li>
+          <!-- Messages -->
+          <li class="ml-2">
+            <a href="#messages" data-tab="messages"
+              class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+              <span id="chat-notif-dot"
+                class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></span>
+            </a>
+          </li>
+
         </ul>
       </nav>
     </div>
@@ -329,6 +414,81 @@
         </div>
       </div>
       <div id="selected-day-tasks" class="mt-6"></div>
+    </section>
+
+    <!-- Messages Tab -->
+    <section id="tab-messages" class="tab-panel">
+      <div class="pt-4"></div>
+      <div
+        class="h-[calc(100vh-12rem)] glass-card rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-2xl shadow-slate-200/50 flex">
+        <div class="w-80 border-r border-slate-100 flex flex-col bg-slate-50/50 text-slate-800">
+          <div class="p-6 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <h3 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Coach
+            </h3>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Your coach conversation</p>
+          </div>
+
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+            <button id="coach-chat-item" type="button"
+              class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/80 hover:bg-white transition-all border border-slate-100 shadow-sm text-left">
+              <div id="chat-coach-img"
+                class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 overflow-hidden">
+              </div>
+              <div class="min-w-0">
+                <div id="chat-coach-name" class="font-black text-slate-800 tracking-tight truncate">Your Coach</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Tap to open</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col bg-white relative">
+          <div
+            class="p-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <div id="messages-coach-avatar"
+                  class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 overflow-hidden">
+                </div>
+                <div
+                  class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-green-500 shadow-sm">
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-slate-800 tracking-tight" id="messages-coach-name">Your Coach</h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Online</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="chat-messages" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-slate-50/20">
+            <div id="chat-welcome" class="h-full flex flex-col items-center justify-center text-center space-y-4">
+              <div
+                class="w-20 h-20 bg-indigo-50 text-indigo-200 rounded-[2rem] flex items-center justify-center shadow-inner">
+                <i data-lucide="message-circle" class="w-10 h-10"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-800">Your Communication Hub</h3>
+                <p class="text-slate-500 max-w-xs mt-2 text-sm font-semibold">Message your coach and stay on track.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-100 bg-white">
+            <form id="chat-form"
+              class="flex gap-4 items-center bg-slate-50 p-3 rounded-[1.5rem] border border-slate-200 focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+              <input id="chat-input" type="text" autocomplete="off" placeholder="Type your message..."
+                class="flex-1 bg-transparent border-none py-2 px-4 text-sm text-slate-800 focus:ring-0 outline-none font-medium">
+              <button type="submit" id="chat-send-btn"
+                class="p-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+                disabled>
+                <i data-lucide="send-horizontal" class="w-5 h-5"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Event List (For Mobile) -->
@@ -661,217 +821,83 @@
 
   </main>
 
-  <!-- Floating Chat Button -->
-  <button id="chat-fab"
-    class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 group hidden">
-    <i data-lucide="message-square" class="w-8 h-8 group-hover:rotate-12 transition-transform"></i>
-    <span id="chat-notif-dot"
-      class="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full hidden"></span>
-  </button>
-
-  <!-- Chat Overlay Container -->
-  <div id="chat-overlay"
-    class="fixed bottom-28 right-8 w-[400px] h-[600px] bg-white/40 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 overflow-hidden flex flex-col z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-300 origin-bottom-right">
-    <!-- Chat Header -->
-    <div
-      class="p-4 border-b border-white/20 bg-white/60 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
-      <div class="flex items-center gap-3">
-        <div id="chat-coach-img"
-          class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg overflow-hidden">
-          <!-- Coach Initial -->
-        </div>
-        <div>
-          <h3 id="chat-coach-name" class="font-extrabold text-slate-800 text-sm">Your Coach</h3>
-          <p class="text-[10px] text-green-600 font-bold uppercase tracking-wider">Online</p>
-        </div>
-      </div>
-      <button id="close-chat" class="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-
-    <!-- Messages Area -->
-    <div id="chat-messages"
-      class="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-slate-50/20 to-white/20 custom-scrollbar">
-      <!-- Chat Welcome -->
-      <div id="chat-welcome" class="flex flex-col items-center justify-center h-full text-center space-y-4">
-        <div
-          class="w-16 h-16 bg-white/80 rounded-2xl shadow-xl flex items-center justify-center text-indigo-500 transform -rotate-6">
-          <i data-lucide="message-square" class="w-8 h-8"></i>
-        </div>
-        <p class="font-bold text-slate-800">Message your coach</p>
-      </div>
-    </div>
-
-    <!-- Chat Input -->
-    <div class="p-4 border-t border-white/20 bg-white/60">
-      <form id="chat-form" class="flex gap-2 items-center bg-white/80 p-1.5 rounded-2xl border border-white/40">
-        <input id="chat-input" type="text" autocomplete="off" placeholder="Message..."
-          class="flex-1 bg-transparent border-none py-2 px-3 text-sm text-slate-800 focus:ring-0 outline-none">
-        <button type="submit" id="chat-send-btn"
-          class="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors disabled:opacity-50"
-          disabled>
-          <i data-lucide="send-horizontal" class="w-4 h-4"></i>
-        </button>
-      </form>
-    </div>
-  </div>
-  <!-- Sidebar Overlay -->
-  <div id="sidebarOverlay"
-    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"></div>
-
-  <!-- Sidebar Menu -->
-  <div id="sidebarMenu"
-    class="fixed top-0 right-0 h-screen w-80 bg-white/90 backdrop-blur-xl shadow-2xl transform translate-x-full hidden transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-gray-200">
-
-    <!-- Header -->
-    <div
-      class="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-tl-2xl">
-      <div>
-        <h2 class="text-xl font-bold text-gray-800">Settings</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Manage your preferences</p>
-      </div>
-      <button id="closeSidebar"
-        class="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-
-    <!-- Menu Items -->
-    <nav class="flex-1 overflow-y-auto p-4 space-y-2">
-      <a href="account.html"
-        class="tab-btn flex items-center gap-3 p-3 rounded-xl bg-white/60 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
-        <div
-          class="p-2 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-gray-100 group-hover:text-gray-700 transition-colors">
-          <i data-lucide="user" class="w-5 h-5"></i>
-        </div>
-        <span class="font-medium text-gray-800">Account</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto text-gray-300 group-hover:text-gray-500"></i>
-      </a>
-
-      <!-- ITEM -->
-      <a href="#" id="sidebar-review-btn"
-        class="flex items-center gap-3 p-3 rounded-xl bg-white/60 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
-        <div
-          class="p-2 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-gray-100 group-hover:text-gray-700 transition-colors">
-          <i data-lucide="star" class="w-5 h-5"></i>
-        </div>
-        <span class="font-medium text-gray-800">Review Coach</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto text-gray-300 group-hover:text-gray-500"></i>
-      </a>
-
-      <!-- ITEM -->
-      <a href="customization.html"
-        class="flex items-center gap-3 p-3 rounded-xl bg-white/60 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
-        <div
-          class="p-2 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-gray-100 group-hover:text-gray-700 transition-colors">
-          <i data-lucide="palette" class="w-5 h-5"></i>
-        </div>
-        <span class="font-medium text-gray-800">Themes</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto text-gray-300 group-hover:text-gray-500"></i>
-      </a>
-
-      <!-- ITEM -->
-      <a href="customer-service/customer.html"
-        class="flex items-center gap-3 p-3 rounded-xl bg-white/60 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
-        <div
-          class="p-2 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-gray-100 group-hover:text-gray-700 transition-colors">
-          <i data-lucide="help-circle" class="w-5 h-5"></i>
-        </div>
-        <span class="font-medium text-gray-800">Help & Feedback</span>
-        <i data-lucide="chevron-right" class="w-4 h-4 ml-auto text-gray-300 group-hover:text-gray-500"></i>
-      </a>
-    </nav>
-
-    <!-- Footer / Logout -->
-    <div class="p-4 border-t border-gray-200 bg-white/70 rounded-bl-2xl">
-      <button id="logoutBtn"
-        class="flex items-center gap-3 w-full p-3 rounded-xl text-red-600 bg-red-50 hover:bg-red-100 transition-all group">
-        <div class="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-        </div>
-        <span class="font-medium">Log Out</span>
-      </button>
-    </div>
-
-  </div>
   <script>
+    const profileBtn = document.getElementById("profile-btn");
+    const profileDropdown = document.getElementById("profile-dropdown");
+    const profileChevron = document.getElementById("profile-chevron");
+    const dropdownLogoutBtn = document.getElementById("dropdown-logout-btn");
+    const dropdownReviewBtn = document.getElementById("dropdown-review-btn");
 
-  </script>
+    function toggleProfileDropdown(e) {
+      if (e) e.stopPropagation();
+      const isShowing = profileDropdown.classList.contains("show");
 
-  <script>
-    const openSidebar = document.getElementById("openSidebar");
-    const closeSidebar = document.getElementById("closeSidebar");
-    const sidebarMenu = document.getElementById("sidebarMenu");
-    const sidebarOverlay = document.getElementById("sidebarOverlay");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    function showSidebar() {
-      sidebarMenu.classList.remove("hidden");
-      // Force reflow to enable transition
-      void sidebarMenu.offsetWidth;
-      sidebarMenu.classList.remove("translate-x-full");
-      sidebarOverlay.classList.remove("hidden");
-
-      // Lock body scroll
-      document.body.style.overflow = 'hidden';
-
-      setTimeout(() => {
-        sidebarOverlay.classList.remove("opacity-0");
-      }, 10);
+      if (isShowing) {
+        profileDropdown.classList.remove("show");
+        profileChevron.style.transform = "rotate(0deg)";
+      } else {
+        profileDropdown.classList.add("show");
+        profileChevron.style.transform = "rotate(180deg)";
+      }
     }
 
-    function hideSidebar() {
-      sidebarMenu.classList.add("translate-x-full");
-      sidebarOverlay.classList.add("opacity-0");
+    // Toggle on Chevron or Name or Icon click
+    profileBtn.addEventListener("click", (e) => {
+      // If we clicked the chevron specifically, just toggle
+      if (e.target.closest('#profile-chevron')) {
+        toggleProfileDropdown(e);
+      } else {
+        // Navigate to profile/analytics and toggle the menu
+        window.location.hash = 'profile';
+        toggleProfileDropdown(e);
+      }
+    });
 
-      // Unlock body scroll
-      document.body.style.overflow = '';
+    // Close dropdown on outside click
+    window.addEventListener("click", (e) => {
+      if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove("show");
+        profileChevron.style.transform = "rotate(0deg)";
+      }
+    });
 
-      setTimeout(() => {
-        sidebarOverlay.classList.add("hidden");
-        sidebarMenu.classList.add("hidden");
-      }, 300);
+    // Close dropdown when a dropdown item is clicked
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        profileDropdown.classList.remove("show");
+        profileChevron.style.transform = "rotate(0deg)";
+      });
+    });
+
+    // Logout Logic
+    async function handleLogout(e) {
+      e.preventDefault();
+      try {
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        localStorage.removeItem('planner.theme');
+        localStorage.removeItem('planner.themeId');
+        localStorage.removeItem('planner.user');
+        window.location.replace('landing.html');
+      } catch (error) {
+        console.error('Logout failed:', error);
+        localStorage.removeItem('planner.theme');
+        localStorage.removeItem('planner.themeId');
+        localStorage.removeItem('planner.user');
+        window.location.replace('landing.html');
+      }
     }
 
-    openSidebar.addEventListener("click", showSidebar);
-    closeSidebar.addEventListener("click", hideSidebar);
-    sidebarOverlay.addEventListener("click", hideSidebar);
+    if (dropdownLogoutBtn) {
+      dropdownLogoutBtn.addEventListener('click', handleLogout);
+    }
 
-    // LOGOUT
-    const logoutButton = document.getElementById('logoutBtn');
-    if (logoutButton) {
-      logoutButton.addEventListener('click', async (e) => {
+    // Review Coach Logic
+    if (dropdownReviewBtn) {
+      dropdownReviewBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        try {
-          await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-          localStorage.removeItem('planner.theme');
-          localStorage.removeItem('planner.themeId');
-          localStorage.removeItem('planner.user');
-          window.location.replace('landing.html');
-        } catch (error) {
-          console.error('Logout failed:', error);
-          localStorage.removeItem('planner.theme');
-          localStorage.removeItem('planner.themeId');
-          localStorage.removeItem('planner.user');
-          window.location.replace('landing.html');
-        }
+        window.location.hash = 'review';
       });
     }
-
-    // REVIEW COACH SIDEBAR CLICK
-    setTimeout(() => {
-      const reviewBtn = document.getElementById('sidebar-review-btn');
-      if (reviewBtn) {
-        reviewBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          hideSidebar();
-
-          // Switch to review tab
-          window.location.hash = 'review';
-        });
-      }
-    }, 500);
   </script>
   <script>
     // Redundant manual auth guard replaced by auth-helper.js
@@ -897,16 +923,6 @@
         });
         const panel = document.getElementById(`tab-${tabId}`);
         if (panel) panel.classList.add('active');
-
-        // Toggle Hamburger Menu Visibility
-        const openSidebarBtn = document.getElementById('openSidebar');
-        if (openSidebarBtn) {
-          if (tabId === 'profile') {
-            openSidebarBtn.style.display = 'block';
-          } else {
-            openSidebarBtn.style.display = 'none';
-          }
-        }
       }
 
       // Attach listeners first
@@ -956,7 +972,6 @@
   <script src="./js/ui.js?v=db2"></script>
   <script src="./js/calendar.js"></script>
   <script src="./js/notifications.js"></script>
-  <script src="./js/chat.js"></script>
   <!-- Push Notification Registration -->
   <script>
     const VAPID_PUBLIC_KEY = 'BDp9g81H4VcPyHz9MbyXV29BERLt4SN4cwgaze-rAHf2iRmuIxJok6LeXmu3oBzAFBaeSFubZZ8jeprCSBAj2KY';

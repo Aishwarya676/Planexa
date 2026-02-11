@@ -52,7 +52,6 @@ CREATE TABLE IF NOT EXISTS coach_details (
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_user (user_id),
     INDEX (email)
 ) ENGINE=InnoDB;
 
@@ -62,6 +61,13 @@ CREATE TABLE IF NOT EXISTS user_coach_connections (
     user_id INT NOT NULL,
     coach_id INT NOT NULL,
     status ENUM('active', 'inactive', 'pending', 'rejected') DEFAULT 'pending',
+    booking_goal TEXT,
+    booking_category VARCHAR(100),
+    session_type VARCHAR(50),
+    requested_time VARCHAR(100),
+    user_timezone VARCHAR(50),
+    user_photo LONGTEXT,
+    user_name_input VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_conn (user_id, coach_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -121,23 +127,23 @@ CREATE TABLE IF NOT EXISTS shopping_items (
 -- 10. Coach Articles
 CREATE TABLE IF NOT EXISTS coach_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    coach_id INT NULL,
+    coach_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
+    description VARCHAR(255),
     content LONGTEXT,
     category VARCHAR(100),
-    image_url TEXT,
+    image_url VARCHAR(255),
     status ENUM('published', 'draft', 'pending') DEFAULT 'draft',
     keywords TEXT,
     index_page TINYINT(1) DEFAULT 1,
     follow_links TINYINT(1) DEFAULT 1,
     tags TEXT,
     featured TINYINT(1) DEFAULT 0,
-    published_at DATETIME,
+    published_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE SET NULL
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- 11. Reminders

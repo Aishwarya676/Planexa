@@ -30,6 +30,12 @@
     async function checkAuth() {
         const path = window.location.pathname;
 
+        // --- IMMEDIATE VISIBILITY GUARD ---
+        // If we are on a protected page and have NO local session, hide the body immediately
+        if (isProtectedPage(path) && !localStorage.getItem(NAME_KEY)) {
+            document.documentElement.style.visibility = 'hidden';
+        }
+
         try {
             const res = await fetch(API_STATUS_URL, { credentials: 'include' });
             if (!res.ok) throw new Error('Session check failed');
@@ -57,11 +63,11 @@
             }
 
             // 2. REDIRECTION LOGIC (Route Guarding)
-            const isHomePath = path === LANDING_PAGE || path === '/';
+            const isHomePath = path === LANDING_PAGE || path === '/' || path === '/index.html';
 
-            // If on Login/GetStarted pages but ALREADY authed -> Go Home
-            const isLoginPage = path.includes('login') || path.includes('get-started.html');
-            if ((isLoginPage || path === '/') && isAuthenticated) {
+            // If on Login/Landing/GetStarted pages but ALREADY authed -> Go Dashboard
+            const isLoginPage = path.includes('login') || path.includes('get-started.html') || isHomePath;
+            if (isLoginPage && isAuthenticated) {
                 if (userType === 'admin') window.location.replace(ADMIN_DASHBOARD);
                 else if (userType === 'coach') {
                     // ONLY redirect to dashboard if status is 'approved' or 'active'
@@ -73,7 +79,7 @@
                         if (isLoginPage) window.location.replace(LANDING_PAGE);
                     }
                 }
-                else window.location.replace(LANDING_PAGE);
+                else window.location.replace(USER_APP);
                 return;
             }
 
@@ -114,6 +120,9 @@
                     return;
                 }
             }
+
+            // --- REVEAL CONTENT ---
+            document.documentElement.style.visibility = '';
 
         } catch (err) {
             console.error('Auth Check Error:', err);

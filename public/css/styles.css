@@ -28,6 +28,13 @@
   --header-border: rgba(255, 255, 255, 0.1);
 }
 
+/* Global Hover Movement Neutralizer (Tailwind & Manual Override) */
+[class*="hover:scale-"]:hover,
+[class*="hover:translate-"]:hover,
+[class*="hover:-translate-"]:hover {
+  transform: none !important;
+}
+
 /* Custom Scrollbar for Chat */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -370,11 +377,9 @@ body {
 
 .btn:hover {
   filter: brightness(0.96);
-  transform: translateY(-1px);
 }
 
 .btn:active {
-  transform: translateY(0);
   filter: brightness(0.9);
 }
 
@@ -404,8 +409,7 @@ body {
 
 .icon-btn:hover {
   background: #f8fafc;
-  transform: translateY(-1px);
-  transition: background-color .2s ease, transform .15s ease, box-shadow .2s ease;
+  transition: background-color .2s ease, box-shadow .2s ease;
 }
 
 .icon-btn:focus-visible {
@@ -557,7 +561,6 @@ body {
 #scroll-reviews-right:hover {
   background: var(--brand);
   color: white;
-  transform: translateY(-50%) scale(1.1);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
@@ -607,7 +610,6 @@ body {
 }
 
 .avatar:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
@@ -753,12 +755,7 @@ body {
 }
 
 .calendar-nav button:hover {
-  transform: translateY(-2px) scale(1.05);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.calendar-nav button:active {
-  transform: translateY(0) scale(0.98);
 }
 
 .calendar-title {
@@ -797,7 +794,6 @@ body {
 .btn-today:hover {
   background: #667eea;
   color: white;
-  transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
@@ -812,7 +808,6 @@ body {
 }
 
 .btn-add:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
@@ -857,7 +852,6 @@ body {
 
 .day:hover {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  transform: translateY(-4px) scale(1.02);
   box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
   border-color: rgba(102, 126, 234, 0.3);
   z-index: 10;
@@ -921,7 +915,6 @@ body {
 }
 
 .event:hover {
-  transform: translateX(4px) scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -1321,7 +1314,6 @@ body {
 }
 
 .cal-cell:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 

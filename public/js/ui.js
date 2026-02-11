@@ -1,13 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
+  function getBackendUrl() {
+    const { hostname, port } = window.location;
+    if (port === '5500' || port === '5501' || port === '3000') {
+      return `http://${hostname}:3000`;
+    }
+    return '';
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        if (typeof io !== 'undefined') return resolve();
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', (e) => reject(e));
+        return;
+      }
+
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = (e) => reject(e);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function ensureSocketIoClient() {
+    if (typeof io !== 'undefined') return true;
+
+    const base = getBackendUrl();
+    if (!base) {
+      console.error('Socket.io client not found and backend base URL is empty.');
+      return false;
+    }
+
+    try {
+      await loadScript(`${base}/socket.io/socket.io.js`);
+      return typeof io !== 'undefined';
+    } catch (e) {
+      console.error('Failed to load socket.io client script:', e);
+      return false;
+    }
+  }
+
   // -------------------- API Helper --------------------
   const api = {
     get: async (url) => {
-      const res = await fetch(url, { credentials: 'include' });
+      const res = await fetch(getBackendUrl() + url, { credentials: 'include' });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
     post: async (url, body) => {
-      const res = await fetch(url, {
+      const res = await fetch(getBackendUrl() + url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -17,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json();
     },
     put: async (url, body) => {
-      const res = await fetch(url, {
+      const res = await fetch(getBackendUrl() + url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -27,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json();
     },
     delete: async (url) => {
-      const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(getBackendUrl() + url, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     }
@@ -620,8 +665,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let chatOpen = false;
 
+  function isMessagesTabActive() {
+    const panel = document.getElementById('tab-messages');
+    return !!panel && panel.classList.contains('active');
+  }
+
   async function initChat() {
     try {
+      console.log('[Chat] initChat start', { origin: window.location.origin, backend: getBackendUrl() });
       // 1. Get Current User & Coach
       const [userData, coachData] = await Promise.all([
         api.get('/api/me'),
@@ -631,28 +682,49 @@ document.addEventListener('DOMContentLoaded', () => {
       currentUser = userData;
       currentCoach = coachData;
 
+      console.log('[Chat] currentUser/currentCoach', {
+        userId: currentUser?.id,
+        coachId: currentCoach?.id,
+        coachName: currentCoach?.name
+      });
+
       if (!currentCoach) {
-        const fab = document.getElementById('chat-fab');
-        if (fab) fab.style.display = 'none';
+        const msgTabBtn = document.querySelector('[data-tab="messages"]');
+        if (msgTabBtn) msgTabBtn.style.display = 'none';
         return;
       }
 
       // 2. Setup Socket
-      if (typeof io !== 'undefined') {
-        socket = io();
-        socket.emit('identify', { userId: currentUser.id, userType: 'user' });
-        setupSocketListeners();
-      } else {
-        console.error("Socket.io client not found");
+      const hasIo = await ensureSocketIoClient();
+      if (!hasIo) {
+        console.error('Socket.io client not available; chat disabled.');
+        return;
       }
 
+      socket = io(getBackendUrl(), { withCredentials: true });
+      socket.on('connect', () => {
+        console.log('[Chat] socket connected', { id: socket.id });
+        socket.emit('identify', { userId: currentUser.id, userType: 'user' });
+        console.log('[Chat] identify emitted');
+      });
+      socket.on('connect_error', (err) => {
+        console.error('Socket connect_error:', err);
+      });
+      socket.on('error', (err) => {
+        console.error('Socket error:', err);
+      });
+      setupSocketListeners();
+
       // 3. Setup UI
-      const fab = document.getElementById('chat-fab');
       const coachNameEl = document.getElementById('chat-coach-name');
       const coachImgEl = document.getElementById('chat-coach-img');
+      const headerCoachNameEl = document.getElementById('messages-coach-name');
+      const headerCoachAvatarEl = document.getElementById('messages-coach-avatar');
+      const chatItemBtn = document.getElementById('coach-chat-item');
+      const msgTabBtn = document.querySelector('[data-tab="messages"]');
 
-      if (fab) fab.style.display = 'flex';
       if (coachNameEl) coachNameEl.innerText = currentCoach.name;
+      if (headerCoachNameEl) headerCoachNameEl.innerText = currentCoach.name;
       if (coachImgEl) {
         if (currentCoach.profile_photo) {
           coachImgEl.innerHTML = `<img src="${currentCoach.profile_photo}" class="w-full h-full object-cover">`;
@@ -661,12 +733,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 4. Input Listeners
-      const closeBtn = document.getElementById('close-chat');
-      const chatForm = document.getElementById('chat-form');
+      if (headerCoachAvatarEl) {
+        if (currentCoach.profile_photo) {
+          headerCoachAvatarEl.innerHTML = `<img src="${currentCoach.profile_photo}" class="w-full h-full object-cover">`;
+        } else {
+          headerCoachAvatarEl.innerText = currentCoach.name.charAt(0).toUpperCase();
+        }
+      }
 
-      if (fab) fab.addEventListener('click', () => toggleChat(true));
-      if (closeBtn) closeBtn.addEventListener('click', () => toggleChat(false));
+      if (chatItemBtn) {
+        chatItemBtn.addEventListener('click', () => {
+          loadChatMessages();
+          const dot = document.getElementById('chat-notif-dot');
+          if (dot) dot.classList.add('hidden');
+          const input = document.getElementById('chat-input');
+          if (input) input.focus();
+        });
+      }
+
+      if (msgTabBtn) {
+        msgTabBtn.addEventListener('click', () => {
+          setTimeout(() => {
+            if (isMessagesTabActive()) {
+              loadChatMessages();
+              const dot = document.getElementById('chat-notif-dot');
+              if (dot) dot.classList.add('hidden');
+            }
+          }, 0);
+        });
+      }
+
+      window.addEventListener('hashchange', () => {
+        if ((window.location.hash || '').replace('#', '') === 'messages') {
+          setTimeout(() => {
+            if (isMessagesTabActive()) {
+              loadChatMessages();
+              const dot = document.getElementById('chat-notif-dot');
+              if (dot) dot.classList.add('hidden');
+            }
+          }, 0);
+        }
+      });
+
+      // 4. Input Listeners
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+      const chatSendBtn = document.getElementById('chat-send-btn');
+
+      if (chatSendBtn) chatSendBtn.disabled = false;
+      if (chatInput) chatInput.disabled = false;
 
       if (chatForm) {
         chatForm.addEventListener('submit', (e) => {
@@ -677,24 +792,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (e) {
       console.error("Chat init failed:", e);
-    }
-  }
-
-  function toggleChat(show) {
-    const overlay = document.getElementById('chat-overlay');
-    const fab = document.getElementById('chat-fab');
-    if (!overlay) return;
-
-    chatOpen = show;
-    if (show) {
-      overlay.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-      fab.classList.add('scale-0'); // Hide FAB when open
-      loadChatMessages();
-      const dot = document.getElementById('chat-notif-dot');
-      if (dot) dot.classList.add('hidden');
-    } else {
-      overlay.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-      fab.classList.remove('scale-0');
     }
   }
 
@@ -760,8 +857,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sendMessage() {
     const input = document.getElementById('chat-input');
+    if (!input) return;
     const content = input.value.trim();
     if (!content || !socket || !currentCoach) return;
+    if (!socket.connected) {
+      console.error('Chat socket is not connected; message not sent.');
+      return;
+    }
+
+     console.log('[Chat] sending message', { receiverId: currentCoach.id, contentLen: content.length });
 
     socket.emit('send_message', {
       receiverId: currentCoach.id,
@@ -776,6 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('new_message', (msg) => {
       // Since I am a user, incoming messages are from my coach
+      chatOpen = isMessagesTabActive();
       if (chatOpen) {
         appendMessageUI(msg);
         scrollToBottom();

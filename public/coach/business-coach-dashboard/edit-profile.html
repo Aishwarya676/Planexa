@@ -4,314 +4,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - PlannIT Coach</title>
+    <title>Edit Profile - Planexa Coach</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-page: #e0f2ff;
-            --text-dark: #1e293b;
-            --text-light: #64748b;
+            --primary-glow: rgba(79, 70, 229, 0.15);
+            --bg-page: #f8fafc;
         }
 
         body {
-            background-color: var(--bg-page);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: var(--text-dark);
+            background:
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 50%),
+                #f1f5f9;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: #1e293b;
             min-height: 100vh;
+            background-attachment: fixed;
         }
 
-        .section-card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e2e8f0;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .section-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.03);
         }
 
         .form-label {
             display: block;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
             margin-bottom: 0.5rem;
-            color: #334155;
-            font-size: 0.875rem;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.75rem;
-            background-color: #f8fafc;
-            transition: all 0.2s;
-            outline: none;
+            padding: 0.875rem 1.25rem;
+            border: 1.5px solid #f1f5f9;
+            border-radius: 1rem;
+            background: white;
+            font-size: 0.95rem;
+            font-weight: 600;
             color: #1e293b;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
         }
 
         .form-control:focus {
-            border-color: var(--primary);
-            background-color: white;
+            border-color: #4f46e5;
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        .btn-brand {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
             color: white;
-            padding: 0.875rem 2rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
+            padding: 1rem 2.5rem;
+            border-radius: 1rem;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             transition: all 0.3s;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
+            gap: 0.75rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3);
         }
 
-        .btn-primary:hover {
+        .btn-brand:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+            filter: brightness(1.1);
         }
 
-        .profile-upload-container {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto;
+        .header-brand {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        #profilePreview {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            display: none;
+        .section-divider {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 2.5rem;
+            margin-top: 2.5rem;
         }
 
-        #profilePreview.active {
-            display: block;
-        }
-
-        .upload-placeholder {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #e0e7ff;
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            transform: translateY(100px);
+            opacity: 0;
+            background: white;
+            padding: 1.25rem 2rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #6366f1;
-            border: 2px dashed #818cf8;
-            cursor: pointer;
-            transition: all 0.2s;
+            gap: 1rem;
+            border-left: 4px solid #10b981;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .upload-placeholder:hover {
-            background: #c7d2fe;
-            transform: scale(1.05);
-        }
-
-        .edit-overlay {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: #4f46e5;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid white;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .edit-overlay:hover {
-            transform: scale(1.1);
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
         }
     </style>
 </head>
 
-<body class="py-8 px-4 md:px-8">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+<body class="bg-[#f1f5f9] relative overflow-x-hidden">
+    <!-- Decorative page-level background elements -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-indigo-500/[0.04] blur-[150px] rounded-full">
+        </div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 header-brand px-8 py-4 mb-10 shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="index.html"
-                    class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white shadow-sm transition-all">
-                    <i class="fas fa-arrow-left"></i>
+                <a href="index.html" class="flex items-center gap-3 group">
+                    <div
+                        class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-lg shadow-indigo-500/20">
+                        <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-black text-white leading-none tracking-tight">Edit Profile</h1>
+                        <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mt-1">Coach Settings
+                        </p>
+                    </div>
                 </a>
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Edit Coach Profile</h1>
-                    <p class="text-slate-500 text-sm">Update your public information</p>
-                </div>
             </div>
+
             <button type="button" onclick="document.getElementById('editProfileForm').requestSubmit()"
-                class="hidden md:flex px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all items-center gap-2">
-                <i class="fas fa-save"></i> Save Changes
+                id="headerSaveBtn"
+                class="px-6 py-2.5 bg-white text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-wider shadow-xl items-center gap-2 hover:bg-slate-50 transition-all hidden md:flex">
+                <i data-lucide="save" class="w-4 h-4"></i> Save Profile
             </button>
         </div>
+    </header>
 
-        <form id="editProfileForm" class="space-y-6">
+    <div class="max-w-4xl mx-auto px-6 pb-20">
+        <!-- Main Form Container -->
+        <form id="editProfileForm" class="glass-card p-10 md:p-16 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+            <!-- Decorative background glow -->
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full"></div>
+            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/5 blur-[100px] rounded-full"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                <!-- Left Column: Identity -->
-                <div class="md:col-span-1 space-y-6">
-                    <div class="section-card text-center">
-                        <div class="profile-upload-container mb-4 group">
-                            <img id="profilePreview" src="" alt="Profile Preview">
-                            <div class="upload-placeholder" id="placeholderIcon">
-                                <i class="fas fa-camera text-3xl"></i>
+            <div class="relative z-10 space-y-12">
+                <!-- 1. Identity Section -->
+                <div class="flex flex-col md:flex-row items-center gap-10">
+                    <div class="relative group" onclick="document.getElementById('profilePhoto').click()">
+                        <div
+                            class="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-100 flex-shrink-0">
+                            <img id="profilePreview" src="" alt="Profile Photo" class="w-full h-full object-cover">
+                            <div id="placeholderIcon"
+                                class="w-full h-full flex items-center justify-center text-slate-300">
+                                <i data-lucide="camera" class="w-10 h-10"></i>
                             </div>
-                            <div class="edit-overlay" onclick="document.getElementById('profilePhoto').click()">
-                                <i class="fas fa-pencil-alt text-xs"></i>
-                            </div>
-                            <input type="file" id="profilePhoto" class="hidden" accept="image/*">
                         </div>
-                        <h3 class="font-bold text-slate-800 text-lg">Profile Photo</h3>
-                        <p class="text-xs text-slate-500 mt-1 mb-4">Allowed *.jpeg, *.jpg, *.png, *.gif</p>
+                        <div
+                            class="absolute -bottom-2 -right-2 bg-indigo-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white group-hover:scale-110 transition-transform cursor-pointer">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </div>
+                        <input type="file" id="profilePhoto" class="hidden" accept="image/*">
                     </div>
 
-                    <!-- Stats Card Small -->
-                    <div class="section-card bg-indigo-600 text-white border-none">
-                        <h4 class="font-semibold text-indigo-100 mb-4 text-sm uppercase tracking-wider">Quick Stats</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-xs text-indigo-200">Total Hours</p>
-                                <p class="text-2xl font-bold">1,250+</p>
+                    <div class="flex-1 text-center md:text-left">
+                        <h3 class="text-2xl font-black text-slate-800 tracking-tight mb-2">Public Identity</h3>
+                        <p class="text-sm font-medium text-slate-500">This information will be visible to students on
+                            the PlannIT marketplace. Make it count.</p>
+
+                        <div class="flex flex-wrap items-center gap-4 mt-6">
+                            <div
+                                class="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i> Profile Verified
                             </div>
-                            <div>
-                                <p class="text-xs text-indigo-200">Rating</p>
-                                <div class="flex items-center gap-1 text-yellow-300">
-                                    <i class="fas fa-star"></i>
-                                    <span class="font-bold text-white">4.9</span>
-                                </div>
+                            <div
+                                class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                <i data-lucide="zap" class="w-4 h-4"></i> Expert Status
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Details -->
-                <div class="md:col-span-2 space-y-6">
-
-                    <!-- Basic Info Card -->
-                    <div class="section-card">
-                        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
-                            <i class="fas fa-user-circle text-indigo-500"></i>
-                            <h3 class="font-bold text-lg text-slate-800">Professional Details</h3>
+                <!-- 2. Professional Details -->
+                <div class="section-divider">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="award" class="w-5 h-5"></i>
                         </div>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight">Professional Journey</h3>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                            <div class="form-group">
-                                <label for="yearsExperience" class="form-label">Years of Experience</label>
-                                <div class="relative">
-                                    <input type="number" id="yearsExperience" class="form-control" placeholder="0">
-                                    <span
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">years</span>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="hoursCoached" class="form-label">Hours Coached</label>
-                                <div class="relative">
-                                    <input type="number" id="hoursCoached" class="form-control" placeholder="0">
-                                    <span
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">hrs</span>
-                                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <label for="yearsExperience" class="form-label">Total Experience</label>
+                            <div class="relative">
+                                <input type="number" id="yearsExperience" class="form-control" placeholder="0">
+                                <span
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">Years</span>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label for="bio" class="form-label">Professional Bio</label>
-                            <textarea id="bio" class="form-control h-32 resize-none"
-                                placeholder="Share your journey, expertise, and what students can expect..."></textarea>
-                            <p class="text-xs text-slate-400 mt-2 text-right">Max 500 characters</p>
+                        <div>
+                            <label for="hoursCoached" class="form-label">Impact Hours</label>
+                            <div class="relative">
+                                <input type="number" id="hoursCoached" class="form-control" placeholder="0">
+                                <span
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">Hours</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Pricing & Earnings Card -->
-                    <div class="section-card border-indigo-100 relative overflow-hidden">
+                    <div>
+                        <label for="bio" class="form-label">Bio & Philosophy</label>
+                        <textarea id="bio" class="form-control h-40 resize-none"
+                            placeholder="Share your coaching story, methods, and what makes you unique..."></textarea>
                         <div
-                            class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
+                            class="flex justify-between items-center mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span>Markdown Supported</span>
+                            <span>Max 500 Characters</span>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="flex items-center gap-2 mb-6 border-b border-indigo-50 pb-4">
-                            <i class="fas fa-wallet text-indigo-500"></i>
-                            <h3 class="font-bold text-lg text-slate-800">Pricing & Earnings</h3>
+                <!-- 3. Financials -->
+                <div class="section-divider">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div
+                            class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                            <i data-lucide="banknote" class="w-5 h-5"></i>
                         </div>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight">Platform Economics</h3>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                            <div class="form-group">
-                                <label for="hourlyRate" class="form-label">Hourly Rate (₹)</label>
-                                <div class="relative group">
-                                    <span
-                                        class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">₹</span>
-                                    <input type="number" id="hourlyRate"
-                                        class="form-control pl-8 text-lg font-bold text-indigo-900" placeholder="0.00">
-                                </div>
-                                <p class="text-xs text-slate-500 mt-2">Rate students pay per hour</p>
+                    <div
+                        class="bg-slate-50 rounded-3xl p-8 border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                        <div>
+                            <label for="hourlyRate" class="form-label">Standard Hourly Rate (₹)</label>
+                            <div class="relative">
+                                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                <input type="number" id="hourlyRate" class="form-control pl-10 text-xl font-black"
+                                    placeholder="0.00">
                             </div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4">Calculations
+                                include platform fee</p>
+                        </div>
 
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <div class="flex justify-between text-sm mb-2">
-                                    <span class="text-slate-500">Platform Fee (20%)</span>
-                                    <span class="text-red-500 font-medium" id="feeDisplay">-₹0.00</span>
-                                </div>
-                                <div class="flex justify-between items-end border-t border-slate-200 pt-2">
-                                    <span class="text-slate-700 font-semibold">You Earn</span>
-                                    <span class="text-2xl font-bold text-green-600" id="earningsDisplay">₹0.00</span>
-                                </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Service Fee
+                                    (20%)</span>
+                                <span class="text-sm font-black text-red-500" id="feeDisplay">-₹0.00</span>
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 flex justify-between items-end">
+                                <span class="text-sm font-black text-slate-700 uppercase tracking-wider">Net
+                                    Payout</span>
+                                <span class="text-3xl font-black text-indigo-600" id="earningsDisplay">₹0.00</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Certifications Card -->
-                    <div class="section-card">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-certificate text-indigo-500"></i>
-                                <h3 class="font-bold text-lg text-slate-800">Certifications</h3>
+                <!-- 4. Accreditations -->
+                <div class="section-divider">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                                <i data-lucide="certificate" class="w-5 h-5"></i>
                             </div>
-                            <button type="button" id="addCertification"
-                                class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition-colors">
-                                <i class="fas fa-plus mr-1"></i> Add New
-                            </button>
+                            <h3 class="text-xl font-black text-slate-800 tracking-tight">Accreditations</h3>
                         </div>
-                        <div id="certificationsContainer" class="space-y-4">
-                            <!-- Certifications will be dynamic -->
-                        </div>
+                        <button type="button" id="addCertification"
+                            class="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-all flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Entry
+                        </button>
                     </div>
+                    <div id="certificationsContainer" class="space-y-4">
+                        <!-- Dynamic rows -->
+                    </div>
+                </div>
 
+                <!-- 5. Actions -->
+                <div class="pt-12 flex flex-col items-center gap-6 border-t border-slate-100">
+                    <p class="text-xs font-medium text-slate-400 text-center max-w-sm">
+                        By updating your profile, you agree to Planexa's coach guidelines and public visibility
+                        settings.
+                    </p>
+                    <button type="submit" class="btn-brand w-full md:w-auto" id="saveBtn">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i> Finalize Changes
+                    </button>
                 </div>
             </div>
-
-            <!-- Mobile Save Button -->
-            <button type="submit" class="md:hidden btn-primary w-full shadow-xl" id="saveBtn">
-                Save All Changes
-            </button>
         </form>
 
-        <div id="successToast"
-            class="fixed top-8 left-1/2 -translate-x-1/2 bg-white text-slate-800 px-6 py-4 rounded-xl shadow-2xl transition-all duration-300 transform -translate-y-32 opacity-0 pointer-events-none flex items-center gap-3 border border-green-100 z-50">
-            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                <i class="fas fa-check"></i>
+        <div id="successToast" class="toast">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                <i data-lucide="check" class="w-6 h-6"></i>
             </div>
             <div>
-                <h4 class="font-bold text-sm">Success</h4>
-                <p class="text-xs text-slate-500">Profile updated successfully!</p>
+                <h4 class="text-sm font-black text-slate-800">Profile Updated</h4>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Changes are live on
+                    PlannIT</p>
             </div>
         </div>
     </div>
@@ -365,19 +378,32 @@
 
             function addCertRow(data = {}) {
                 const row = document.createElement('div');
-                row.className = 'p-4 bg-gray-50 border rounded-lg relative';
+                row.className = 'p-6 bg-white border border-slate-100 rounded-[2rem] relative shadow-sm hover:shadow-md transition-shadow';
                 row.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="certName[]" class="form-control" placeholder="Certification Name" value="${data.name || ''}">
-                        <input type="text" name="certOrg[]" class="form-control" placeholder="Issuing Org" value="${data.org || ''}">
-                        <input type="number" name="certYear[]" class="form-control" placeholder="Year" value="${data.year || ''}">
-                        <input type="text" name="certId[]" class="form-control" placeholder="Credential ID" value="${data.id || ''}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Certification Name</label>
+                            <input type="text" name="certName[]" class="form-control" placeholder="e.g. Google UX Design" value="${data.name || ''}">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Issuing Organization</label>
+                            <input type="text" name="certOrg[]" class="form-control" placeholder="e.g. Coursera" value="${data.org || ''}">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Year</label>
+                            <input type="number" name="certYear[]" class="form-control" placeholder="2024" value="${data.year || ''}">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Credential ID</label>
+                            <input type="text" name="certId[]" class="form-control" placeholder="Optional" value="${data.id || ''}">
+                        </div>
                     </div>
-                    <button type="button" class="remove-cert absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs shadow-md">
-                        <i class="fas fa-times"></i>
+                    <button type="button" class="remove-cert absolute -top-3 -right-3 bg-white text-slate-400 hover:text-red-500 w-10 h-10 rounded-full shadow-lg border border-slate-100 flex items-center justify-center transition-all">
+                        <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 `;
                 certificationsContainer.appendChild(row);
+                lucide.createIcons();
 
                 row.querySelector('.remove-cert').addEventListener('click', () => row.remove());
             }
@@ -458,11 +484,18 @@
                     if (!res.ok) throw new Error('Failed to save');
 
                     // Show toast
-                    toast.classList.remove('translate-y-20', 'opacity-0');
-                    toast.classList.add('translate-y-0', 'opacity-100');
+                    toast.classList.add('active');
                     setTimeout(() => {
-                        toast.classList.add('translate-y-20', 'opacity-0');
-                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.remove('active');
+                    }, 4000);
+
+                    // Update header button if mobile
+                    const hSave = document.getElementById('headerSaveBtn');
+                    if (hSave) hSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Saved!';
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        if (hSave) hSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Profile';
+                        lucide.createIcons();
                     }, 3000);
 
                 } catch (err) {
@@ -470,8 +503,12 @@
                 } finally {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
+                    lucide.createIcons();
                 }
             });
+
+            // Initialize Lucide
+            lucide.createIcons();
         });
     </script>
 </body>

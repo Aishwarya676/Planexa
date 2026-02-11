@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Coach Login — PlannIt</title>
+  <title>Coach Account | Planexa</title>
   <meta name="description" content="Coach login to access your PlannIt coaching dashboard.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -181,7 +181,7 @@
         <!-- Login Section -->
         <div id="loginSection">
           <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Coach Portal</h1>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Planexa Coach Portal</h2>
             <p class="text-gray-500">Please enter your credentials to access your dashboard.</p>
           </div>
 
@@ -307,7 +307,19 @@
                   <i data-lucide="eye" class="h-5 w-5"></i>
                 </button>
               </div>
-              <p class="mt-1.5 text-xs text-gray-500 ml-1">Must be at least 6 characters</p>
+              <!-- Password Requirements UI -->
+              <div id="password-requirements"
+                class="mt-3 p-3 bg-gray-50 rounded-xl text-[11px] text-gray-500 space-y-1.5 hidden border border-gray-100">
+                <p class="font-bold text-gray-700 mb-1 caps">Security Requirements</p>
+                <div id="rule-length" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> 8-20
+                  characters</div>
+                <div id="rule-uppercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
+                  least one uppercase</div>
+                <div id="rule-lowercase" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
+                  least one lowercase</div>
+                <div id="rule-special" class="flex items-center gap-2"><i data-lucide="circle" class="w-3 h-3"></i> At
+                  least one special character</div>
+              </div>
             </div>
 
             <button type="submit"
@@ -354,6 +366,59 @@
               const signupBtn = document.querySelector('#signupForm button[type="submit"]');
               const signupText = document.getElementById('signup-text');
               const signupLoading = document.getElementById('signup-loading');
+              const regPassword = document.getElementById('reg-password');
+              const passwordRequirements = document.getElementById('password-requirements');
+
+              // Password Validation Logic
+              function validatePassword(password) {
+                return {
+                  length: password.length >= 8 && password.length <= 20,
+                  uppercase: /[A-Z]/.test(password),
+                  lowercase: /[a-z]/.test(password),
+                  special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                };
+              }
+
+              function updatePasswordUI(rules) {
+                passwordRequirements.classList.remove('hidden');
+
+                const updateItem = (id, isValid) => {
+                  const el = document.getElementById(id);
+                  if (!el) return;
+                  const icon = el.querySelector('i, svg');
+                  if (!icon) return;
+
+                  if (isValid) {
+                    el.classList.remove('text-gray-500');
+                    el.classList.add('text-green-600', 'font-medium');
+                    icon.setAttribute('data-lucide', 'check-circle');
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-green-500');
+                  } else {
+                    el.classList.remove('text-green-600', 'font-medium');
+                    el.classList.add('text-gray-500');
+                    icon.setAttribute('data-lucide', 'circle');
+                    icon.classList.remove('text-green-500');
+                    icon.classList.add('text-gray-400');
+                  }
+                };
+
+                updateItem('rule-length', rules.length);
+                updateItem('rule-uppercase', rules.uppercase);
+                updateItem('rule-lowercase', rules.lowercase);
+                updateItem('rule-special', rules.special);
+
+                if (window.lucide) lucide.createIcons();
+              }
+
+              regPassword.addEventListener('input', () => {
+                const rules = validatePassword(regPassword.value);
+                updatePasswordUI(rules);
+              });
+
+              regPassword.addEventListener('focus', () => {
+                passwordRequirements.classList.remove('hidden');
+              });
 
               // Auth Toggle
               window.toggleAuth = (mode) => {
@@ -438,6 +503,15 @@
 
                 if (!username || !email || !password) {
                   alert("All fields are required");
+                  return;
+                }
+
+                // Final Password Validation
+                const rules = validatePassword(password);
+                const allValid = Object.values(rules).every(r => r === true);
+
+                if (!allValid) {
+                  alert("Please fix the password errors before creating an account.");
                   return;
                 }
 
