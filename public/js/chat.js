@@ -8,7 +8,7 @@
 
     function getBackendUrl() {
         const { hostname, port } = window.location;
-        if (port === '5500' || port === '5501' || port === '3000') {
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '3000' || port === '5500' || port === '5501') {
             return `http://${hostname}:3000`;
         }
         return '';
