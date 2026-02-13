@@ -2083,25 +2083,33 @@ app.put("/api/me/username", async (req, res) => {
 setInterval(async () => {
   try {
     // Check for due reminders that haven't been notified yet
-    // efficient anti-duplicate check: `reminder_id` in notifications table
+    const [timeCheck] = await db.query("SELECT UTC_TIMESTAMP() as now_utc, NOW() as now_local");
+    const dbNowUtc = timeCheck[0].now_utc;
+    const dbNowLocal = timeCheck[0].now_local;
+
+    // Use server-side JS time for comparison to match frontend generation logic
+    const jsNow = new Date();
+    const nowUtcStr = jsNow.toISOString().slice(0, 19).replace('T', ' ');
+
     const [reminders] = await db.query(
       `SELECT r.id, r.user_id, r.title, r.when_time 
        FROM reminders r
        LEFT JOIN notifications n ON r.id = n.reminder_id
        WHERE r.done = 0 
-       AND r.when_time <= UTC_TIMESTAMP()
-       AND r.when_time > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 24 HOUR)
-       AND n.id IS NULL`
+       AND r.when_time <= ?
+       AND r.when_time > DATE_SUB(?, INTERVAL 24 HOUR)
+       AND n.id IS NULL`,
+      [nowUtcStr, nowUtcStr]
     );
 
     if (reminders.length > 0) {
-      const now = new Date().toISOString();
-      console.log(`[Scheduler] ${now} - Found ${reminders.length} due reminders.`);
+      console.log(`[Scheduler] JS UTC: ${nowUtcStr} | DB UTC: ${dbNowUtc} | DB Local: ${dbNowLocal}`);
+      console.log(`[Scheduler] Found ${reminders.length} due reminders.`);
     }
 
     for (const reminder of reminders) {
       try {
-        console.log(`[Scheduler] Processing reminder ${reminder.id} for user ${reminder.user_id}`);
+        console.log(`[Scheduler] Processing reminder ${reminder.id} (Scheduled UTC: ${reminder.when_time}) for user ${reminder.user_id}`);
         // Get user's push subscription
         const [subscriptions] = await db.query(
           "SELECT subscription_json FROM push_subscriptions WHERE user_id = ?",
