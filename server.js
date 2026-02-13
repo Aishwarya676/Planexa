@@ -77,7 +77,7 @@ app.use(
 );
 
 /* ---------------- Cache-Control + Route Guards ---------------- */
-const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html", "/landing.html", "/index.html"]);
+const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html"]);
 const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
@@ -179,7 +179,7 @@ const vapidKeys = {
 };
 
 webpush.setVapidDetails(
-  process.env.VAPID_MAILTO,
+  process.env.VAPID_SUBJECT || "mailto:admin@planexa.com",
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -2095,11 +2095,13 @@ setInterval(async () => {
     );
 
     if (reminders.length > 0) {
-      console.log(`[Scheduler] Found ${reminders.length} due reminders.`);
+      const now = new Date().toISOString();
+      console.log(`[Scheduler] ${now} - Found ${reminders.length} due reminders.`);
     }
 
     for (const reminder of reminders) {
       try {
+        console.log(`[Scheduler] Processing reminder ${reminder.id} for user ${reminder.user_id}`);
         // Get user's push subscription
         const [subscriptions] = await db.query(
           "SELECT subscription_json FROM push_subscriptions WHERE user_id = ?",
@@ -2123,11 +2125,15 @@ setInterval(async () => {
 
           // Send push notification
           await webpush.sendNotification(subscription, payload);
-
-          console.log(`✓ Sent notification for reminder: ${reminder.title}`);
+          console.log(`✓ [Scheduler] Successfully sent push notification for reminder ${reminder.id} to user ${reminder.user_id}`);
         }
       } catch (error) {
-        console.error(`Error sending notification for reminder ${reminder.id}:`, error);
+        console.error(`[Scheduler] ✗ Error sending notification for reminder ${reminder.id}:`, {
+          message: error.message,
+          statusCode: error.statusCode,
+          headers: error.headers,
+          body: error.body
+        });
       }
     }
   } catch (error) {

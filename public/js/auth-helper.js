@@ -79,7 +79,13 @@
                         if (isLoginPage) window.location.replace(LANDING_PAGE);
                     }
                 }
-                else window.location.replace(USER_APP);
+                else {
+                    // If on a login page, go to landing. If already on landing, stay there.
+                    if (path.includes('login') || path.includes('get-started.html')) {
+                        window.location.replace(LANDING_PAGE);
+                    }
+                    // Else isHomePath -> do nothing, let them see landing.html
+                }
                 return;
             }
 
