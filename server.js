@@ -2089,8 +2089,8 @@ setInterval(async () => {
        FROM reminders r
        LEFT JOIN notifications n ON r.id = n.reminder_id
        WHERE r.done = 0 
-       AND r.when_time <= NOW()
-       AND r.when_time > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+       AND r.when_time <= UTC_TIMESTAMP()
+       AND r.when_time > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 24 HOUR)
        AND n.id IS NULL`
     );
 

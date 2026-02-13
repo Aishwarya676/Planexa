@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reminders.forEach(r => {
       const li = document.createElement('li');
       li.className = 'card p-3 flex items-center justify-between';
-      const dateLabel = r.when_time ? new Date(r.when_time).toLocaleString() : '';
+      const dateLabel = r.when_time ? new Date(r.when_time.replace(' ', 'T') + 'Z').toLocaleString() : '';
       li.innerHTML = `
         <div class="flex items-center gap-2">
           <input type="checkbox" ${r.done ? 'checked' : ''} class="h-4 w-4" data-action="toggle" data-id="${r.id}">
@@ -286,14 +286,34 @@ document.addEventListener('DOMContentLoaded', () => {
   remAdd?.addEventListener('click', async () => {
     const title = (remTitle?.value || '').trim();
     if (!title) return;
-    const when = remDatetime?.value || null;
+    let when = remDatetime?.value || null;
+
+    // Standardize to UTC for reliable notification delivery
+    if (when) {
+      try {
+        const localDate = new Date(when);
+        if (!isNaN(localDate.getTime())) {
+          // Format as YYYY-MM-DD HH:mm:ss in UTC for MySQL Compatibility
+          when = localDate.getUTCFullYear() + '-' +
+            ('0' + (localDate.getUTCMonth() + 1)).slice(-2) + '-' +
+            ('0' + localDate.getUTCDate()).slice(-2) + ' ' +
+            ('0' + localDate.getUTCHours()).slice(-2) + ':' +
+            ('0' + localDate.getUTCMinutes()).slice(-2) + ':' +
+            ('0' + localDate.getUTCSeconds()).slice(-2);
+          console.log(`[Reminders] Converting local ${remDatetime.value} to UTC ${when}`);
+        }
+      } catch (e) {
+        console.error('Time conversion error:', e);
+      }
+    }
+
     try {
       const newRem = await api.post('/api/reminders', { title, when });
       reminders.unshift(newRem);
       remTitle.value = '';
       remDatetime.value = '';
       renderReminders();
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('Failed to add reminder:', e); }
   });
 
   remList?.addEventListener('click', async (e) => {
@@ -865,7 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-     console.log('[Chat] sending message', { receiverId: currentCoach.id, contentLen: content.length });
+    console.log('[Chat] sending message', { receiverId: currentCoach.id, contentLen: content.length });
 
     socket.emit('send_message', {
       receiverId: currentCoach.id,
