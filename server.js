@@ -2747,6 +2747,26 @@ app.get("/api/user/my-coach", requireAuth, async (req, res) => {
   }
 });
 
+// 3.0 Get Coach's Active Students (for Chat)
+app.get("/api/coach/students", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  try {
+    const [students] = await db.query(`
+      SELECT u.id, u.username, u.email, u.profile_photo, ucc.created_at, ucc.status
+      FROM user_coach_connections ucc
+      JOIN users u ON ucc.user_id = u.id
+      WHERE ucc.coach_id = ? AND ucc.status = 'active'
+      ORDER BY ucc.created_at DESC
+    `, [coachId]);
+    res.json(students);
+  } catch (e) {
+    console.error("Get students error:", e);
+    res.status(500).json({ error: "Failed to fetch active students" });
+  }
+});
+
 // 3.1 Get Coach's Pending Requests
 app.get("/api/coach/requests", async (req, res) => {
   const coachId = req.session?.coachId;
