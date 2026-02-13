@@ -16,9 +16,15 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
+// Define allowed origins
+const allowedOrigins = ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"];
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"],
+    origin: allowedOrigins,
     credentials: true,
   }
 });
@@ -26,7 +32,7 @@ const io = new Server(server, {
 /* ---------------- CORS ---------------- */
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5500", "http://127.0.0.1:5500"],
+    origin: allowedOrigins,
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
