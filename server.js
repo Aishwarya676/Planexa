@@ -77,7 +77,7 @@ app.use(
 );
 
 /* ---------------- Cache-Control + Route Guards ---------------- */
-const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html"]);
+const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html", "/landing.html", "/index.html"]);
 const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
@@ -179,7 +179,7 @@ const vapidKeys = {
 };
 
 webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || "mailto:admin@planexa.com",
+  process.env.VAPID_MAILTO || "mailto:admin@planexa.com",
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -2078,43 +2078,28 @@ app.put("/api/me/username", async (req, res) => {
   }
 });
 
-/* ---------------- SYSTEM TIME API (for synchronization) ---------------- */
-app.get("/api/system/time", (req, res) => {
-  res.json({ utcTime: new Date().toISOString() });
-});
-
 /* ---------------- NOTIFICATION SCHEDULER ---------------- */
 // Check for due reminders every 10 seconds for high precision
 setInterval(async () => {
   try {
     // Check for due reminders that haven't been notified yet
-    const [timeCheck] = await db.query("SELECT UTC_TIMESTAMP() as now_utc, NOW() as now_local");
-    const dbNowUtc = timeCheck[0].now_utc;
-    const dbNowLocal = timeCheck[0].now_local;
-
-    // Use server-side JS time for comparison to match frontend generation logic
-    const jsNow = new Date();
-    const nowUtcStr = jsNow.toISOString().slice(0, 19).replace('T', ' ');
-
+    // efficient anti-duplicate check: `reminder_id` in notifications table
     const [reminders] = await db.query(
       `SELECT r.id, r.user_id, r.title, r.when_time 
        FROM reminders r
        LEFT JOIN notifications n ON r.id = n.reminder_id
        WHERE r.done = 0 
-       AND r.when_time <= ?
-       AND r.when_time > DATE_SUB(?, INTERVAL 24 HOUR)
-       AND n.id IS NULL`,
-      [nowUtcStr, nowUtcStr]
+       AND r.when_time <= NOW()
+       AND r.when_time > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+       AND n.id IS NULL`
     );
 
     if (reminders.length > 0) {
-      console.log(`[Scheduler] JS UTC: ${nowUtcStr} | DB UTC: ${dbNowUtc} | DB Local: ${dbNowLocal}`);
       console.log(`[Scheduler] Found ${reminders.length} due reminders.`);
     }
 
     for (const reminder of reminders) {
       try {
-        console.log(`[Scheduler] Processing reminder ${reminder.id} (Scheduled UTC: ${reminder.when_time}) for user ${reminder.user_id}`);
         // Get user's push subscription
         const [subscriptions] = await db.query(
           "SELECT subscription_json FROM push_subscriptions WHERE user_id = ?",
@@ -2138,15 +2123,11 @@ setInterval(async () => {
 
           // Send push notification
           await webpush.sendNotification(subscription, payload);
-          console.log(`✓ [Scheduler] Successfully sent push notification for reminder ${reminder.id} to user ${reminder.user_id}`);
+
+          console.log(`✓ Sent notification for reminder: ${reminder.title}`);
         }
       } catch (error) {
-        console.error(`[Scheduler] ✗ Error sending notification for reminder ${reminder.id}:`, {
-          message: error.message,
-          statusCode: error.statusCode,
-          headers: error.headers,
-          body: error.body
-        });
+        console.error(`Error sending notification for reminder ${reminder.id}:`, error);
       }
     }
   } catch (error) {
@@ -2747,26 +2728,6 @@ app.get("/api/user/my-coach", requireAuth, async (req, res) => {
   }
 });
 
-// 3.0 Get Coach's Active Students (for Chat)
-app.get("/api/coach/students", async (req, res) => {
-  const coachId = req.session?.coachId;
-  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
-
-  try {
-    const [students] = await db.query(`
-      SELECT u.id, u.username, u.email, u.profile_photo, ucc.created_at, ucc.status
-      FROM user_coach_connections ucc
-      JOIN users u ON ucc.user_id = u.id
-      WHERE ucc.coach_id = ? AND ucc.status = 'active'
-      ORDER BY ucc.created_at DESC
-    `, [coachId]);
-    res.json(students);
-  } catch (e) {
-    console.error("Get students error:", e);
-    res.status(500).json({ error: "Failed to fetch active students" });
-  }
-});
-
 // 3.1 Get Coach's Pending Requests
 app.get("/api/coach/requests", async (req, res) => {
   const coachId = req.session?.coachId;
@@ -3208,8 +3169,8 @@ io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
 
   socket.on("identify", async (data) => {
-    const { id: genericId, userId, coachId, userType } = data;
-    const rawId = genericId || (userType === 'coach' ? coachId : userId);
+    const { userId, coachId, userType } = data;
+    const rawId = userType === 'coach' ? coachId : userId;
     const id = Number(rawId);
 
     if (!id || isNaN(id)) {

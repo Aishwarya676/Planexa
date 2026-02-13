@@ -10,7 +10,7 @@ const JWT_EXPIRES = process.env.JWT_EXPIRES || '30m';
 
 // Login limiter
 const loginLimiter = rateLimit({
-  windowMs: 15*60*1000,
+  windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: 'Too many login attempts, try later' }
 });
@@ -51,16 +51,16 @@ router.post('/login', loginLimiter, async (req, res) => {
     // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV==='production',
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30*60*1000
+      maxAge: 30 * 60 * 1000
     });
 
     // Update last_login
     await pool.execute('UPDATE admins SET last_login=CURRENT_TIMESTAMP WHERE admin_id=?', [admin.admin_id]);
 
     res.json({ ok: true, admin: payload });
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
@@ -68,16 +68,16 @@ router.post('/login', loginLimiter, async (req, res) => {
 
 // ---- LOGOUT ----
 router.post('/logout', adminAuth, async (req, res) => {
-  res.clearCookie('token', { httpOnly:true, secure: process.env.NODE_ENV==='production', sameSite:'strict' });
-  res.json({ ok:true });
+  res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+  res.json({ ok: true });
 });
 
 // ---- PROTECTED DASHBOARD ----
-router.get('/dashboard', adminAuth, async (req,res) => {
+router.get('/dashboard', adminAuth, async (req, res) => {
   try {
     const [rows] = await pool.execute('SELECT COUNT(*) AS total_users FROM users');
-    res.json({ ok:true, data: { total_users: rows[0].total_users, admin:req.admin } });
-  } catch(err) {
+    res.json({ ok: true, data: { total_users: rows[0].total_users, admin: req.admin } });
+  } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
