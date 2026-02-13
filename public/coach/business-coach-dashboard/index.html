@@ -1662,467 +1662,301 @@
       }
     }
 
-    /* ---------------- COACH CHAT LOGIC ---------------- */
-    // Article Image Validation
-    const featuredImageInput = document.getElementById('featuredImage');
-    const articleImagePreview = document.getElementById('articleImagePreview');
-    const articleImageValue = document.getElementById('articleImageValue');
-    const uploadPlaceholder = document.querySelector('.upload-placeholder');
-
-    if (featuredImageInput) {
-      featuredImageInput.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          if (file.size > 500 * 1024) {
-            alert("Image must be less than 500KB.");
-            this.value = '';
-            return;
-          }
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            if (articleImagePreview) {
-              articleImagePreview.innerHTML = `<img src="${event.target.result}" alt="Preview" class="w-full h-full object-cover">`;
-              articleImagePreview.classList.remove('hidden');
-            }
-            if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
-            if (articleImageValue) articleImageValue.value = event.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
+    /* ---------------- COACH DASHBOARD INITIALIZATION ---------------- */
+    async function initDashboard() {
+      await fetchCoachProfile();
+      initCharts();
+      loadPendingRequests();
     }
 
-    let chatSocket;
-    let activeChatUser = null;
-    let coachInfo = JSON.parse(localStorage.getItem('planner.user') || '{}');
-    if (coachInfo.user) coachInfo = coachInfo.user;
-
-    function getBackendUrl() {
-      const { hostname, port } = window.location;
-      if (port === '5500' || port === '5501' || port === '3000') {
-        return `http://${hostname}:3000`;
-      }
-      return '../..';
-    }
-
-    async function initCoachChat() {
-      if (chatSocket) {
-        loadChatUsers(); // Refresh on tab click
-        return;
-      }
-      chatSocket = io(getBackendUrl(), { withCredentials: true });
-
-      chatSocket.on('connect', () => {
-        const idToIdentify = Number(coachInfo.id || coachInfo.userId);
-        if (idToIdentify) {
-          chatSocket.emit('identify', { coachId: idToIdentify, userType: 'coach' });
-        }
-        loadChatUsers();
-      });
-
-      chatSocket.on('new_message', (msg) => {
-        if (activeChatUser && Number(msg.sender_id) === Number(activeChatUser.id) && msg.sender_type === 'user') {
-          appendCoachMessage(msg, 'incoming');
-        } else {
-          loadChatUsers();
-          // Optional: Add notification indicator to tab?
-        }
-      });
-    }
-
-    async function loadChatUsers() {
-      try {
-        const res = await fetch(getBackendUrl() + '/api/coach/students');
-        const students = await res.json();
-        const list = document.getElementById('full-chat-user-list');
-        if (!list) return;
-        list.innerHTML = '';
-
-        if (students.length === 0) {
-          list.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
-              <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
-              <p class="text-[10px] font-black uppercase text-slate-400">No students yet</p>
-            </div>`;
-          lucide.createIcons();
-          return;
-        }
-
-        students.forEach(student => {
-          const isActive = activeChatUser?.id === student.id;
-          const div = document.createElement('div');
-          div.className = `p-4 flex items-center gap-4 cursor-pointer transition-all rounded-2xl group ${isActive
-            ? 'bg-white shadow-xl shadow-indigo-100/50 border border-slate-100 translate-x-1'
-            : 'hover:bg-white/60 hover:translate-x-1'}`;
-
-          div.innerHTML = `
-            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors group-hover:scale-105">
-              ${student.username.charAt(0).toUpperCase()}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start mb-0.5">
-                <h4 class="font-black text-slate-800 truncate text-sm tracking-tight">${student.username}</h4>
-                <span class="text-[9px] font-bold text-slate-400 uppercase">Active</span>
-              </div>
-              <p class="text-[10px] font-bold text-slate-400 truncate tracking-tight uppercase">Platform User</p>
-            </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 transition-transform group-hover:translate-x-1"></i>
-          `;
-          div.onclick = () => selectChatUser(student);
-          list.appendChild(div);
-        });
-        lucide.createIcons();
-      } catch (e) { console.error(e); }
-    }
-
-    async function selectChatUser(user) {
-      activeChatUser = user;
-
-      // UI Transitions
-      document.getElementById('full-chat-empty-state')?.classList.add('hidden');
-      document.getElementById('full-chat-header')?.classList.remove('hidden');
-      document.getElementById('full-chat-input-container')?.classList.remove('hidden');
-
-      const nameEl = document.getElementById('full-chat-user-name');
-      if (nameEl) nameEl.textContent = user.username;
-
-      const avatarEl = document.getElementById('full-chat-user-avatar');
-      if (avatarEl) avatarEl.textContent = user.username.charAt(0).toUpperCase();
-
-      const statusEl = document.getElementById('full-chat-status-dot');
-      if (statusEl) statusEl.className = 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-green-500 shadow-sm';
-
-      const statusText = document.getElementById('full-chat-status-text');
-      if (statusText) statusText.textContent = 'Online & Active';
-
-      loadChatUsers(); // Refresh sidebar to show active state
-
-      try {
-        const res = await fetch(getBackendUrl() + `/api/messages/${user.id}`);
-        const messages = await res.json();
-        const msgContainer = document.getElementById('full-chat-messages');
-        if (msgContainer) {
-          msgContainer.innerHTML = '';
-          if (messages.length === 0) {
-            msgContainer.innerHTML = `
-              <div class="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-40">
-                <i data-lucide="message-square-dashed" class="w-8 h-8 text-slate-300"></i>
-                <p class="text-xs font-bold text-slate-800 uppercase tracking-widest">No conversation history</p>
-              </div>`;
-            lucide.createIcons();
-          } else {
-            messages.forEach(msg => {
-              const myId = Number(coachInfo.id);
-              const type = (Number(msg.sender_id) === myId && msg.sender_type === 'coach') ? 'outgoing' : 'incoming';
-              appendCoachMessage(msg, type);
-            });
-          }
-          msgContainer.scrollTop = msgContainer.scrollHeight;
-        }
-      } catch (e) { console.error(e); }
-    }
-
-    function appendCoachMessage(msg, type) {
-      const msgContainer = document.getElementById('full-chat-messages');
-      if (!msgContainer) return;
-
-      // Remove empty state if present
-      const emptyMsg = msgContainer.querySelector('.opacity-40');
-      if (emptyMsg) emptyMsg.remove();
-
-      const div = document.createElement('div');
-      div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
-      const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      div.innerHTML = `
-        <div class="max-w-[70%] flex flex-col ${type === 'outgoing' ? 'items-end' : 'items-start'}">
-          <div class="px-6 py-4 rounded-[1.8rem] text-sm shadow-sm font-semibold tracking-tight ${type === 'outgoing'
-          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none shadow-xl shadow-indigo-100'
-          : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-        }">
-            ${msg.content}
-          </div>
-          <div class="flex items-center gap-1.5 mt-2 px-1 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            <span>${time}</span>
-            ${type === 'outgoing' ? '<i data-lucide="check-check" class="w-2.5 h-2.5 text-indigo-400"></i>' : ''}
-          </div>
-        </div>
-      `;
-      msgContainer.appendChild(div);
-      msgContainer.scrollTop = msgContainer.scrollHeight;
-      lucide.createIcons();
-    }
-    /* ---------------- APPROVALS LOGIC ---------------- */
-    async function loadPendingRequests() {
-      const list = document.getElementById('approvals-list');
-      const emptyMsg = document.getElementById('approvals-empty');
-      const countBadge = document.getElementById('approval-count');
-
-      if (!list) return;
-
-      try {
-        const res = await fetch('/api/coach/pending-requests');
-        if (!res.ok) throw new Error('Failed to fetch requests');
-        const requests = await res.json();
-
-        // Update badge
-        if (countBadge) {
-          countBadge.textContent = requests.length;
-          if (requests.length > 0) countBadge.classList.remove('hidden');
-          else countBadge.classList.add('hidden');
-        }
-
-        if (requests.length === 0) {
-          list.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
-              <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
-              <p class="text-[10px] font-black uppercase text-slate-400">No pending requests</p>
-            </div>`;
-          lucide.createIcons();
-          emptyMsg.classList.remove('hidden');
-          return;
-        }
-
-        emptyMsg.classList.add('hidden');
-        list.innerHTML = '';
-
-        requests.forEach(req => {
-          const card = document.createElement('div');
-          card.className = 'glass-card p-6 rounded-[1.5rem] border border-slate-100 flex flex-col gap-6 fade-in';
-
-          const reqDate = req.requested_time ? new Date(req.requested_time).toLocaleString() : 'Flexible';
-          const userPhoto = req.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.user_name_input || req.username)}&background=random`;
-
-          card.innerHTML = `
-            <div class="flex flex-col md:flex-row gap-6">
-              <!-- User Info -->
-              <div class="flex items-start gap-4 min-w-[200px]">
-                <img src="${userPhoto}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-slate-100">
-                <div>
-                  <h4 class="font-black text-slate-800 text-lg">${req.user_name_input || req.username}</h4>
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${req.booking_category || 'General'}</p>
-                  <div class="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
-                    ${req.session_type || '1:1 Session'}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Request Details -->
-              <div class="flex-1 space-y-4">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goal / Reason</p>
-                  <p class="text-sm text-slate-600 leading-relaxed font-medium">"${req.booking_goal || 'No details provided'}"</p>
-                </div>
-                
-                <div class="flex flex-wrap gap-4">
-                  <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
-                    <i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i>
-                    <span>Requested: <span class="text-slate-700">${reqDate}</span></span>
-                  </div>
-                  <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
-                    <i data-lucide="globe" class="w-4 h-4 text-purple-500"></i>
-                    <span>${req.user_timezone || 'UTC'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Actions: View Profile Only -->
-              <div class="flex flex-col gap-2 min-w-[140px] justify-center">
-                <button onclick="viewUserProfile(${req.user_id})" 
-                  class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
-                  <i data-lucide="eye" class="w-4 h-4"></i> View Profile
-                </button>
-              </div>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-        lucide.createIcons();
-
-      } catch (e) {
-        console.error("Error loading requests:", e);
-      }
-    }
-
-    // View User Profile Modal
-    async function viewUserProfile(userId) {
-      try {
-        const res = await fetch(`/api/coach/user-profile/${userId}`);
-        if (!res.ok) throw new Error('Failed to load profile');
-        const data = await res.json();
-
-        const { user, booking, stats, goals, recentTasks } = data;
-        const userPhoto = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user_name_input || user.username)}&background=6366f1&color=fff&size=128`;
-        const completionRate = stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0;
-        const memberSince = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        const reqDate = booking.requested_time ? new Date(booking.requested_time).toLocaleString() : 'Flexible';
-
-        // Build goals HTML
-        let goalsHtml = '';
-        if (goals.length > 0) {
-          goalsHtml = goals.map(g => `
-            <div class="flex items-center gap-3 py-2">
-              <div class="w-2 h-2 rounded-full ${g.status === 'completed' ? 'bg-green-400' : 'bg-indigo-400'}"></div>
-              <span class="text-sm text-slate-700 font-medium flex-1">${g.title}</span>
-              <span class="text-[10px] uppercase font-bold tracking-wider ${g.status === 'completed' ? 'text-green-500' : 'text-indigo-500'}">${g.status || 'active'}</span>
-            </div>
-          `).join('');
-        } else {
-          goalsHtml = '<p class="text-sm text-slate-400 italic">No goals set yet</p>';
-        }
-
-        // Build recent tasks HTML
-        let tasksHtml = '';
-        if (recentTasks.length > 0) {
-          tasksHtml = recentTasks.map(t => `
-            <div class="flex items-center gap-3 py-2">
-              <div class="w-5 h-5 rounded-md flex items-center justify-center ${t.done ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}">
-                <i data-lucide="${t.done ? 'check' : 'circle'}" class="w-3 h-3"></i>
-              </div>
-              <span class="text-sm text-slate-700 font-medium flex-1 ${t.done ? 'line-through text-slate-400' : ''}">${t.task}</span>
-              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">${t.category || ''}</span>
-            </div>
-          `).join('');
-        } else {
-          tasksHtml = '<p class="text-sm text-slate-400 italic">No tasks yet</p>';
-        }
-
-        // Create modal
-        const existingModal = document.getElementById('userProfileModal');
-        if (existingModal) existingModal.remove();
-
-        const modal = document.createElement('div');
-        modal.id = 'userProfileModal';
-        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center';
-        modal.innerHTML = `
-          <!-- Backdrop -->
-          <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeUserProfileModal()"></div>
-          
-          <!-- Modal -->
-          <div class="relative z-10 bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
-            
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-t-[2rem] relative">
-              <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
-                <i data-lucide="x" class="w-6 h-6"></i>
-              </button>
-              <div class="flex items-center gap-6">
-                <img src="${userPhoto}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white/30 shadow-lg">
-                <div>
-                  <h2 class="text-2xl font-black text-white">${booking.user_name_input || user.username}</h2>
-                  <p class="text-indigo-200 text-sm font-bold">${user.email}</p>
-                  <p class="text-indigo-300 text-xs font-bold mt-1">Member since ${memberSince}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Stats Row -->
-            <div class="grid grid-cols-3 gap-4 p-6 -mt-4">
-              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
-                <p class="text-2xl font-black text-indigo-600">${stats.totalTasks}</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tasks</p>
-              </div>
-              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
-                <p class="text-2xl font-black text-green-600">${completionRate}%</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</p>
-              </div>
-              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
-                <p class="text-2xl font-black text-purple-600">${stats.totalGoals}</p>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Goals</p>
-              </div>
-            </div>
-
-            <!-- Booking Details -->
-            <div class="px-6 pb-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Booking Request</h3>
-              <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
-                <div>
-                  <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Goal / Reason</p>
-                  <p class="text-sm text-slate-700 font-medium">"${booking.booking_goal || 'No details provided'}"</p>
-                </div>
-                <div class="flex flex-wrap gap-4 text-xs font-bold">
-                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="tag" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
-                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="users" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
-                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i> ${reqDate}</span>
-                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Goals -->
-            <div class="px-6 pb-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Goals</h3>
-              <div class="bg-white rounded-2xl p-4 border border-slate-100">${goalsHtml}</div>
-            </div>
-
-            <!-- Recent Tasks -->
-            <div class="px-6 pb-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Recent Tasks</h3>
-              <div class="bg-white rounded-2xl p-4 border border-slate-100">${tasksHtml}</div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="px-6 pb-8 flex gap-3">
-              <button onclick="respondToRequest(${userId}, 'approve')" 
-                class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-5 h-5"></i> Approve
-              </button>
-              <button onclick="respondToRequest(${userId}, 'reject')" 
-                class="flex-1 py-4 bg-white border-2 border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                <i data-lucide="x-circle" class="w-5 h-5"></i> Decline
-              </button>
-            </div>
-          </div>
-        `;
-
-        document.body.appendChild(modal);
-        lucide.createIcons();
-
-      } catch (e) {
-        console.error("Error loading profile:", e);
-        alert('Failed to load user profile');
-      }
-    }
-
-    function closeUserProfileModal() {
-      const modal = document.getElementById('userProfileModal');
-      if (modal) modal.remove();
-    }
-
-    async function respondToRequest(userId, action) {
-      if (!confirm(`Are you sure you want to ${action} this request?`)) return;
-
-      try {
-        const res = await fetch('/api/coach/respond-request', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, action })
-        });
-
-        if (!res.ok) throw new Error('Failed to update request');
-
-        // Close profile modal if open
-        closeUserProfileModal();
-
-        // Refresh list
-        loadPendingRequests();
-
-        // Update stats/clients if approved
-        if (action === 'approve') {
-          fetchStudents();
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    }
-
-    // Auto-load approvals count
-    loadPendingRequests();
-
-    // Tab listener
-    document.querySelector('[data-tab="approvals"]')?.addEventListener('click', loadPendingRequests);
-
+    document.addEventListener('DOMContentLoaded', initDashboard);
   </script>
+  <script src="app.js"></script>
+</body>
+/* ---------------- APPROVALS LOGIC ---------------- */
+async function loadPendingRequests() {
+const list = document.getElementById('approvals-list');
+const emptyMsg = document.getElementById('approvals-empty');
+const countBadge = document.getElementById('approval-count');
+
+if (!list) return;
+
+try {
+const res = await fetch('/api/coach/pending-requests');
+if (!res.ok) throw new Error('Failed to fetch requests');
+const requests = await res.json();
+
+// Update badge
+if (countBadge) {
+countBadge.textContent = requests.length;
+if (requests.length > 0) countBadge.classList.remove('hidden');
+else countBadge.classList.add('hidden');
+}
+
+if (requests.length === 0) {
+list.innerHTML = `
+<div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
+  <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
+  <p class="text-[10px] font-black uppercase text-slate-400">No pending requests</p>
+</div>`;
+lucide.createIcons();
+emptyMsg.classList.remove('hidden');
+return;
+}
+
+emptyMsg.classList.add('hidden');
+list.innerHTML = '';
+
+requests.forEach(req => {
+const card = document.createElement('div');
+card.className = 'glass-card p-6 rounded-[1.5rem] border border-slate-100 flex flex-col gap-6 fade-in';
+
+const reqDate = req.requested_time ? new Date(req.requested_time).toLocaleString() : 'Flexible';
+const userPhoto = req.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.user_name_input ||
+req.username)}&background=random`;
+
+card.innerHTML = `
+<div class="flex flex-col md:flex-row gap-6">
+  <!-- User Info -->
+  <div class="flex items-start gap-4 min-w-[200px]">
+    <img src="${userPhoto}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-slate-100">
+    <div>
+      <h4 class="font-black text-slate-800 text-lg">${req.user_name_input || req.username}</h4>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${req.booking_category || 'General'}</p>
+      <div
+        class="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
+        ${req.session_type || '1:1 Session'}
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Details -->
+  <div class="flex-1 space-y-4">
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goal / Reason</p>
+      <p class="text-sm text-slate-600 leading-relaxed font-medium">"${req.booking_goal || 'No details provided'}"</p>
+    </div>
+
+    <div class="flex flex-wrap gap-4">
+      <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+        <i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i>
+        <span>Requested: <span class="text-slate-700">${reqDate}</span></span>
+      </div>
+      <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+        <i data-lucide="globe" class="w-4 h-4 text-purple-500"></i>
+        <span>${req.user_timezone || 'UTC'}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions: View Profile Only -->
+  <div class="flex flex-col gap-2 min-w-[140px] justify-center">
+    <button onclick="viewUserProfile(${req.user_id})"
+      class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+      <i data-lucide="eye" class="w-4 h-4"></i> View Profile
+    </button>
+  </div>
+</div>
+`;
+list.appendChild(card);
+});
+lucide.createIcons();
+
+} catch (e) {
+console.error("Error loading requests:", e);
+}
+}
+
+// View User Profile Modal
+async function viewUserProfile(userId) {
+try {
+const res = await fetch(`/api/coach/user-profile/${userId}`);
+if (!res.ok) throw new Error('Failed to load profile');
+const data = await res.json();
+
+const { user, booking, stats, goals, recentTasks } = data;
+const userPhoto = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user_name_input
+|| user.username)}&background=6366f1&color=fff&size=128`;
+const completionRate = stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0;
+const memberSince = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+const reqDate = booking.requested_time ? new Date(booking.requested_time).toLocaleString() : 'Flexible';
+
+// Build goals HTML
+let goalsHtml = '';
+if (goals.length > 0) {
+goalsHtml = goals.map(g => `
+<div class="flex items-center gap-3 py-2">
+  <div class="w-2 h-2 rounded-full ${g.status === 'completed' ? 'bg-green-400' : 'bg-indigo-400'}"></div>
+  <span class="text-sm text-slate-700 font-medium flex-1">${g.title}</span>
+  <span
+    class="text-[10px] uppercase font-bold tracking-wider ${g.status === 'completed' ? 'text-green-500' : 'text-indigo-500'}">${g.status
+    || 'active'}</span>
+</div>
+`).join('');
+} else {
+goalsHtml = '<p class="text-sm text-slate-400 italic">No goals set yet</p>';
+}
+
+// Build recent tasks HTML
+let tasksHtml = '';
+if (recentTasks.length > 0) {
+tasksHtml = recentTasks.map(t => `
+<div class="flex items-center gap-3 py-2">
+  <div
+    class="w-5 h-5 rounded-md flex items-center justify-center ${t.done ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}">
+    <i data-lucide="${t.done ? 'check' : 'circle'}" class="w-3 h-3"></i>
+  </div>
+  <span
+    class="text-sm text-slate-700 font-medium flex-1 ${t.done ? 'line-through text-slate-400' : ''}">${t.task}</span>
+  <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">${t.category || ''}</span>
+</div>
+`).join('');
+} else {
+tasksHtml = '<p class="text-sm text-slate-400 italic">No tasks yet</p>';
+}
+
+// Create modal
+const existingModal = document.getElementById('userProfileModal');
+if (existingModal) existingModal.remove();
+
+const modal = document.createElement('div');
+modal.id = 'userProfileModal';
+modal.className = 'fixed inset-0 z-[100] flex items-center justify-center';
+modal.innerHTML = `
+<!-- Backdrop -->
+<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeUserProfileModal()"></div>
+
+<!-- Modal -->
+<div
+  class="relative z-10 bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-t-[2rem] relative">
+    <button onclick="closeUserProfileModal()"
+      class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    <div class="flex items-center gap-6">
+      <img src="${userPhoto}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white/30 shadow-lg">
+      <div>
+        <h2 class="text-2xl font-black text-white">${booking.user_name_input || user.username}</h2>
+        <p class="text-indigo-200 text-sm font-bold">${user.email}</p>
+        <p class="text-indigo-300 text-xs font-bold mt-1">Member since ${memberSince}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-3 gap-4 p-6 -mt-4">
+    <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+      <p class="text-2xl font-black text-indigo-600">${stats.totalTasks}</p>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tasks</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+      <p class="text-2xl font-black text-green-600">${completionRate}%</p>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+      <p class="text-2xl font-black text-purple-600">${stats.totalGoals}</p>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Goals</p>
+    </div>
+  </div>
+
+  <!-- Booking Details -->
+  <div class="px-6 pb-4">
+    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Booking Request</h3>
+    <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
+      <div>
+        <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Goal / Reason</p>
+        <p class="text-sm text-slate-700 font-medium">"${booking.booking_goal || 'No details provided'}"</p>
+      </div>
+      <div class="flex flex-wrap gap-4 text-xs font-bold">
+        <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="tag"
+            class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
+        <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="users"
+            class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
+        <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="calendar"
+            class="w-3.5 h-3.5 text-indigo-500"></i> ${reqDate}</span>
+        <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="globe"
+            class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="px-6 pb-4">
+    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Goals</h3>
+    <div class="bg-white rounded-2xl p-4 border border-slate-100">${goalsHtml}</div>
+  </div>
+
+  <!-- Recent Tasks -->
+  <div class="px-6 pb-4">
+    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Recent Tasks</h3>
+    <div class="bg-white rounded-2xl p-4 border border-slate-100">${tasksHtml}</div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="px-6 pb-8 flex gap-3">
+    <button onclick="respondToRequest(${userId}, 'approve')"
+      class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+      <i data-lucide="check-circle" class="w-5 h-5"></i> Approve
+    </button>
+    <button onclick="respondToRequest(${userId}, 'reject')"
+      class="flex-1 py-4 bg-white border-2 border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+      <i data-lucide="x-circle" class="w-5 h-5"></i> Decline
+    </button>
+  </div>
+</div>
+`;
+
+document.body.appendChild(modal);
+lucide.createIcons();
+
+} catch (e) {
+console.error("Error loading profile:", e);
+alert('Failed to load user profile');
+}
+}
+
+function closeUserProfileModal() {
+const modal = document.getElementById('userProfileModal');
+if (modal) modal.remove();
+}
+
+async function respondToRequest(userId, action) {
+if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+
+try {
+const res = await fetch('/api/coach/respond-request', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ userId, action })
+});
+
+if (!res.ok) throw new Error('Failed to update request');
+
+// Close profile modal if open
+closeUserProfileModal();
+
+// Refresh list
+loadPendingRequests();
+
+// Update stats/clients if approved
+if (action === 'approve') {
+fetchStudents();
+}
+} catch (e) {
+alert('Error: ' + e.message);
+}
+}
+
+// Auto-load approvals count
+loadPendingRequests();
+
+// Tab listener
+document.querySelector('[data-tab="approvals"]')?.addEventListener('click', loadPendingRequests);
+
+</script>
 </body>
 
 </html>

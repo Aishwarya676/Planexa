@@ -1,377 +1,221 @@
-// Debug: Log when script loads
-console.log('Chat script loaded');
+(function () {
+  let chatSocket;
+  let activeChatUser = null;
+  let coachInfo = JSON.parse(localStorage.getItem('planner.user') || '{}');
+  if (coachInfo.user) coachInfo = coachInfo.user;
 
-// DOM Elements
-const chatBtn = document.getElementById("chat-btn");
-const chatModal = document.getElementById("chat-modal");
-const closeChat = document.getElementById("close-chat");
-const chatForm = document.getElementById("chat-form");
-const chatMessages = document.getElementById("chat-messages");
-const chatText = document.getElementById("chat-text");
-let chatItems = []; // Will be initialized after DOM is loaded
-const overlay = document.getElementById('chat-overlay');
-const chatArea = document.querySelector('.chat-area');
-const chatSidebar = document.querySelector('.chat-sidebar');
+  const chatList = document.getElementById('full-chat-user-list');
+  const chatHeader = document.getElementById('full-chat-header');
+  const chatMessagesContainer = document.getElementById('full-chat-messages');
+  const chatInputContainer = document.getElementById('full-chat-input-container');
+  const chatForm = document.getElementById('full-chat-form');
+  const chatInput = document.getElementById('full-chat-input');
+  const emptyState = document.getElementById('full-chat-empty-state');
 
-// Debug: Log if elements are found
-console.log('Chat button:', chatBtn);
-console.log('Chat modal:', chatModal);
-
-// Sample chat data
-// Chat data state
-const chatData = [];
-let activeChat = null;
-
-
-// Load chat messages
-function loadChat(chatId, fromButtonClick = false) {
-  // Try to find existing chat data
-  let chat = chatData.find(c => c.id === chatId);
-
-  // If no chat data exists, create a new one
-  if (!chat) {
-    // Find the client card that was clicked
-    const clientCard = document.querySelector(`.client-card:nth-child(${chatId})`);
-    if (clientCard) {
-      const name = clientCard.querySelector('.client-name-row h3')?.textContent || 'Client';
-      const avatar = clientCard.querySelector('.client-avatar')?.src || 'https://randomuser.me/api/portraits/lego/1.jpg';
-      const status = clientCard.querySelector('.online-status') ? 'online' : 'offline';
-
-      // Create new chat data
-      chat = {
-        id: chatId,
-        name: name,
-        avatar: avatar,
-        status: status,
-        messages: []
-      };
-
-      // Add to chatData array
-      chatData.push(chat);
-
-      // Add to chat list in sidebar
-      addChatToSidebar(chat);
+  function getBackendUrl() {
+    const { hostname, port } = window.location;
+    if (port === '5500' || port === '5501' || port === '3000') {
+      return `http://${hostname}:3000`;
     }
+    return '../..';
   }
 
-  if (!chat) return;
+  async function initCoachChat() {
+    if (chatSocket) {
+      loadChatUsers();
+      return;
+    }
 
-  // Update active state in sidebar
-  document.querySelectorAll('.chat-item').forEach(item => {
-    const itemId = parseInt(item.dataset.chatId);
-    if (itemId === chatId) {
-      item.classList.add('active');
+    console.log('[CoachChat] Initializing Socket.io...');
+    chatSocket = io(getBackendUrl(), { withCredentials: true });
 
-      // Update last message preview
-      const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
-      const preview = item.querySelector('.chat-item-message');
-      if (preview) {
-        preview.textContent = lastMessage ?
-          (lastMessage.text.length > 30 ? lastMessage.text.substring(0, 30) + '...' : lastMessage.text) :
-          'No messages yet';
+    chatSocket.on('connect', () => {
+      console.log('[CoachChat] Connected! ID:', chatSocket.id);
+      const idToIdentify = Number(coachInfo.id || coachInfo.userId);
+      if (idToIdentify) {
+        chatSocket.emit('identify', { id: idToIdentify, userType: 'coach' });
       }
-    } else {
-      item.classList.remove('active');
-    }
-  });
-
-  // Update active chat
-  activeChat = chatId;
-
-  // Update chat header in chat area
-  const chatRecipient = document.querySelector('.chat-recipient');
-  if (chatRecipient) {
-    chatRecipient.innerHTML = `
-      <img src="${chat.avatar}" alt="${chat.name}" class="chat-avatar">
-      <div class="recipient-info">
-        <h4>${chat.name}</h4>
-        <span class="status ${chat.status}">${chat.status === 'online' ? 'Online' : 'Offline'}</span>
-      </div>
-    `;
-  }
-
-  // Render messages into the thread
-  if (chatMessages) {
-    chatMessages.innerHTML = '';
-    const today = new Date().toLocaleDateString();
-    const dateDiv = document.createElement('div');
-    dateDiv.className = 'message-date';
-    dateDiv.textContent = 'Today';
-    chatMessages.appendChild(dateDiv);
-
-    chat.messages.forEach(msg => {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${msg.sender}`;
-      messageDiv.innerHTML = `
-        <div class="message-content">${msg.text}</div>
-        <div class="message-time">${msg.time}</div>
-      `;
-      chatMessages.appendChild(messageDiv);
+      loadChatUsers();
     });
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatSocket.on('new_message', (msg) => {
+      console.log('[CoachChat] New message:', msg);
+      if (activeChatUser && Number(msg.sender_id) === Number(activeChatUser.id) && msg.sender_type === 'user') {
+        appendCoachMessage(msg, 'incoming');
+      } else {
+        loadChatUsers();
+        // Optional: Notify coach of inactive chat message
+      }
+    });
 
-    const unreadBadge = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .unread-count`);
-    if (unreadBadge) {
-      unreadBadge.style.display = 'none';
+    chatSocket.on('error', (err) => console.error('[CoachChat] Socket error:', err));
+  }
+
+  async function loadChatUsers() {
+    if (!chatList) return;
+    try {
+      const res = await fetch(getBackendUrl() + '/api/coach/students', { credentials: 'include' });
+      const students = await res.json();
+
+      chatList.innerHTML = '';
+
+      if (!students || students.length === 0) {
+        chatList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
+                        <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
+                        <p class="text-[10px] font-black uppercase text-slate-400">No students yet</p>
+                    </div>`;
+        if (window.lucide) window.lucide.createIcons();
+        return;
+      }
+
+      students.forEach(student => {
+        const isActive = activeChatUser && activeChatUser.id === student.id;
+        const div = document.createElement('div');
+        div.className = `p-4 flex items-center gap-4 cursor-pointer transition-all rounded-2xl group ${isActive
+          ? 'bg-white shadow-xl shadow-indigo-100/50 border border-slate-100 translate-x-1'
+          : 'hover:bg-white/60 hover:translate-x-1'}`;
+
+        div.innerHTML = `
+                    <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors group-hover:scale-105">
+                        ${(student.username || student.name || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start mb-0.5">
+                            <h4 class="font-black text-slate-800 truncate text-sm tracking-tight">${student.username || student.name}</h4>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 truncate tracking-tight uppercase">Student</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 transition-transform group-hover:translate-x-1"></i>
+                `;
+        div.onclick = () => selectChatUser(student);
+        chatList.appendChild(div);
+      });
+      if (window.lucide) window.lucide.createIcons();
+    } catch (e) {
+      console.error('[CoachChat] User list error:', e);
     }
   }
 
-  // Show chat area (for mobile)
-  if (window.innerWidth <= 768) {
-    document.querySelector('.chat-sidebar').classList.add('hidden');
-    document.querySelector('.chat-area').classList.add('active');
+  async function selectChatUser(user) {
+    activeChatUser = user;
+
+    // UI Updates
+    if (emptyState) emptyState.classList.add('hidden');
+    if (chatHeader) chatHeader.classList.remove('hidden');
+    if (chatInputContainer) chatInputContainer.classList.remove('hidden');
+
+    const nameEl = document.getElementById('full-chat-user-name');
+    if (nameEl) nameEl.textContent = user.username || user.name;
+
+    const avatarEl = document.getElementById('full-chat-user-avatar');
+    if (avatarEl) avatarEl.textContent = (user.username || user.name || 'U').charAt(0).toUpperCase();
+
+    const statusDot = document.getElementById('full-chat-status-dot');
+    if (statusDot) statusDot.className = 'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-green-500 shadow-sm';
+
+    loadChatUsers(); // Refresh for active state visual
+
+    try {
+      const res = await fetch(getBackendUrl() + `/api/messages/${user.id}`, { credentials: 'include' });
+      const messages = await res.json();
+
+      if (chatMessagesContainer) {
+        chatMessagesContainer.innerHTML = '';
+        if (messages.length === 0) {
+          chatMessagesContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-40">
+                            <i data-lucide="message-square-dashed" class="w-8 h-8 text-slate-300"></i>
+                            <p class="text-xs font-bold text-slate-800 uppercase tracking-widest">No conversation history</p>
+                        </div>`;
+        } else {
+          messages.forEach(msg => {
+            const myId = Number(coachInfo.id || coachInfo.userId);
+            const type = (Number(msg.sender_id) === myId && msg.sender_type === 'coach') ? 'outgoing' : 'incoming';
+            appendCoachMessage(msg, type);
+          });
+        }
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+      }
+    } catch (e) {
+      console.error('[CoachChat] History error:', e);
+    }
   }
 
-  // Scroll to bottom of messages
-  setTimeout(() => {
-    const messagesContainer = document.querySelector('.chat-messages');
-    if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-  }, 100);
-}
+  function appendCoachMessage(msg, type) {
+    if (!chatMessagesContainer) return;
 
-// Add a chat to the sidebar
-function addChatToSidebar(chat) {
-  const chatList = document.querySelector('.chat-list');
-  if (!chatList) return;
+    // Cleanup empty state
+    const empty = chatMessagesContainer.querySelector('.opacity-40');
+    if (empty) empty.remove();
 
-  const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+    const div = document.createElement('div');
+    div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
+    const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const chatItem = document.createElement('li');
-  chatItem.className = 'chat-item';
-  chatItem.dataset.chatId = chat.id;
-  chatItem.innerHTML = `
-    <div class="chat-avatar-container">
-      <img src="${chat.avatar}" alt="${chat.name}" class="chat-avatar">
-      <span class="online-status ${chat.status === 'online' ? '' : 'away'}"></span>
-    </div>
-    <div class="chat-item-info">
-      <div class="chat-item-header">
-        <h5 class="chat-item-name">${chat.name}</h5>
-        <span class="chat-item-time">${lastMessage ? lastMessage.time : ''}</span>
-      </div>
-      <div class="chat-item-preview">
-        <p class="chat-item-message">${lastMessage ?
-      (lastMessage.text.length > 30 ? lastMessage.text.substring(0, 30) + '...' : lastMessage.text) :
-      'No messages yet'}</p>
-        ${chat.unreadCount ? `<span class="unread-count">${chat.unreadCount}</span>` : ''}
-      </div>
-    </div>
-  `;
+    div.innerHTML = `
+            <div class="max-w-[70%] flex flex-col ${type === 'outgoing' ? 'items-end' : 'items-start'}">
+                <div class="px-6 py-4 rounded-[1.8rem] text-sm shadow-sm font-semibold tracking-tight ${type === 'outgoing'
+        ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none shadow-xl shadow-indigo-100'
+        : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+      }">
+                    ${msg.content}
+                </div>
+                <div class="flex items-center gap-1.5 mt-2 px-1 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span>${time}</span>
+                    ${type === 'outgoing' ? '<i data-lucide="check-check" class="w-2.5 h-2.5 text-indigo-400"></i>' : ''}
+                </div>
+            </div>
+        `;
+    chatMessagesContainer.appendChild(div);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    if (window.lucide) window.lucide.createIcons();
+  }
 
-  // Add click event to load chat
-  chatItem.addEventListener('click', (e) => {
-    if (!e.target.classList.contains('icon-btn')) {
-      loadChat(chat.id);
-    }
-  });
-
-  chatList.prepend(chatItem);
-}
-
-
-
-
-// Send message
-function sendMessage() {
-  const message = chatText.value.trim();
-  if (!message) return;
-
-  const chat = chatData.find(c => c.id === activeChat);
-  if (!chat) return;
-
-  // Add message to UI
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'message client';
-  messageDiv.innerHTML = `
-    <div class="message-content">${message}</div>
-    <div class="message-time">${time}</div>
-  `;
-  chatMessages.appendChild(messageDiv);
-
-  // Add to data model
-  chat.messages.push({
-    sender: 'client',
-    text: message,
-    time: time
-  });
-
-  // Clear input
-  chatText.value = '';
-
-  // Scroll to bottom
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Make toggleChatModal globally available
-window.toggleChatModal = function (e) {
-  if (e) {
-    e.stopPropagation();
+  function handleChatSubmit(e) {
     e.preventDefault();
+    const content = chatInput.value.trim();
+    if (!content || !activeChatUser || !chatSocket) return;
+
+    const msg = {
+      receiverId: Number(activeChatUser.id),
+      content: content
+    };
+
+    appendCoachMessage({
+      content,
+      sender_id: Number(coachInfo.id || coachInfo.userId),
+      sender_type: 'coach',
+      created_at: new Date()
+    }, 'outgoing');
+
+    chatSocket.emit('send_message', msg);
+    chatInput.value = '';
   }
 
-  const isActive = chatModal.classList.contains('active');
-
-  if (isActive) {
-    // Close the chat
-    chatModal.classList.remove('active');
-    document.body.classList.remove('chat-open');
-    document.body.style.overflow = 'auto'; // Re-enable body scroll
-  } else {
-    // Open the chat
-    chatModal.classList.add('active');
-    document.body.classList.add('chat-open');
-
-    // Show sidebar by default when opening
-    if (window.innerWidth <= 768) {
-      chatSidebar.style.display = 'flex';
-      chatArea.classList.remove('active');
-    } else {
-      chatSidebar.style.display = 'flex';
-      chatArea.classList.add('active');
+  // Tab Listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const messageTabBtn = document.querySelector('[data-tab="messages"]');
+    if (messageTabBtn) {
+      messageTabBtn.addEventListener('click', initCoachChat);
     }
 
-    // Load the first chat by default if none is active
-    const activeChatItem = document.querySelector('.chat-item.active');
-    if (!activeChatItem && chatItems.length > 0) {
-      chatItems[0].classList.add('active');
-      loadChat(parseInt(chatItems[0].dataset.chatId));
-    } else if (activeChatItem) {
-      loadChat(parseInt(activeChatItem.dataset.chatId));
+    // Initial check if hash is already messages
+    if (window.location.hash === '#messages') {
+      initCoachChat();
     }
-  }
 
-  // Prevent the event from bubbling up
-  return false;
-}
-
-// Event Listeners
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOM fully loaded');
-
-  // Initialize chat items after DOM is loaded
-  chatItems = document.querySelectorAll('.chat-item');
-
-  // Chat button click
-  if (chatBtn) {
-    chatBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleChatModal(e);
-    });
-  } else {
-    console.error('Chat button not found');
-  }
-
-  // Close chat button
-  if (closeChat) {
-    closeChat.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleChatModal(e);
-    });
-  }
-
-  // Message buttons on client cards
-  document.querySelectorAll('.client-actions .btn-primary').forEach((btn, index) => {
-    // Assign chat IDs based on position (1-6 for the 6 client cards)
-    const chatId = index + 1; // This assumes the order of clients matches chatData
-    btn.setAttribute('data-chat-id', chatId);
-
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Ensure the chat panel is open
-      chatModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-
-      // Load the specific chat
-      loadChat(chatId);
-
-      // Focus input
-      if (chatText) {
-        setTimeout(() => chatText.focus(), 150);
-      }
-    });
-  });
-
-  // Chat form submission
-  if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      sendMessage();
-    });
-  }
-
-  // Handle chat item clicks
-  chatItems.forEach(item => {
-    item.addEventListener('click', function (e) {
-      e.stopPropagation();
-      const chatId = parseInt(this.getAttribute('data-chat-id'));
-      loadChat(chatId);
-    });
-  });
-
-  // Handle back to list button (for mobile)
-  const backToList = document.querySelector('.back-to-list');
-  if (backToList) {
-    backToList.addEventListener('click', function (e) {
-      e.stopPropagation();
-      document.querySelector('.chat-area').classList.remove('active');
-      document.querySelector('.chat-sidebar').style.display = 'flex';
-    });
-  }
-
-  // Handle window resize
-  function handleResize() {
-    if (window.innerWidth <= 768) {
-      // Mobile view
-      chatModal.classList.add('mobile-view');
-    } else {
-      // Desktop view
-      chatModal.classList.remove('mobile-view');
+    if (chatForm) {
+      chatForm.addEventListener('submit', handleChatSubmit);
     }
-  }
-
-
-  window.addEventListener('resize', handleResize);
-
-  // Initial check
-  handleResize();
-
-  // Auto-focus chat input when chat area is opened
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'class' &&
-        chatModal.classList.contains('active') &&
-        chatText) {
-        setTimeout(() => {
-          chatText.focus();
-        }, 300);
-      }
-    });
   });
 
-  observer.observe(chatModal, { attributes: true });
-});
+  // Handle hashchange for tab switching visibility from other parts of the app
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#messages') {
+      initCoachChat();
+    }
+  });
 
-// Add event listener for Sarah's message button
-document.addEventListener('DOMContentLoaded', () => {
-  const sarahMessageBtn = document.querySelector('.client-card:first-child .btn-primary');
-  if (sarahMessageBtn) {
-    sarahMessageBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      // Show the chat modal using the toggle function
-      if (!chatModal.classList.contains('active')) {
-        toggleChatModal(e);
-      }
-      // Load Sarah's chat (ID: 1)
-      loadChat(1);
-    });
-  }
-});
+})();

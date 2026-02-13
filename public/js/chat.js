@@ -1,10 +1,10 @@
 (function () {
     let socket;
     let currentCoach = null;
-    let chatMessages, chatForm, chatInput, chatSendBtn, coachNameDisplay, coachImg;
+    let chatMessages, chatForm, chatInput, chatSendBtn, coachNameDisplay, coachImg, coachAvatarHeader, coachNameHeader;
 
     const userPayload = JSON.parse(localStorage.getItem('planner.user') || '{}');
-    const user = userPayload.user || userPayload;
+    const userObject = userPayload.user || userPayload;
 
     function getBackendUrl() {
         const { hostname, port } = window.location;
@@ -19,32 +19,30 @@
         chatForm = document.getElementById('chat-form');
         chatInput = document.getElementById('chat-input');
         chatSendBtn = document.getElementById('chat-send-btn');
+
+        // Sidebar elements
         coachNameDisplay = document.getElementById('chat-coach-name');
         coachImg = document.getElementById('chat-coach-img');
+
+        // Header elements
+        coachAvatarHeader = document.getElementById('messages-coach-avatar');
+        coachNameHeader = document.getElementById('messages-coach-name');
 
         if (chatForm) {
             chatForm.addEventListener('submit', handleChatSubmit);
         }
 
-        const chatFab = document.getElementById('chat-fab');
-        const chatOverlay = document.getElementById('chat-overlay');
-        const closeChat = document.getElementById('close-chat');
+        // Handle hash-based tab activation
+        window.addEventListener('hashchange', () => {
+            if (window.location.hash === '#messages') {
+                document.getElementById('chat-notif-dot')?.classList.add('hidden');
+                loadHistory();
+            }
+        });
 
-        if (chatFab && chatOverlay && closeChat) {
-            chatFab.addEventListener('click', () => toggleChat(chatOverlay));
-            closeChat.addEventListener('click', () => toggleChat(chatOverlay));
-        }
-    }
-
-    function toggleChat(overlay) {
-        const isOpen = overlay.classList.contains('opacity-100');
-        if (isOpen) {
-            overlay.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-            overlay.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-        } else {
-            overlay.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-            overlay.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-            if (currentCoach) loadHistory();
+        // Initial check
+        if (window.location.hash === '#messages') {
+            loadHistory();
         }
     }
 
@@ -56,7 +54,7 @@
             const res = await fetch(getBackendUrl() + '/api/user/my-coach', { credentials: 'include' });
             const coach = await res.json();
 
-            if (!coach) {
+            if (!coach || coach.error) {
                 console.log('[Chat] No active coach found');
                 if (chatMessages) {
                     chatMessages.innerHTML = `
@@ -73,17 +71,9 @@
             }
 
             currentCoach = coach;
-            if (coachNameDisplay) coachNameDisplay.textContent = coach.name;
-            if (coachImg) {
-                coachImg.innerHTML = coach.profile_photo
-                    ? `<img src="${coach.profile_photo}" class="w-full h-full object-cover">`
-                    : `<span>${coach.name.charAt(0)}</span>`;
-            }
-            if (chatSendBtn) chatSendBtn.disabled = false;
+            updateCoachUI(coach);
 
-            // Show FAB only if coach exists
-            const chatFab = document.getElementById('chat-fab');
-            if (chatFab) chatFab.classList.remove('hidden');
+            if (chatSendBtn) chatSendBtn.disabled = false;
 
             // 2. Connect
             console.log('[Chat] Connecting to socket...');
@@ -91,14 +81,17 @@
 
             socket.on('connect', () => {
                 console.log('[Chat] Socket connected! ID:', socket.id);
-                socket.emit('identify', { userId: Number(user.id || user.userId), userType: 'user' });
+                socket.emit('identify', { id: Number(userObject.id || userObject.userId), userType: 'user' });
             });
 
             socket.on('new_message', (msg) => {
                 console.log('[Chat] Incoming:', msg);
                 if (currentCoach && msg.sender_id == currentCoach.id && msg.sender_type === 'coach') {
                     appendMessage(msg, 'incoming');
-                    document.getElementById('chat-notif-dot')?.classList.remove('hidden');
+                    // Only show dot if NOT on the messages tab
+                    if (window.location.hash !== '#messages') {
+                        document.getElementById('chat-notif-dot')?.classList.remove('hidden');
+                    }
                 }
             });
 
@@ -109,14 +102,31 @@
         }
     }
 
+    function updateCoachUI(coach) {
+        if (coachNameDisplay) coachNameDisplay.textContent = coach.name || coach.username || 'Your Coach';
+        if (coachNameHeader) coachNameHeader.textContent = coach.name || coach.username || 'Your Coach';
+
+        const avatarHtml = coach.profile_photo
+            ? `<img src="${coach.profile_photo}" class="w-full h-full object-cover">`
+            : `<span>${(coach.name || coach.username || 'C').charAt(0)}</span>`;
+
+        if (coachImg) coachImg.innerHTML = avatarHtml;
+        if (coachAvatarHeader) coachAvatarHeader.innerHTML = avatarHtml;
+    }
+
     async function loadHistory() {
         if (!currentCoach || !chatMessages) return;
         try {
             const res = await fetch(getBackendUrl() + `/api/messages/${currentCoach.id}`, { credentials: 'include' });
             const messages = await res.json();
-            chatMessages.innerHTML = '';
+
+            // Clear welcome state if history found
+            if (messages.length > 0) {
+                chatMessages.innerHTML = '';
+            }
+
             messages.forEach(msg => {
-                const myId = Number(user.id || user.userId);
+                const myId = Number(userObject.id || userObject.userId);
                 const type = (msg.sender_id == myId && msg.sender_type === 'user') ? 'outgoing' : 'incoming';
                 appendMessage(msg, type);
             });
@@ -138,7 +148,7 @@
 
         appendMessage({
             content,
-            sender_id: Number(user.id || user.userId),
+            sender_id: Number(userObject.id || userObject.userId),
             sender_type: 'user',
             created_at: new Date()
         }, 'outgoing');
@@ -149,6 +159,11 @@
 
     function appendMessage(msg, type) {
         if (!chatMessages) return;
+
+        // Remove welcome text if present
+        const welcome = document.getElementById('chat-welcome');
+        if (welcome) welcome.remove();
+
         const div = document.createElement('div');
         div.className = `flex ${type === 'outgoing' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
         const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -177,3 +192,4 @@
         connectSocket();
     });
 })();
+

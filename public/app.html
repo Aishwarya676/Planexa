@@ -107,7 +107,16 @@
           <li><a href="#reminders" data-tab="reminders" class="tab-btn">Reminders</a></li>
           <li><a href="#goals" data-tab="goals" class="tab-btn">Goals</a></li>
           <li><a href="#calendar" data-tab="calendar" class="tab-btn">Events</a></li>
+          <li>
+            <a href="#messages" data-tab="messages"
+              class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+              <span id="chat-notif-dot"
+                class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
+            </a>
+          </li>
           <!-- Notifications -->
+
           <li class="ml-2">
             <a href="#notifications" data-tab="notifications"
               class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
@@ -172,18 +181,9 @@
               </div>
             </div>
           </li>
-          <!-- Messages -->
-          <li class="ml-2">
-            <a href="#messages" data-tab="messages"
-              class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
-              <i data-lucide="message-square" class="w-5 h-5"></i>
-              <span id="chat-notif-dot"
-                class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></span>
-            </a>
-          </li>
-
         </ul>
       </nav>
+
     </div>
   </header>
 
@@ -972,7 +972,9 @@
   <script src="./js/ui.js?v=db2"></script>
   <script src="./js/calendar.js"></script>
   <script src="./js/notifications.js"></script>
+  <script src="./js/chat.js"></script>
   <!-- Push Notification Registration -->
+
   <script>
     const VAPID_PUBLIC_KEY = 'BDp9g81H4VcPyHz9MbyXV29BERLt4SN4cwgaze-rAHf2iRmuIxJok6LeXmu3oBzAFBaeSFubZZ8jeprCSBAj2KY';
 
