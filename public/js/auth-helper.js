@@ -64,66 +64,77 @@
 
             // 2. REDIRECTION LOGIC (Route Guarding)
             const isHomePath = path === LANDING_PAGE || path === '/' || path === '/index.html';
+            const isLoginPage = path.includes('login') || path.includes('get-started.html');
 
-            // If on Login/Landing/GetStarted pages but ALREADY authed -> Go Dashboard
-            const isLoginPage = path.includes('login') || path.includes('get-started.html') || isHomePath;
-            if (isLoginPage && isAuthenticated) {
-                if (userType === 'admin') window.location.replace(ADMIN_DASHBOARD);
-                else if (userType === 'coach') {
-                    // ONLY redirect to dashboard if status is 'approved' or 'active'
+            // --- ALREADY AUTHENTICATED REDIRECTS ---
+            // If user is logged in but on a public/login page, send them to their dashboard
+            if (isAuthenticated && (isLoginPage || isHomePath)) {
+                // Admin -> Admin Dashboard
+                if (userType === 'admin') {
+                    if (path !== ADMIN_DASHBOARD) window.location.replace(ADMIN_DASHBOARD);
+                    return;
+                }
+
+                // Coach -> Coach Dashboard (only if approved/active)
+                if (userType === 'coach') {
                     const status = data.status || user?.status || '';
                     if (status === 'approved' || status === 'active') {
-                        window.location.replace(COACH_DASHBOARD);
+                        if (!path.includes(COACH_DASHBOARD)) window.location.replace(COACH_DASHBOARD);
                     } else {
-                        // If pending, stay on current page (landing/public) or go to landing
+                        // Pending coaches stay on landing/public pages, but if they try to hit login, go to landing
                         if (isLoginPage) window.location.replace(LANDING_PAGE);
                     }
+                    return;
                 }
-                else {
-                    // If on a login page, go to landing. If already on landing, stay there.
-                    if (path.includes('login') || path.includes('get-started.html')) {
-                        window.location.replace(USER_APP);
-                    }
-                    // Else isHomePath -> do nothing, let them see landing.html
+
+                // Regular User -> App (User Dashboard)
+                // BUT only redirect if they are explicitly on a login/signup page. 
+                // We allow them to view the Landing Page (Home) even if logged in.
+                if (isLoginPage) {
+                    window.location.replace(USER_APP);
+                    return;
                 }
-                return;
             }
 
-            // REDIRECTS DISABLED FOR LANDING PAGE to allow all roles to view it
-            /* 
-            if (isHomePath && isAuthenticated) {
-                if (userType === 'admin') { window.location.replace(ADMIN_DASHBOARD); return; }
-                if (userType === 'coach') { window.location.replace(COACH_DASHBOARD); return; }
-            } 
-            */
-
-            // If on Protected pages but NOT authed -> Go Login
+            // --- PROTECTED ROUTE GUARDS ---
+            // If on a protected page but NOT authenticated
             if (isProtectedPage(path) && !isAuthenticated) {
+                // If trying to access coach dashboard, go to coach login
                 if (path.includes('/coach/')) {
                     window.location.replace(COACH_LOGIN_PAGE);
-                } else {
+                }
+                // If trying to access admin, go to landing (hide admin login existence or redirect to main login)
+                else if (path.includes('/admin/')) {
+                    window.location.replace(LOGIN_PAGE);
+                }
+                // default user app -> login
+                else {
                     window.location.replace(LOGIN_PAGE);
                 }
                 return;
             }
 
-            // Role Separation Enforcement (Keep users on their own dashboards)
-            if (isAuthenticated && !isHomePath) {
+            // --- ROLE ENFORCEMENT (Prevent jumping fences) ---
+            if (isAuthenticated) {
+                // 1. Non-Admins trying to access Admin
                 if (path.includes('/admin/') && userType !== 'admin') {
                     window.location.replace(LANDING_PAGE);
                     return;
                 }
+
+                // 2. Non-Coaches trying to access Coach Dashboard
                 if (path.includes('/coach/') && userType !== 'coach') {
-                    window.location.replace(LANDING_PAGE);
-                    return;
+                    // Allow them to see public coach profile pages if any exist, but for now block dashboard
+                    if (path.includes('business-coach-dashboard')) {
+                        window.location.replace(USER_APP);
+                        return;
+                    }
                 }
-                if (path === USER_APP && userType === 'admin') {
-                    window.location.replace(ADMIN_DASHBOARD);
-                    return;
-                }
-                if (path === USER_APP && userType === 'coach') {
-                    window.location.replace(COACH_DASHBOARD);
-                    return;
+
+                // 3. Admins/Coaches trying to access User App
+                if (path === USER_APP) {
+                    if (userType === 'admin') { window.location.replace(ADMIN_DASHBOARD); return; }
+                    if (userType === 'coach') { window.location.replace(COACH_DASHBOARD); return; }
                 }
             }
 
@@ -132,16 +143,26 @@
 
         } catch (err) {
             console.error('Auth Check Error:', err);
+            // On error, if protected, fail safe to login
+            if (isProtectedPage(path)) {
+                // window.location.replace(LOGIN_PAGE); // Risk of loop if API is down, maybe better to show error?
+                // For now, reveal to allow manual navigation or retry
+                document.documentElement.style.visibility = '';
+            }
         }
     }
 
     function isProtectedPage(path) {
-        if (path.includes('onboarding.html')) return false;
-        return path === USER_APP ||
-            path.includes('/admin/') ||
-            path.includes('/coach/business-coach-dashboard/') ||
-            path === '/account.html' ||
-            path === '/customization.html';
+        if (path.includes('onboarding.html')) return false; // purely public
+
+        // Explicitly protected paths
+        if (path === USER_APP) return true;
+        if (path === '/account.html') return true;
+        if (path === '/customization.html') return true;
+        if (path.includes('/admin/')) return true;
+        if (path.includes('/coach/business-coach-dashboard/')) return true;
+
+        return false;
     }
 
     // Initialize Check
