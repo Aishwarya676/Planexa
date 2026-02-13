@@ -81,7 +81,7 @@
 
             socket.on('connect', () => {
                 console.log('[Chat] Socket connected! ID:', socket.id);
-                socket.emit('identify', { id: Number(userObject.id || userObject.userId), userType: 'user' });
+                socket.emit('identify', { userId: Number(userObject.id || userObject.userId), userType: 'user' });
             });
 
             socket.on('new_message', (msg) => {
