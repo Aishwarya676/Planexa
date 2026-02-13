@@ -2078,6 +2078,11 @@ app.put("/api/me/username", async (req, res) => {
   }
 });
 
+/* ---------------- SYSTEM TIME API (for synchronization) ---------------- */
+app.get("/api/system/time", (req, res) => {
+  res.json({ utcTime: new Date().toISOString() });
+});
+
 /* ---------------- NOTIFICATION SCHEDULER ---------------- */
 // Check for due reminders every 10 seconds for high precision
 setInterval(async () => {

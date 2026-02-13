@@ -78,6 +78,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // -------------------- Time Synchronization --------------------
+  let clockDrift = 0; // serverTime - browserTime (in ms)
+  async function syncTime() {
+    try {
+      const start = Date.now();
+      const { utcTime } = await api.get('/api/system/time');
+      const end = Date.now();
+      const serverTime = new Date(utcTime).getTime();
+      const avgBrowserTime = (start + end) / 2;
+      clockDrift = serverTime - avgBrowserTime;
+      console.log(`[TimeSync] Server UTC: ${utcTime}`);
+      console.log(`[TimeSync] Browser UTC: ${new Date().toISOString()}`);
+      console.log(`[TimeSync] Clock Drift: ${clockDrift}ms (${(clockDrift / 60000).toFixed(2)} mins)`);
+    } catch (e) {
+      console.error('Time sync failed:', e);
+    }
+  }
+  syncTime();
+
   // -------------------- To-Do --------------------
   const todoInput = document.getElementById('todo-input');
   const todoImportance = document.getElementById('todo-importance');
@@ -261,7 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
     reminders.forEach(r => {
       const li = document.createElement('li');
       li.className = 'card p-3 flex items-center justify-between';
-      const dateLabel = r.when_time ? new Date(r.when_time.replace(' ', 'T') + 'Z').toLocaleString() : '';
+      const adjustedTime = r.when_time ? new Date(new Date(r.when_time.replace(' ', 'T') + 'Z').getTime() - clockDrift) : null;
+      const dateLabel = adjustedTime ? adjustedTime.toLocaleString() : '';
       li.innerHTML = `
         <div class="flex items-center gap-2">
           <input type="checkbox" ${r.done ? 'checked' : ''} class="h-4 w-4" data-action="toggle" data-id="${r.id}">
@@ -293,14 +313,17 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const localDate = new Date(when);
         if (!isNaN(localDate.getTime())) {
+          // Adjust for server clock drift
+          const adjustedDate = new Date(localDate.getTime() + clockDrift);
+
           // Format as YYYY-MM-DD HH:mm:ss in UTC for MySQL Compatibility
-          when = localDate.getUTCFullYear() + '-' +
-            ('0' + (localDate.getUTCMonth() + 1)).slice(-2) + '-' +
-            ('0' + localDate.getUTCDate()).slice(-2) + ' ' +
-            ('0' + localDate.getUTCHours()).slice(-2) + ':' +
-            ('0' + localDate.getUTCMinutes()).slice(-2) + ':' +
-            ('0' + localDate.getUTCSeconds()).slice(-2);
-          console.log(`[Reminders] Converting local ${remDatetime.value} to UTC ${when}`);
+          when = adjustedDate.getUTCFullYear() + '-' +
+            ('0' + (adjustedDate.getUTCMonth() + 1)).slice(-2) + '-' +
+            ('0' + adjustedDate.getUTCDate()).slice(-2) + ' ' +
+            ('0' + adjustedDate.getUTCHours()).slice(-2) + ':' +
+            ('0' + adjustedDate.getUTCMinutes()).slice(-2) + ':' +
+            ('0' + adjustedDate.getUTCSeconds()).slice(-2);
+          console.log(`[Reminders] Local: ${remDatetime.value} | Drift: ${clockDrift}ms | Adjusted UTC: ${when}`);
         }
       } catch (e) {
         console.error('Time conversion error:', e);
