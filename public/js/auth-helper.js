@@ -63,7 +63,7 @@
             }
 
             // 2. REDIRECTION LOGIC (Route Guarding)
-            const isHomePath = path === LANDING_PAGE || path === '/' || path === '/index.html';
+            const isHomePath = path === '/' || path === '/index.html';
 
             // If on Login/Landing/GetStarted pages but ALREADY authed -> Go Dashboard
             const isLoginPage = path.includes('login') || path.includes('get-started.html') || isHomePath;
@@ -79,7 +79,7 @@
                         if (isLoginPage) window.location.replace(LANDING_PAGE);
                     }
                 }
-                else window.location.replace(USER_APP);
+                else window.location.replace(LANDING_PAGE);
                 return;
             }
 

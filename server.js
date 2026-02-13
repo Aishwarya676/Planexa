@@ -111,23 +111,25 @@ app.use((req, res, next) => {
   }
 
   // ----------------- STRICT LOGIN PAGE REDIRECTS -----------------
-  // Prevent logged-in users from accessing login pages or root
-  const isLoginPage = strictLoginPages.has(reqPath) || reqPath === '/coach-login.html' || reqPath === '/';
+  // Prevent logged-in users from accessing login pages (but allow landing/home)
+  // strictLoginPages should ONLY contain actual login/signup pages now
+  const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html", "/coach-login.html"]);
 
-  if (isLoginPage && isAuthenticated) {
+  // Is it a strict login page? (removed '/' and landing pages from this check)
+  const isStrictLoginPage = strictLoginPages.has(reqPath);
+
+  if (isStrictLoginPage && isAuthenticated) {
     if (userType === 'admin') return res.redirect("/admin/admin-dashboard.html");
     if (userType === 'coach') {
       const coachStatus = req.session.coachStatus || '';
       if (coachStatus === 'approved' || coachStatus === 'active') {
         return res.redirect("/coach/business-coach-dashboard/index.html");
       }
-      // If pending, allow staying on landing/login or redirect to a wait page
-      // For now, let's keep them on landing if they are already there, but redirect from login
-      if (reqPath.includes('login') || reqPath.includes('get-started')) {
-        return res.redirect("/landing.html");
-      }
+      // If pending/rejected coach tries to go to login, send to landing
+      return res.redirect("/landing.html");
     } else {
-      return res.redirect("/app.html");
+      // Regular user trying to access login page -> redirect to landing page
+      return res.redirect("/landing.html");
     }
   }
 
