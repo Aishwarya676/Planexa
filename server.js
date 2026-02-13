@@ -3208,8 +3208,8 @@ io.on("connection", (socket) => {
   console.log("New socket connection:", socket.id);
 
   socket.on("identify", async (data) => {
-    const { userId, coachId, userType } = data;
-    const rawId = userType === 'coach' ? coachId : userId;
+    const { id: genericId, userId, coachId, userType } = data;
+    const rawId = genericId || (userType === 'coach' ? coachId : userId);
     const id = Number(rawId);
 
     if (!id || isNaN(id)) {
