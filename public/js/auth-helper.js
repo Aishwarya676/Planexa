@@ -82,7 +82,7 @@
                 else {
                     // If on a login page, go to landing. If already on landing, stay there.
                     if (path.includes('login') || path.includes('get-started.html')) {
-                        window.location.replace(LANDING_PAGE);
+                        window.location.replace(USER_APP);
                     }
                     // Else isHomePath -> do nothing, let them see landing.html
                 }

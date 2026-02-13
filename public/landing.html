@@ -1011,148 +1011,38 @@
       }
     }
 
-    // Handle sign out
-    async function handleSignOut() {
-      try {
-        const response = await fetch('/api/signout', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
 
-        if (response.ok) {
-          // Clear local storage
-          localStorage.removeItem(NAME_KEY);
-          // Update UI to show guest state
-          applyUser(null);
-          // Redirect to landing page
-          window.location.href = '/';
-        } else {
-          console.error('Sign out failed:', await response.text());
-        }
-      } catch (error) {
-        console.error('Sign out error:', error);
-      }
-    }
+    // --- UI Logic for Landing Page ---
+    /* 
+       We need to update the UI (Avatar, Login/Dashboard buttons) based on auth state,
+       even though auth-helper.js handles the security redirects.
+    */
 
-    // Initialize auth state on page load
-    document.addEventListener('DOMContentLoaded', async function () {
-      // Add event listener for sign out button
-      const logoutButton = document.getElementById('logout-landing');
-      if (logoutButton) {
-        logoutButton.addEventListener('click', handleSignOut);
-      }
-
-      // Check if user is logged in
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Use existing functions defined above
       const user = await checkSession() || getLocalUser();
-      // Update UI based on auth state
-      setGates(!!user);
-      if (user) {
+
+      if (currentUser !== user) {
         applyUser(user);
-      }
-
-      // Settings sidebar functionality
-      const settingsButton = document.getElementById('settings-button');
-      const closeSettings = document.getElementById('close-settings');
-      const settingsSidebar = document.getElementById('settings-sidebar');
-      const settingsOverlay = document.getElementById('settings-overlay');
-
-      // Open settings
-      if (settingsButton) {
-        settingsButton.addEventListener('click', function () {
-          settingsSidebar.classList.remove('translate-x-full');
-          settingsOverlay.classList.remove('hidden');
-          document.body.classList.add('overflow-hidden');
-        });
-      }
-
-      // Close settings
-      function closeSettingsSidebar() {
-        settingsSidebar.classList.add('translate-x-full');
-        settingsOverlay.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-      }
-
-      if (closeSettings) {
-        closeSettings.addEventListener('click', closeSettingsSidebar);
-      }
-
-      if (settingsOverlay) {
-        settingsOverlay.addEventListener('click', closeSettingsSidebar);
-      }
-
-      // Handle menu item clicks
-      const menuItems = document.querySelectorAll('.settings-menu-item');
-      menuItems.forEach(item => {
-        item.addEventListener('click', function () {
-          const section = this.getAttribute('data-section');
-          console.log('Selected section:', section);
-          // Add your section handling logic here
-          // For example: window.location.href = `/settings/${section}`;
-        });
-      });
-
-      // Close with Escape key
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !settingsSidebar.classList.contains('translate-x-full')) {
-          closeSettingsSidebar();
-        }
-      });
-    });
-
-    // Initialize the page
-    let sessionChecked = false;
-    (async () => {
-      document.querySelectorAll('[data-when]').forEach(el => { el.hidden = true; });
-      const localFirst = getLocalUser();
-      if (localFirst) {
-        applyUser(localFirst);
       } else {
-        applyUser(null);
+        // In case applyUser wasn't called (though applyUser sets currentUser)
+        if (user) applyUser(user);
+        else applyUser(null);
       }
-      // Now confirm with server, but always prefer local fallback if server unavailable
-      let user = await checkSession();
-      const userFinal = user || localFirst || null;
-      applyUser(userFinal);
-      sessionChecked = true;
 
-      // Guard app feature links: if session not yet known, re-check before deciding
-      document.querySelectorAll('a[href^="./app.html"]').forEach(a => {
-        a.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const targetHref = a.getAttribute('href');
-          if (currentUser) {
-            window.location.replace(targetHref);
-            return;
+      // Handle Logout from Landing Page
+      const logoutBtn = document.getElementById('logout-landing');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          if (window.AuthHelper) {
+            await window.AuthHelper.logout();
+          } else {
+            localStorage.removeItem(NAME_KEY);
+            window.location.reload();
           }
-          if (!sessionChecked) {
-            const userNow = await checkSession();
-            if (userNow) {
-              applyUser(userNow);
-              window.location.replace(targetHref);
-              return;
-            }
-          }
-          const localUser = getLocalUser();
-          if (localUser) {
-            applyUser(localUser);
-            window.location.replace(targetHref);
-            return;
-          }
-          // If still not authed, go to login
-          window.location.replace('./login-fixed.html');
         });
-      });
-    })();
-
-    // Handle get-started navigation specifically for the main CTA buttons
-    document.querySelectorAll('.cta-button[href*="get-started.html"], .hero-cta[href*="get-started.html"]').forEach(button => {
-      button.addEventListener('click', function (e) {
-        e.preventDefault();
-        window.location.replace(this.getAttribute('href'));
-      });
+      }
     });
 
 

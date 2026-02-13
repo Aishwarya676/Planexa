@@ -691,7 +691,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUserAnalytics();
 
   // Initialize Chat
-  initChat();
+  // No-op: initChat() is now handled by chat.js
+
 
   // Refresh when tab switches
   document.querySelectorAll('.tab-btn').forEach(btn => {
