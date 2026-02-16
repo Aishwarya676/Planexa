@@ -403,7 +403,7 @@
       const coachId = urlParams.get('id');
 
       if (!coachId) {
-        window.location.href = 'coaches.html';
+        window.location.replace('coaches.html');
         return;
       }
 
@@ -497,7 +497,7 @@
                 mainBookBtn.classList.add('bg-green-600');
                 bookingMessage.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> You are connected! Redirecting...';
                 setTimeout(() => {
-                  window.location.href = 'app.html';
+                  window.location.replace('app.html');
                 }, 2000);
               }
               lucide.createIcons();

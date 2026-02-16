@@ -172,7 +172,7 @@
             // Load User Data
             const rawUser = localStorage.getItem('planner.user');
             if (!rawUser) {
-                window.location.href = 'login-fixed.html';
+                window.location.replace('login-fixed.html');
                 return;
             }
 
@@ -193,7 +193,7 @@
                 }
             } catch (e) {
                 console.error("Error parsing user data", e);
-                window.location.href = 'login-fixed.html';
+                window.location.replace('login-fixed.html');
             }
 
             // UI Elements

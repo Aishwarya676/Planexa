@@ -849,7 +849,9 @@
         toggleProfileDropdown(e);
       } else {
         // Navigate to profile/analytics and toggle the menu
-        window.location.hash = 'profile';
+        // Use replaceState to avoid history pollution
+        history.replaceState(null, null, '#profile');
+        if (typeof activateTab === 'function') activateTab('profile');
         toggleProfileDropdown(e);
       }
     });
@@ -891,7 +893,9 @@
     if (dropdownReviewBtn) {
       dropdownReviewBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.hash = 'review';
+        // Use replaceState to avoid history pollution
+        history.replaceState(null, null, '#review');
+        if (typeof activateTab === 'function') activateTab('review');
       });
     }
   </script>

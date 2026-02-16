@@ -745,7 +745,9 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             await api.post('/api/reviews', { coachId: coach.id, rating, comment });
             alert("Review submitted successfully! It will appear on the homepage.");
-            window.location.hash = 'profile'; // Go back
+            // Use replaceState to avoid history pollution
+            history.replaceState(null, null, '#profile');
+            window.dispatchEvent(new HashChangeEvent('hashchange'));
           } catch (err) {
             alert("Failed to submit review: " + (err.error || err.message));
           }
