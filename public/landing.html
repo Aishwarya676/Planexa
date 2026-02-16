@@ -153,16 +153,6 @@
       </nav>
 
       <div class="flex items-center gap-4">
-        <!-- Dashboard link -->
-        <div data-when="coach-admin">
-          <a href="#" id="dashboard-link"
-            class="inline-flex items-center px-5 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 text-white"
-            style="background-color: #4f46e5;" onmouseover="this.style.backgroundColor='#6366f1'"
-            onmouseout="this.style.backgroundColor='#4f46e5'">
-            <i data-lucide="layout-dashboard" class="w-4 h-4 mr-2"></i>
-            <span>Visit Dashboard</span>
-          </a>
-        </div>
 
         <!-- Guest links -->
         <div data-when="guest" class="flex items-center gap-3">
@@ -181,8 +171,8 @@
             <span>Coach Onboarding</span>
           </a>
         </div>
+
       </div>
-    </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-10 w-full">
@@ -226,8 +216,8 @@
               <span>User Guide</span>
             </a>
           </div>
-          <div data-when="authed" class="flex flex-wrap items-center justify-center gap-4 mt-8 hidden">
-            <a href="./app.html"
+          <div data-when="authed" class="flex flex-wrap items-center justify-center gap-4 mt-8">
+            <a id="dashboard-link" href="./app.html"
               class="btn btn-primary hover:scale-105 transform transition-all duration-300 px-8 py-4 text-lg font-semibold shadow-lg">
               <i data-lucide="layout-dashboard" class="w-6 h-6 mr-2"></i>
               <span>Visit Planner</span>
@@ -914,122 +904,9 @@
     const NAME_KEY = 'planner.user';
     let currentUser = null;
 
-    // Check if user is logged in
-    async function checkSession() {
-      try {
-        const userData = localStorage.getItem(NAME_KEY);
-        if (!userData) return null;
-
-        const token = JSON.parse(userData).token;
-        if (!token) return null;
-
-        const r = await fetch(`${API_BASE}/api/session`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!r.ok) return null;
-        const data = await r.json();
-        return data.isAuthenticated ? data.user : null;
-      } catch (err) {
-        console.error('Session check error:', err);
-        return null;
-      }
-    }
-
-    function getLocalUser() {
-      try {
-        const raw = localStorage.getItem(NAME_KEY);
-        if (!raw) return null;
-        const stored = JSON.parse(raw);
-        // Support both shapes: {user, token} and plain user object
-        const u = stored?.user || stored;
-        if (!u || (!u.email && !u.username)) return null;
-        return u;
-      } catch { return null; }
-    }
-
-    function setGates(authed) {
-      const authedElements = document.querySelectorAll('[data-when="authed"]');
-      const guestElements = document.querySelectorAll('[data-when="guest"]');
-
-      authedElements.forEach(el => {
-        if (el) el.hidden = !authed;
-      });
-      guestElements.forEach(el => {
-        if (el) el.hidden = authed;
-      });
-    }
-
-    function applyUser(user) {
-      currentUser = user;
-      setAvatar(user);
-      setGates(!!user);
-      updateAuthUI(user);
-    }
-
-    function setAvatar(user) {
-      const avatarInitial = document.getElementById('avatar-initial');
-      if (avatarInitial) {
-        if (user) {
-          const initial = (user.email?.[0]) || (user.username?.[0]) || (user.name?.[0]) || 'U';
-          avatarInitial.textContent = String(initial).toUpperCase();
-        } else {
-          avatarInitial.textContent = '?';
-        }
-      }
-    }
-
-    function updateAuthUI(user) {
-      const profileLink = document.getElementById('nav-profile-link');
-      const avatarLink = document.getElementById('avatar-link');
-      const avatarInitial = document.getElementById('avatar-initial');
-
-      // Update profile link
-      if (profileLink) {
-        profileLink.onclick = !user ? (e) => { e.preventDefault(); window.location.replace('./login-fixed.html'); } : null;
-        profileLink.href = user ? './app.html#profile' : './login-fixed.html';
-      }
-
-      // Update avatar link and appearance
-      if (avatarLink) {
-        avatarLink.onclick = !user ? (e) => { e.preventDefault(); window.location.replace('./login-fixed.html'); } : null;
-        avatarLink.href = user ? './app.html#profile' : './login-fixed.html';
-        avatarLink.title = user ? 'Profile' : 'Log In';
-      }
-
-      // Update avatar initial
-      if (avatarInitial) {
-        if (user) {
-          const initial = (user.email?.[0]) || (user.username?.[0]) || (user.name?.[0]) || 'U';
-          avatarInitial.textContent = String(initial).toUpperCase();
-        } else {
-          avatarInitial.textContent = '?';
-        }
-      }
-    }
-
-
-    // --- UI Logic for Landing Page ---
-    /* 
-       We need to update the UI (Avatar, Login/Dashboard buttons) based on auth state,
-       even though auth-helper.js handles the security redirects.
-    */
-
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', async () => {
-      // Use existing functions defined above
-      const user = await checkSession() || getLocalUser();
-
-      if (currentUser !== user) {
-        applyUser(user);
-      } else {
-        // In case applyUser wasn't called (though applyUser sets currentUser)
-        if (user) applyUser(user);
-        else applyUser(null);
-      }
+      // AuthHelper handles the checks and UI updates automatically
 
       // Handle Logout from Landing Page
       const logoutBtn = document.getElementById('logout-landing');
@@ -1171,85 +1048,20 @@
     </div>
   </footer>
   <script>
-    // Initialize Lucide icons for the customer service button
+    // Authentication Logic & Logout
     document.addEventListener('DOMContentLoaded', function () {
       lucide.createIcons();
-    });
 
-    // Authentication Logic
-    // Combined Auth Logic
-    const sessionData = JSON.parse(localStorage.getItem('planner.user') || 'null');
-    const isAuthed = !!sessionData;
-
-    // Fix role detection - properly check all possible role fields
-    let role = 'user'; // default
-    if (sessionData) {
-      if (sessionData.userType) role = sessionData.userType;
-      else if (sessionData.user_type) role = sessionData.user_type;
-      else if (sessionData.user?.user_type) role = sessionData.user.user_type;
-      else if (sessionData.coachId) role = 'coach';
-    }
-
-    const status = sessionData?.status || sessionData?.user?.status || '';
-
-    // Treat pending coaches as guests for landing page UI
-    const isActuallyApproved = (role === 'coach' && (status === 'approved' || status === 'active')) || role !== 'coach';
-    const uiAuthed = isAuthed && isActuallyApproved;
-
-    const isRegularUser = uiAuthed && role === 'user';
-    const isCoachOrAdmin = uiAuthed && (role === 'coach' || role === 'admin');
-
-    document.querySelectorAll('[data-when]').forEach(el => {
-      const when = el.dataset.when;
-
-      if (when === 'guest') {
-        if (!uiAuthed) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-      } else if (when === 'user-only') {
-        // Only show for regular users
-        if (isRegularUser) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-      } else if (when === 'coach-admin') {
-        // Only show for coaches and admins
-        if (isCoachOrAdmin) {
-          el.classList.remove('hidden');
-          // Set the dashboard link href based on role
-          const dashboardLink = el.querySelector('#dashboard-link');
-          if (dashboardLink) {
-            if (role === 'coach') dashboardLink.href = '/coach/business-coach-dashboard/index.html';
-            else if (role === 'admin') dashboardLink.href = '/admin/admin-dashboard.html';
-          }
+      // Logout handler
+      document.getElementById('logout-landing')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.AuthHelper) {
+          window.AuthHelper.logout();
+        } else {
+          localStorage.removeItem('planner.user');
+          window.location.replace('/landing.html');
         }
-        else el.classList.add('hidden');
-      } else if (when === 'authed') {
-        // Show for any authenticated user
-        if (uiAuthed) {
-          el.classList.remove('hidden');
-          // Update dashboard link if not a regular user
-          const dashboardLink = el.querySelector('a[href="./app.html"]');
-          if (dashboardLink) {
-            if (role === 'coach') dashboardLink.href = '/coach/business-coach-dashboard/index.html';
-            else if (role === 'admin') dashboardLink.href = '/admin/admin-dashboard.html';
-
-            const span = dashboardLink.querySelector('span');
-            if (span && (span.textContent === 'Visit Planner' || span.textContent === 'Visit Dashboard')) {
-              span.textContent = role === 'user' ? 'Visit Planner' : 'Visit Dashboard';
-            }
-          }
-        }
-        else el.classList.add('hidden');
-      }
-    });
-
-    // Integrated Logout Logic
-    document.getElementById('logout-landing')?.addEventListener('click', () => {
-      if (window.AuthHelper) {
-        window.AuthHelper.logout();
-      } else {
-        // Fallback
-        localStorage.removeItem('planner.user');
-        window.location.replace('/landing.html');
-      }
+      });
     });
   </script>
 

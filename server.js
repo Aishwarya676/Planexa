@@ -228,6 +228,17 @@ async function fixCoachSchema() {
     } catch (e) { }
   }
 }
+async function ensureOnboardingColumn() {
+  try {
+    const [columns] = await db.query("SHOW COLUMNS FROM users LIKE 'onboarding_completed'");
+    if (columns.length === 0) {
+      await db.query("ALTER TABLE users ADD COLUMN onboarding_completed TINYINT(1) DEFAULT 0");
+    }
+  } catch (e) {
+    console.error('Error ensuring onboarding column:', e);
+  }
+}
+ensureOnboardingColumn();
 fixCoachSchema();
 ensureCoachesTable();
 async function ensureCoachesTable() {
@@ -303,14 +314,22 @@ app.get("/api/session", async (req, res) => {
       if (req.session.userId) {
         // Regular User
         const [rows] = await db.query(
-          "SELECT id, username, email, user_type FROM users WHERE id = ?",
+          "SELECT id, username, email, user_type, onboarding_completed FROM users WHERE id = ?",
           [req.session.userId]
         );
         if (rows.length > 0) {
+          // Check for active coaching connection
+          const [connectionsSlice] = await db.query(
+            "SELECT COUNT(*) as count FROM user_coach_connections WHERE user_id = ? AND status = 'active'",
+            [req.session.userId]
+          );
+
           return res.json({
             isAuthenticated: true,
             user: rows[0],
-            userType: rows[0].user_type
+            userType: rows[0].user_type,
+            onboarding_completed: rows[0].onboarding_completed,
+            canMessage: connectionsSlice[0].count > 0
           });
         }
       } else if (req.session.coachId) {
@@ -341,7 +360,7 @@ app.get("/api/session", async (req, res) => {
       const decoded = jwt.verify(token, JWT_SECRET);
       const userId = decoded.userId;
       const [rows2] = await db.query(
-        "SELECT id, username, email, user_type, theme_id, theme_colors FROM users WHERE id = ?",
+        "SELECT id, username, email, user_type, theme_id, theme_colors, onboarding_completed FROM users WHERE id = ?",
         [userId]
       );
       if (rows2 && rows2.length > 0) {
@@ -349,10 +368,17 @@ app.get("/api/session", async (req, res) => {
         if (user.theme_colors && typeof user.theme_colors === 'string') {
           try { user.theme_colors = JSON.parse(user.theme_colors); } catch (e) { }
         }
+        // Check for active coaching connection
+        const [connections2] = await db.query(
+          "SELECT COUNT(*) as count FROM user_coach_connections WHERE user_id = ? AND status = 'active'",
+          [user.id]
+        );
+
         return res.json({
           isAuthenticated: true,
           user: user,
-          userType: user.user_type
+          userType: user.user_type,
+          canMessage: connections2[0].count > 0
         });
       }
     }
@@ -3024,6 +3050,26 @@ app.post("/api/articles", async (req, res) => {
     console.error("Create article error:", e);
     if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: "Slug already exists" });
     res.status(500).json({ error: "Failed to create article" });
+  }
+});
+
+
+/* ---------------- ONBOARDING COMPLETION ---------------- */
+app.post("/api/user/complete-onboarding", async (req, res) => {
+  if (!req.session || (!req.session.userId && !req.session.coachId)) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const userId = req.session.userId;
+    if (userId) {
+      await db.query("UPDATE users SET onboarding_completed = 1 WHERE id = ?", [userId]);
+    }
+    // For coaches, we could also track this if needed, but for now focus on users
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error completing onboarding:", err);
+    res.status(500).json({ error: "Failed to update onboarding status" });
   }
 });
 
