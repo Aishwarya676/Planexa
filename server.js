@@ -1019,8 +1019,29 @@ app.get("/api/admin/verifications/coaches", async (req, res) => {
     if (!isAdmin) return res.status(403).json({ error: "Unauthorized" });
 
     const [coaches] = await db.query(`
-            SELECT id, user_id, name, email, dob, coach_type, location, bio, years_experience, hours_coached, specialties, certifications, social_links, status, created_at, updated_at, hourly_rate 
-            FROM coach_details WHERE status = 'pending' ORDER BY created_at DESC
+            SELECT 
+              c.id as id,
+              cd.id as details_id,
+              cd.user_id,
+              cd.name,
+              cd.email,
+              cd.dob,
+              cd.coach_type,
+              cd.location,
+              cd.bio,
+              cd.years_experience,
+              cd.hours_coached,
+              cd.specialties,
+              cd.certifications,
+              cd.social_links,
+              cd.status,
+              cd.created_at,
+              cd.updated_at,
+              cd.hourly_rate
+            FROM coach_details cd
+            LEFT JOIN coaches c ON (c.id = cd.user_id OR c.email = cd.email)
+            WHERE cd.status = 'pending'
+            ORDER BY cd.created_at DESC
         `);
     res.json(coaches);
   } catch (e) {
