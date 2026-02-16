@@ -107,7 +107,7 @@
           <li><a href="#reminders" data-tab="reminders" class="tab-btn">Reminders</a></li>
           <li><a href="#goals" data-tab="goals" class="tab-btn">Goals</a></li>
           <li><a href="#calendar" data-tab="calendar" class="tab-btn">Events</a></li>
-          <li data-when="can-message">
+          <li data-when="can-message" class="hidden">
             <a href="#messages" data-tab="messages"
               class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
               <i data-lucide="message-square" class="w-5 h-5"></i>
@@ -156,7 +156,7 @@
                   </div>
                   <span class="font-medium text-gray-800 text-sm">Account Settings</span>
                 </a>
-                <a href="#" id="dropdown-review-btn" data-when="can-message"
+                <a href="#" id="dropdown-review-btn" data-when="can-message" class="hidden"
                   class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-yellow-50 transition-all group">
                   <div class="p-2 bg-yellow-50 rounded-lg text-yellow-600 group-hover:bg-yellow-100 transition-colors">
                     <i data-lucide="star" class="w-4 h-4"></i>
@@ -418,7 +418,7 @@
     </section>
 
     <!-- Messages Tab -->
-    <section id="tab-messages" class="tab-panel" data-when="can-message">
+    <section id="tab-messages" class="tab-panel hidden" data-when="can-message">
       <div class="pt-4"></div>
       <div
         class="h-[calc(100vh-12rem)] glass-card rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-2xl shadow-slate-200/50 flex">

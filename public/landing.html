@@ -131,22 +131,22 @@
       <nav class="flex-1 flex justify-center px-10">
         <ul class="flex gap-4 items-center">
           <!-- User-specific navigation -->
-          <li data-when="authed"><a href="./app.html#todo"
+          <li data-when="authed" class="hidden"><a href="./app.html#todo"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200">To‑Do</a>
           </li>
-          <li data-when="authed"><a href="./app.html#shopping"
+          <li data-when="authed" class="hidden"><a href="./app.html#shopping"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200">Shopping</a>
           </li>
-          <li data-when="authed"><a href="./app.html#reminders"
+          <li data-when="authed" class="hidden"><a href="./app.html#reminders"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200">Reminders</a>
           </li>
-          <li data-when="authed"><a href="./app.html#goals"
+          <li data-when="authed" class="hidden"><a href="./app.html#goals"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200">Goals</a>
           </li>
-          <li data-when="authed"><a href="./app.html#calendar"
+          <li data-when="authed" class="hidden"><a href="./app.html#calendar"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200">Events</a>
           </li>
-          <li data-when="authed"><a href="./app.html#profile"
+          <li data-when="authed" class="hidden"><a href="./app.html#profile"
               class="px-4 py-2 rounded-full text-base font-bold text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
               id="nav-profile-link">Profile</a></li>
         </ul>
@@ -155,7 +155,7 @@
       <div class="flex items-center gap-4">
 
         <!-- Guest links -->
-        <div data-when="guest" class="flex items-center gap-3">
+        <div data-when="guest" class="flex items-center gap-3 hidden">
           <a href="./get-started.html?v=gs3"
             class="inline-flex items-center px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 text-white"
             style="background-color: #845ec2;" onmouseover="this.style.backgroundColor='#9b7fd0'"
