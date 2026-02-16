@@ -5,7 +5,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login | Planexa</title>
+  <!-- Cache Busting for AuthHelper -->
   <script src="/js/auth-helper.js"></script>
+  <script>
+    // Break redirect loops when navigating back after logout
+    (function () {
+      const now = Date.now();
+      const lastVisit = sessionStorage.getItem('login-page-last-visit');
+
+      // If we visited this page less than 2 seconds ago, we're in a loop
+      if (lastVisit && (now - parseInt(lastVisit)) < 2000) {
+        // Break the loop by going back one more time
+        console.log('[Login] Redirect loop detected, breaking by going back');
+        history.back();
+        return;
+      }
+
+      // Record this visit
+      sessionStorage.setItem('login-page-last-visit', now.toString());
+
+      // Clear the timestamp after 3 seconds (means user is staying on login page intentionally)
+      setTimeout(() => {
+        sessionStorage.removeItem('login-page-last-visit');
+      }, 3000);
+    })();
+  </script>
   <meta name="description" content="Log in to access your Planexa account. Your data stays private and secure." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>

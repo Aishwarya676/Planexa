@@ -392,7 +392,18 @@ app.get("/api/session", async (req, res) => {
 
 
 /* ---------------- FRONTEND ROUTES ---------------- */
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "landing.html")));
+app.get("/", (req, res) => {
+  const isAuthenticated = req.session && (req.session.userId || req.session.coachId);
+  const userType = req.session?.userType || (req.session?.coachId ? 'coach' : 'user');
+
+  if (isAuthenticated) {
+    if (userType === 'admin') return res.redirect("/admin/admin-dashboard.html");
+    if (userType === 'coach') return res.redirect("/coach/business-coach-dashboard/index.html");
+    return res.redirect("/app.html");
+  }
+
+  return res.sendFile(path.join(__dirname, "public", "landing.html"));
+});
 app.get("/dashboard", (req, res) =>
   res.sendFile(path.join(__dirname, "public", "coach", "business-coach-dashboard", "index.html"))
 );
@@ -3288,8 +3299,10 @@ app.get("/api/public/reviews", async (req, res) => {
 app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
   try {
     const myId = req.session.userId || req.session.coachId;
-    const myType = req.session.userType;
+    const myType = req.session.userType || (req.session.coachId ? 'coach' : 'user');
     const otherId = req.params.otherId;
+
+    console.log(`[Messages] Fetching for ${myType} (id: ${myId}) with other: ${otherId}`);
 
     // Fetch messages where (sender=me AND receiver=other) OR (sender=other AND receiver=me)
     // We need to be careful with sender_type here if IDs can overlap between users and coaches.
@@ -3317,7 +3330,15 @@ app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
     }
 
     const [rows] = await db.query(query, params);
-    res.json(rows);
+
+    // Add direction field to each message (server-authoritative)
+    const messagesWithDirection = rows.map(msg => ({
+      ...msg,
+      direction: (msg.sender_id === myId && msg.sender_type === myType) ? 'sent' : 'received'
+    }));
+
+    console.log(`[Messages] Retrieved ${messagesWithDirection.length} messages for ${myType} ${myId}`);
+    res.json(messagesWithDirection);
   } catch (e) {
     console.error("Fetch messages error:", e);
     res.status(500).json({ error: "Failed to fetch messages" });

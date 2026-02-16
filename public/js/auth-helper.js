@@ -7,12 +7,14 @@
     const API_STATUS_URL = '/api/session';
     const LOGIN_PAGE = '/login-fixed.html';
     const COACH_LOGIN_PAGE = '/coach-login.html';
+    const GET_STARTED_PAGE = '/get-started.html';
     const LANDING_PAGE = '/landing.html';
     const ADMIN_DASHBOARD = '/admin/admin-dashboard.html';
     const COACH_DASHBOARD = '/coach/business-coach-dashboard/index.html';
     const USER_APP = '/app.html';
 
     const NAME_KEY = 'planner.user';
+    const LOGOUT_FLAG_KEY = 'planner.justLoggedOutAt';
 
     /**
      * Helper to clear all local session data
@@ -21,9 +23,22 @@
         localStorage.removeItem(NAME_KEY);
         localStorage.removeItem('planner.theme');
         localStorage.removeItem('planner.themeId');
-        // Clear hash to prevent carrying over protected routes to login/landing
-        if (window.location.hash) {
-            history.replaceState(null, document.title, window.location.pathname + window.location.search);
+    }
+
+    function markJustLoggedOut() {
+        try {
+            sessionStorage.setItem(LOGOUT_FLAG_KEY, String(Date.now()));
+        } catch (e) { }
+    }
+
+    function wasJustLoggedOut(ms = 10000) {
+        try {
+            const v = sessionStorage.getItem(LOGOUT_FLAG_KEY);
+            if (!v) return false;
+            const t = parseInt(v, 10);
+            return Number.isFinite(t) && (Date.now() - t) < ms;
+        } catch (e) {
+            return false;
         }
     }
 
@@ -42,7 +57,7 @@
             const path = window.location.pathname;
 
             // --- IMMEDIATE VISIBILITY GUARD ---
-            if (isProtectedPage(path) && !localStorage.getItem(NAME_KEY)) {
+            if (isProtectedPage(path)) {
                 document.documentElement.style.visibility = 'hidden';
             }
 
@@ -83,9 +98,29 @@
 
                 if (isProtectedPage(path) && !isAuthenticated) {
                     clearLocalSession();
-                    // Use a clean URL (no hash) for the login redirect
-                    const target = path.includes('/coach/') ? COACH_LOGIN_PAGE : LOGIN_PAGE;
-                    window.location.replace(target);
+
+                    // Detect if user is navigating via back button
+                    const isBackNavigation = (performance.navigation && performance.navigation.type === 2) ||
+                        (performance.getEntriesByType &&
+                            performance.getEntriesByType('navigation')[0]?.type === 'back_forward');
+
+                    // If user just logged out and is trying to go "back" into a protected page,
+                    // do not bounce them to the login page. Continue backing out of the site instead.
+                    if (wasJustLoggedOut()) {
+                        console.log('[Auth] Just logged out; preventing redirect to login page on protected route');
+                        if (history.length > 1) history.back();
+                        else window.location.replace(LANDING_PAGE);
+                        return;
+                    }
+
+                    // If user pressed back to get here, continue going back instead of redirecting
+                    if (isBackNavigation) {
+                        console.log('[Auth] Back-navigation detected on protected page, continuing back');
+                        history.back();
+                        return;
+                    }
+
+                    window.location.replace(path.includes('/coach/') ? COACH_LOGIN_PAGE : LOGIN_PAGE);
                     return;
                 }
 
@@ -201,11 +236,18 @@
     window.AuthHelper = {
         checkAuth,
         logout: async function () {
+            let session = null;
+            try {
+                session = await checkAuth();
+            } catch (e) { }
             try {
                 await fetch('/api/logout', { method: 'POST', credentials: 'include' });
             } catch (e) { }
             clearLocalSession();
-            window.location.replace(LANDING_PAGE);
+            markJustLoggedOut();
+            const userType = session?.user?.user_type || (session?.coachId ? 'coach' : 'user');
+            const redirectTo = LANDING_PAGE;
+            window.location.replace(redirectTo);
         }
     };
 })();

@@ -982,14 +982,14 @@
                     // Hide the form and show success message
                     if (isEditMode) {
                         alert('Profile updated successfully!');
-                        window.location.href = 'index.html';
+                        window.location.replace('index.html');
                     } else {
                         form.style.display = 'none';
                         successMessage.style.display = 'block';
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         // Add a delayed redirect to admin dashboard if preferred, or just rely on the link
                         setTimeout(() => {
-                            window.location.href = '/landing.html';
+                            window.location.replace('/landing.html');
                         }, 3000);
                     }
                 } catch (err) {

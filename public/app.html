@@ -107,7 +107,7 @@
           <li><a href="#reminders" data-tab="reminders" class="tab-btn">Reminders</a></li>
           <li><a href="#goals" data-tab="goals" class="tab-btn">Goals</a></li>
           <li><a href="#calendar" data-tab="calendar" class="tab-btn">Events</a></li>
-          <li data-when="can-message" class="hidden">
+          <li>
             <a href="#messages" data-tab="messages"
               class="tab-btn relative inline-flex items-center justify-center p-2 rounded-lg">
               <i data-lucide="message-square" class="w-5 h-5"></i>
@@ -156,7 +156,7 @@
                   </div>
                   <span class="font-medium text-gray-800 text-sm">Account Settings</span>
                 </a>
-                <a href="#" id="dropdown-review-btn" data-when="can-message" class="hidden"
+                <a href="#" id="dropdown-review-btn"
                   class="dropdown-item flex items-center gap-3 p-3 rounded-xl hover:bg-yellow-50 transition-all group">
                   <div class="p-2 bg-yellow-50 rounded-lg text-yellow-600 group-hover:bg-yellow-100 transition-colors">
                     <i data-lucide="star" class="w-4 h-4"></i>
@@ -418,7 +418,7 @@
     </section>
 
     <!-- Messages Tab -->
-    <section id="tab-messages" class="tab-panel hidden" data-when="can-message">
+    <section id="tab-messages" class="tab-panel">
       <div class="pt-4"></div>
       <div
         class="h-[calc(100vh-12rem)] glass-card rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-2xl shadow-slate-200/50 flex">
@@ -849,7 +849,6 @@
         toggleProfileDropdown(e);
       } else {
         // Navigate to profile/analytics and toggle the menu
-        // Use replaceState to avoid history pollution
         history.replaceState(null, null, '#profile');
         if (typeof activateTab === 'function') activateTab('profile');
         toggleProfileDropdown(e);
@@ -893,7 +892,6 @@
     if (dropdownReviewBtn) {
       dropdownReviewBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        // Use replaceState to avoid history pollution
         history.replaceState(null, null, '#review');
         if (typeof activateTab === 'function') activateTab('review');
       });
@@ -925,13 +923,14 @@
         if (panel) panel.classList.add('active');
       }
 
+      window.activateTab = activateTab;
+
       // Attach listeners first
       tabButtons.forEach(button => {
         button.addEventListener('click', function (e) {
           const tabId = this.getAttribute('data-tab');
           if (tabId) {
             e.preventDefault();
-            // Use replaceState to avoid history pollution (no back-button loop)
             history.replaceState(null, null, '#' + tabId);
             activateTab(tabId);
           }
@@ -941,12 +940,12 @@
       // Activate initial tab based on hash or default to first
       const initialHash = (window.location.hash || '').replace('#', '');
       const defaultTab = document.querySelector('#tabs .tab-btn')?.getAttribute('data-tab') || 'todo';
-      activateTab(initialHash || defaultTab);
+      window.activateTab(initialHash || defaultTab);
 
       // Keep panels in sync if hash changes (e.g., deep links)
       window.addEventListener('hashchange', () => {
         const h = (window.location.hash || '').replace('#', '');
-        if (h) activateTab(h);
+        if (h) window.activateTab(h);
       });
     }
 

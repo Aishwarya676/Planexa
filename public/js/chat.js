@@ -73,6 +73,10 @@
             currentCoach = coach;
             updateCoachUI(coach);
 
+            // Load history immediately after coach is set
+            console.log('[Chat] Coach connected, loading message history...');
+            await loadHistory();
+
             if (chatSendBtn) chatSendBtn.disabled = false;
 
             // 2. Connect
@@ -120,14 +124,17 @@
             const res = await fetch(getBackendUrl() + `/api/messages/${currentCoach.id}`, { credentials: 'include' });
             const messages = await res.json();
 
+            console.log(`[Chat] Loaded ${messages.length} messages from server`);
+
             // Clear welcome state if history found
             if (messages.length > 0) {
                 chatMessages.innerHTML = '';
             }
 
             messages.forEach(msg => {
-                const myId = Number(userObject.id || userObject.userId);
-                const type = (msg.sender_id == myId && msg.sender_type === 'user') ? 'outgoing' : 'incoming';
+                // Use server-provided direction instead of client-side calculation
+                const type = msg.direction === 'sent' ? 'outgoing' : 'incoming';
+                console.log(`[Chat] Message ${msg.id}: ${msg.direction} -> ${type}`);
                 appendMessage(msg, type);
             });
             scrollToBottom();

@@ -71,13 +71,6 @@
               <i data-lucide="clock" class="w-5 h-5 mr-3 text-indigo-500"></i>
               <span id="clients" class="font-medium"></span>
             </div>
-            <div class="flex items-center text-indigo-700 bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-100">
-              <i data-lucide="banknote" class="w-6 h-6 mr-3 text-indigo-600"></i>
-              <div class="flex flex-col">
-                <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Coaching Rate</span>
-                <span id="languages" class="text-xl font-bold"></span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -101,13 +94,11 @@
           <h3 class="text-xl font-bold text-gray-900 mb-2">Connect with Coach</h3>
           <p class="text-gray-600 mb-6">Start your journey by connecting with this coach. Your goals and tasks will be
             shared for better guidance.</p>
-          <div class="mb-6">
-            <span id="mainPriceDisplay" class="text-4xl font-bold text-indigo-600">₹0/hr</span>
-          </div>
           <button id="mainBookBtn"
             class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition-all duration-300">
             Book Now
           </button>
+
           <p id="bookingMessage" class="mt-4 text-sm font-medium text-green-600 hidden">
             <i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> Coach Booked! Redirecting to your
             dashboard...
@@ -151,7 +142,7 @@
           <h3 class="text-lg font-semibold mb-4">Company</h3>
           <ul class="space-y-2">
             <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-            <li><a href="pricing.html" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+            <li><a href="how-to-use.html" class="text-gray-400 hover:text-white transition-colors">How to Use</a></li>
             <li><a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact</a></li>
             <li><a href="faq.html" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
           </ul>
@@ -422,11 +413,6 @@
 
         document.getElementById('experience').textContent = coach.years_experience + ' Years Experience';
         document.getElementById('clients').textContent = (coach.hours_coached || '0') + '+ Hours Coached';
-        document.getElementById('languages').textContent = '₹' + (coach.hourly_rate || '0') + '/hr';
-
-        // Update main pricing display
-        const price = coach.hourly_rate || '0';
-        document.getElementById('mainPriceDisplay').textContent = `₹${price}/hr`;
 
         // Update booking button logic
         const mainBookBtn = document.getElementById('mainBookBtn');
