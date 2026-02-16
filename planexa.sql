@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     status VARCHAR(50) DEFAULT 'active',
     theme_id VARCHAR(50) DEFAULT 'default',
     theme_colors JSON,
+    calendar_token VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX (email)
@@ -267,3 +268,16 @@ INSERT IGNORE INTO coach_categories (name, slug) VALUES
 ('Health & Wellness Coaching', 'health'),
 ('Relationship Coaching', 'relationship'),
 ('Spiritual Coaching', 'spiritual');
+
+-- 22. Calendar Events
+CREATE TABLE IF NOT EXISTS events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    event_date DATE NOT NULL,
+    event_time TIME DEFAULT '12:00:00',
+    description TEXT,
+    event_type VARCHAR(50) DEFAULT 'personal', -- personal, birthday
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

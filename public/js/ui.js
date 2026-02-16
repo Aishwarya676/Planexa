@@ -1,82 +1,47 @@
-document.addEventListener('DOMContentLoaded', () => {
-  function getBackendUrl() {
-    const { hostname, port } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '3000' || port === '5500' || port === '5501') {
-      return `http://${hostname}:3000`;
-    }
-    return '';
+function getBackendUrl() {
+  const { hostname, port } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '3000' || port === '5500' || port === '5501') {
+    return `http://${hostname}:3000`;
   }
+  return '';
+}
+window.getBackendUrl = getBackendUrl;
 
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const existing = document.querySelector(`script[src="${src}"]`);
-      if (existing) {
-        if (typeof io !== 'undefined') return resolve();
-        existing.addEventListener('load', () => resolve());
-        existing.addEventListener('error', (e) => reject(e));
-        return;
-      }
-
-      const s = document.createElement('script');
-      s.src = src;
-      s.async = true;
-      s.onload = () => resolve();
-      s.onerror = (e) => reject(e);
-      document.head.appendChild(s);
+const api = {
+  get: async (url) => {
+    const res = await fetch(getBackendUrl() + url, { credentials: 'include' });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  post: async (url, body) => {
+    const res = await fetch(getBackendUrl() + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body)
     });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  put: async (url, body) => {
+    const res = await fetch(getBackendUrl() + url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  delete: async (url) => {
+    const res = await fetch(getBackendUrl() + url, { method: 'DELETE', credentials: 'include' });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
   }
+};
+window.api = api;
 
-  async function ensureSocketIoClient() {
-    if (typeof io !== 'undefined') return true;
-
-    const base = getBackendUrl();
-    if (!base) {
-      console.error('Socket.io client not found and backend base URL is empty.');
-      return false;
-    }
-
-    try {
-      await loadScript(`${base}/socket.io/socket.io.js`);
-      return typeof io !== 'undefined';
-    } catch (e) {
-      console.error('Failed to load socket.io client script:', e);
-      return false;
-    }
-  }
-
-  // -------------------- API Helper --------------------
-  const api = {
-    get: async (url) => {
-      const res = await fetch(getBackendUrl() + url, { credentials: 'include' });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    },
-    post: async (url, body) => {
-      const res = await fetch(getBackendUrl() + url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    },
-    put: async (url, body) => {
-      const res = await fetch(getBackendUrl() + url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    },
-    delete: async (url) => {
-      const res = await fetch(getBackendUrl() + url, { method: 'DELETE', credentials: 'include' });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
-    }
-  };
+document.addEventListener('DOMContentLoaded', () => {
 
   // -------------------- Time Synchronization --------------------
   let clockDrift = 0; // serverTime - browserTime (in ms)
@@ -798,5 +763,6 @@ document.addEventListener('DOMContentLoaded', () => {
       initCoachReview();
     }
   });
+
 
 });

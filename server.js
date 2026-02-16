@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const jwt = require("jsonwebtoken");
@@ -1782,6 +1783,36 @@ async function migrateCoachSchema() {
   }
 }
 migrateCoachSchema();
+async function migrateCalendarSchema() {
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN calendar_token VARCHAR(255) UNIQUE");
+    console.log("✓ Added calendar_token column to users table");
+  } catch (e) {
+    if (e.errno !== 1060) console.log("Calendar migration notice:", e.message);
+  }
+}
+migrateCalendarSchema();
+async function migrateEventsTable() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        event_date DATE NOT NULL,
+        event_time TIME DEFAULT '12:00:00',
+        description TEXT,
+        event_type VARCHAR(50) DEFAULT 'personal',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB
+    `);
+    console.log("✓ Events table migration ensured");
+  } catch (e) {
+    console.log("Events migration notice:", e.message);
+  }
+}
+migrateEventsTable();
 
 /* ---------------- DATA API ROUTES ---------------- */
 
@@ -1998,6 +2029,76 @@ app.delete("/api/goals/:id", requireAuth, async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+/* --- CALENDAR EVENTS --- */
+app.get("/api/calendar/events", requireAuth, async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM events WHERE user_id = ? ORDER BY event_date ASC, event_time ASC", [req.userId]);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/calendar/events", requireAuth, async (req, res) => {
+  const { title, date, time, description, type } = req.body;
+  try {
+    const [result] = await db.query(
+      "INSERT INTO events (user_id, title, event_date, event_time, description, event_type) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.userId, title, date, time || '12:00:00', description, type || 'personal']
+    );
+    res.json({ id: result.insertId, title, event_date: date, event_time: time, description, event_type: type });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete("/api/calendar/events/:id", requireAuth, async (req, res) => {
+  try {
+    await db.query("DELETE FROM events WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+
+/* --- CALENDAR EVENTS API --- */
+app.get("/api/calendar/events", requireAuth, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM events WHERE user_id = ? ORDER BY event_date ASC",
+      [req.userId]
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/calendar/events", requireAuth, async (req, res) => {
+  const { title, date, time, description, type } = req.body;
+  try {
+    const [result] = await db.query(
+      "INSERT INTO events (user_id, title, event_date, event_time, description, event_type) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.userId, title, date, time || '12:00:00', description || null, type || 'personal']
+    );
+    res.json({ id: result.insertId, title, date, time, description, type });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete("/api/calendar/events/:id", requireAuth, async (req, res) => {
+  try {
+    await db.query("DELETE FROM events WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 /* ---------------- SIGN OUT ---------------- */
 app.post('/api/signout', async (req, res) => {
