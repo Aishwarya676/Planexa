@@ -754,6 +754,7 @@ app.post("/api/coach/login", async (req, res) => {
     req.session.userId = null;
     req.session.coachId = coach.id;
     req.session.userType = 'coach';
+    req.session.coachStatus = status;
 
     if (rememberMe) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
