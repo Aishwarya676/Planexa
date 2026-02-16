@@ -166,6 +166,7 @@
 
     function isProtectedPage(path) {
         if (path.toLowerCase().includes('demo.html')) return false;
+        if (path.toLowerCase().includes('onboarding.html')) return false;
         const protectedPaths = [USER_APP, '/account.html', '/customization.html'];
         return protectedPaths.includes(path) ||
             path.includes('/admin/') ||
