@@ -88,6 +88,8 @@
                     if (userType === 'admin') target = ADMIN_DASHBOARD;
                     else if (userType === 'coach' && (status === 'approved' || status === 'active')) {
                         target = COACH_DASHBOARD;
+                    } else if (userType === 'user' && !data.onboarding_completed) {
+                        target = USER_APP;
                     }
 
                     if (path !== target && !(path === LANDING_PAGE && target === LANDING_PAGE)) {
@@ -132,10 +134,12 @@
                 // 3. UI UPDATE (data-when items)
                 updateRoleUI(isAuthenticated, userType, status, data);
 
-                // 4. ONBOARDING TOUR REDIRECT
+                // 4. ONBOARDING TOUR REDIRECT (Updated for Highlight Tour)
                 if (isAuthenticated && userType === 'user' && !data.onboarding_completed) {
-                    if (!path.includes('demo.html')) {
-                        window.location.replace('/demo.html');
+                    // Do not redirect to demo.html anymore. 
+                    // Let the user load app.html where the tour-manager will start.
+                    if (path.includes('demo.html')) {
+                        window.location.replace(USER_APP);
                         return;
                     }
                 } else if (path.includes('demo.html')) {
