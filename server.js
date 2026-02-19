@@ -2892,7 +2892,86 @@ app.post("/api/coach/respond-request", async (req, res) => {
   }
 });
 
-// 6. Get User Profile for Coach Review
+// 6. Coach: Assign a To-Do to a Student
+app.post("/api/coach/assign-todo", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  const { studentId, text, priority, urgent } = req.body;
+  if (!studentId || !text) return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    // Verify coach-student connection
+    const [conn] = await db.query(
+      "SELECT id FROM user_coach_connections WHERE coach_id = ? AND user_id = ? AND status = 'active'",
+      [coachId, studentId]
+    );
+    if (conn.length === 0) return res.status(403).json({ error: "No active connection with this student" });
+
+    const [result] = await db.query(
+      "INSERT INTO todos (user_id, text, priority, urgent) VALUES (?, ?, ?, ?)",
+      [studentId, text, priority || 'important', urgent || 'urgent']
+    );
+    res.json({ success: true, id: result.insertId, message: "Task assigned to student" });
+  } catch (e) {
+    console.error("Assign todo error:", e);
+    res.status(500).json({ error: "Failed to assign task" });
+  }
+});
+
+// 7. Coach: Assign a Goal to a Student
+app.post("/api/coach/assign-goal", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  const { studentId, text, category, total } = req.body;
+  if (!studentId || !text) return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const [conn] = await db.query(
+      "SELECT id FROM user_coach_connections WHERE coach_id = ? AND user_id = ? AND status = 'active'",
+      [coachId, studentId]
+    );
+    if (conn.length === 0) return res.status(403).json({ error: "No active connection with this student" });
+
+    const [result] = await db.query(
+      "INSERT INTO goals (user_id, text, category, total, spent) VALUES (?, ?, ?, ?, 0)",
+      [studentId, text, category || 'Personal', total || 0]
+    );
+    res.json({ success: true, id: result.insertId, message: "Goal assigned to student" });
+  } catch (e) {
+    console.error("Assign goal error:", e);
+    res.status(500).json({ error: "Failed to assign goal" });
+  }
+});
+
+// 8. Coach: Assign a Reminder to a Student
+app.post("/api/coach/assign-reminder", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  const { studentId, title, when } = req.body;
+  if (!studentId || !title) return res.status(400).json({ error: "Missing fields" });
+
+  try {
+    const [conn] = await db.query(
+      "SELECT id FROM user_coach_connections WHERE coach_id = ? AND user_id = ? AND status = 'active'",
+      [coachId, studentId]
+    );
+    if (conn.length === 0) return res.status(403).json({ error: "No active connection with this student" });
+
+    const [result] = await db.query(
+      "INSERT INTO reminders (user_id, title, when_time) VALUES (?, ?, ?)",
+      [studentId, title, when || null]
+    );
+    res.json({ success: true, id: result.insertId, message: "Reminder assigned to student" });
+  } catch (e) {
+    console.error("Assign reminder error:", e);
+    res.status(500).json({ error: "Failed to assign reminder" });
+  }
+});
+
+// 9. Get User Profile for Coach Review
 app.get("/api/coach/user-profile/:userId", async (req, res) => {
   const coachId = req.session?.coachId;
   if (!coachId) return res.status(401).json({ error: "Not authenticated" });

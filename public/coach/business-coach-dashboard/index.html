@@ -1161,11 +1161,13 @@
             card.className = 'user-card fade-in flex flex-col md:flex-row md:items-center gap-6';
             card.innerHTML = `
                 <div class="flex items-center gap-4 min-w-[240px]">
-                  <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0">
+                  <div onclick="viewUserProfile(${student.id})" 
+                    class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0 cursor-pointer hover:bg-indigo-700 hover:scale-105 transition-all" 
+                    title="Click to manage student">
                     ${student.username.substring(0, 1).toUpperCase()}
                   </div>
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-slate-800 truncate">${student.username}</h4>
+                  <div class="min-w-0 cursor-pointer" onclick="viewUserProfile(${student.id})" title="Click to manage student">
+                    <h4 class="font-bold text-slate-800 truncate hover:text-indigo-600 transition-colors">${student.username}</h4>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">${student.email}</p>
                     <div class="mt-1 flex items-center gap-2">
                        <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[9px] font-black uppercase tracking-wider">Active</span>
@@ -2050,6 +2052,7 @@
         const userPhoto = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user_name_input || user.username)}&background=6366f1&color=fff&size=128`;
         const memberSince = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         const reqDate = booking.requested_time ? new Date(booking.requested_time).toLocaleString() : 'Flexible';
+        const isConnected = booking && booking.booking_goal !== undefined; // has an active connection if booking exists
 
         // Create modal
         const existingModal = document.getElementById('userProfileModal');
@@ -2080,32 +2083,90 @@
               </div>
             </div>
 
-            <!-- Booking Details -->
-            <div class="p-8">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Booking Request</h3>
-              <div class="bg-indigo-50 rounded-3xl p-6 border border-indigo-100 space-y-4">
-                <div>
-                  <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Goal / Reason</p>
-                  <p class="text-sm text-slate-700 font-medium leading-relaxed">"${booking.booking_goal || 'No details provided'}"</p>
-                </div>
-                <div class="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest pt-2 border-t border-indigo-100">
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="tag" class="w-4 h-4 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="users" class="w-4 h-4 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i> ${reqDate}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
-                </div>
+
+            <!-- Student Management Section -->
+            <div class="p-6 border-b border-slate-100">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Assign to Student</h3>
+
+              <!-- Assignment Type Tabs -->
+              <div class="flex gap-2 mb-5 bg-slate-50 p-1 rounded-2xl">
+                <button onclick="switchAssignTab('todo', ${userId})" id="assign-tab-todo"
+                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-indigo-600 text-white transition-all">
+                  <i data-lucide="check-square" class="w-3.5 h-3.5 inline-block mr-1"></i> Task
+                </button>
+                <button onclick="switchAssignTab('goal', ${userId})" id="assign-tab-goal"
+                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all">
+                  <i data-lucide="target" class="w-3.5 h-3.5 inline-block mr-1"></i> Goal
+                </button>
+                <button onclick="switchAssignTab('reminder', ${userId})" id="assign-tab-reminder"
+                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all">
+                  <i data-lucide="bell" class="w-3.5 h-3.5 inline-block mr-1"></i> Reminder
+                </button>
               </div>
+
+              <!-- Task Form -->
+              <div id="assign-panel-todo" class="space-y-3">
+                <input id="assign-todo-text" type="text" placeholder="Task description..." 
+                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <div class="grid grid-cols-2 gap-3">
+                  <select id="assign-todo-priority" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <option value="important">Important</option>
+                    <option value="not_important">Not Important</option>
+                  </select>
+                  <select id="assign-todo-urgent" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <option value="urgent">Urgent</option>
+                    <option value="not_urgent">Not Urgent</option>
+                  </select>
+                </div>
+                <button onclick="assignToStudent('todo', ${userId})"
+                  class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Assign Task
+                </button>
+              </div>
+
+              <!-- Goal Form -->
+              <div id="assign-panel-goal" class="space-y-3 hidden">
+                <input id="assign-goal-text" type="text" placeholder="Goal title..." 
+                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <div class="grid grid-cols-2 gap-3">
+                  <select id="assign-goal-category" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <option value="Personal">Personal</option>
+                    <option value="Career">Career</option>
+                    <option value="Health">Health</option>
+                    <option value="Financial">Financial</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Work">Work</option>
+                  </select>
+                  <input id="assign-goal-total" type="number" placeholder="Target hrs (e.g. 10)" min="0"
+                    class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                </div>
+                <button onclick="assignToStudent('goal', ${userId})"
+                  class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Assign Goal
+                </button>
+              </div>
+
+              <!-- Reminder Form -->
+              <div id="assign-panel-reminder" class="space-y-3 hidden">
+                <input id="assign-reminder-title" type="text" placeholder="Reminder title..." 
+                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <input id="assign-reminder-when" type="datetime-local"
+                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <button onclick="assignToStudent('reminder', ${userId})"
+                  class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Set Reminder
+                </button>
+              </div>
+
+              <!-- Feedback message -->
+              <div id="assign-feedback" class="mt-3 text-xs font-bold text-center hidden"></div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="px-8 pb-8 flex gap-4">
-              <button onclick="respondToRequest(${userId}, 'approve')" 
-                class="flex-1 py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-5 h-5"></i> Approve Request
-              </button>
-              <button onclick="respondToRequest(${userId}, 'reject')" 
-                class="flex-1 py-4 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                <i data-lucide="x-circle" class="w-5 h-5"></i> Decline
+            <!-- Close Button -->
+            <div class="px-6 py-5">
+              <button onclick="closeUserProfileModal()" 
+                class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
+                Done
               </button>
             </div>
           </div>
@@ -2118,6 +2179,79 @@
         console.error("Error loading profile:", e);
         alert('Failed to load user profile');
       }
+    }
+
+    // Switch assignment tab
+    function switchAssignTab(type, userId) {
+      const tabs = ['todo', 'goal', 'reminder'];
+      const colors = { todo: 'bg-indigo-600', goal: 'bg-purple-600', reminder: 'bg-amber-500' };
+      tabs.forEach(t => {
+        const tab = document.getElementById(`assign-tab-${t}`);
+        const panel = document.getElementById(`assign-panel-${t}`);
+        if (t === type) {
+          tab.className = `flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider ${colors[t]} text-white transition-all`;
+          panel.classList.remove('hidden');
+        } else {
+          tab.className = 'flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all';
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    // Assign item to student
+    async function assignToStudent(type, studentId) {
+      const feedback = document.getElementById('assign-feedback');
+      let endpoint, body;
+
+      if (type === 'todo') {
+        const text = document.getElementById('assign-todo-text')?.value?.trim();
+        const priority = document.getElementById('assign-todo-priority')?.value;
+        const urgent = document.getElementById('assign-todo-urgent')?.value;
+        if (!text) { showAssignFeedback('Please enter a task description.', 'error'); return; }
+        endpoint = '/api/coach/assign-todo';
+        body = { studentId, text, priority, urgent };
+      } else if (type === 'goal') {
+        const text = document.getElementById('assign-goal-text')?.value?.trim();
+        const category = document.getElementById('assign-goal-category')?.value;
+        const total = document.getElementById('assign-goal-total')?.value;
+        if (!text) { showAssignFeedback('Please enter a goal title.', 'error'); return; }
+        endpoint = '/api/coach/assign-goal';
+        body = { studentId, text, category, total: parseFloat(total) || 0 };
+      } else if (type === 'reminder') {
+        const title = document.getElementById('assign-reminder-title')?.value?.trim();
+        const when = document.getElementById('assign-reminder-when')?.value;
+        if (!title) { showAssignFeedback('Please enter a reminder title.', 'error'); return; }
+        endpoint = '/api/coach/assign-reminder';
+        body = { studentId, title, when: when || null };
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed');
+
+        // Clear input
+        if (type === 'todo') document.getElementById('assign-todo-text').value = '';
+        if (type === 'goal') { document.getElementById('assign-goal-text').value = ''; document.getElementById('assign-goal-total').value = ''; }
+        if (type === 'reminder') { document.getElementById('assign-reminder-title').value = ''; document.getElementById('assign-reminder-when').value = ''; }
+
+        showAssignFeedback('✓ Successfully assigned to student!', 'success');
+      } catch (e) {
+        showAssignFeedback('Error: ' + e.message, 'error');
+      }
+    }
+
+    function showAssignFeedback(msg, type) {
+      const el = document.getElementById('assign-feedback');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = `mt-3 text-xs font-bold text-center py-2 px-4 rounded-xl ${type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 4000);
     }
 
     function closeUserProfileModal() {
