@@ -1025,110 +1025,16 @@
     }
 
     async function fetchRequests() {
-      try {
-        const res = await fetch('/api/coach/requests');
-        if (!res.ok) throw new Error('Failed to fetch requests');
-        const requests = await res.json();
-
-        // Update Badge
-        const badge = document.getElementById('approval-count');
-        if (badge) {
-          if (requests.length > 0) {
-            badge.textContent = requests.length;
-            badge.classList.remove('hidden');
-          } else {
-            badge.classList.add('hidden');
-          }
-        }
-
-        const container = document.getElementById('approvals-list');
-        const emptyState = document.getElementById('approvals-empty');
-
-        if (requests.length === 0) {
-          if (emptyState) emptyState.classList.remove('hidden');
-          if (container) container.innerHTML = '';
-        } else {
-          if (emptyState) emptyState.classList.add('hidden');
-          if (container) {
-            container.innerHTML = requests.map(req => `
-              <div class="user-card fade-in flex flex-col md:flex-row md:items-center gap-6 border-l-4 border-l-orange-500">
-                <div class="flex items-center gap-4 min-w-[240px]">
-                  <div class="w-14 h-14 rounded-2xl bg-orange-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-100 shrink-0">
-                    ${req.username.substring(0, 1).toUpperCase()}
-                  </div>
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-slate-800 truncate">${req.username}</h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">${req.email}</p>
-                    <div class="mt-1">
-                       <span class="text-[9px] font-black text-orange-600 uppercase tracking-widest">Wants to join you</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase">Received On</span>
-                  </div>
-                  <p class="text-sm font-black text-slate-700">${new Date(req.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                </div>
-
-                <div class="flex items-center gap-2 shrink-0">
-                  <button onclick="viewUserProfile(${req.id})" 
-                    class="p-3 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-2xl transition-all" title="View Full Profile">
-                    <i data-lucide="user" class="w-5 h-5"></i>
-                  </button>
-                  <button onclick="rejectRequest(${req.id})" 
-                    class="px-6 py-3 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-2xl text-xs font-black uppercase tracking-wider transition-all">
-                    Reject
-                  </button>
-                  <button onclick="approveRequest(${req.id})" 
-                    class="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 cursor-pointer">
-                    Approve Request
-                  </button>
-                </div>
-              </div>
-            `).join('');
-            lucide.createIcons();
-          }
-        }
-      } catch (e) {
-        console.error("Error loading requests:", e);
-      }
+      // Delegate to the correct loader
+      await loadPendingRequests();
     }
 
     async function approveRequest(userId) {
-      if (!confirm("Approve this student? They will be added to your client list.")) return;
-      try {
-        const res = await fetch(`/api/coach/requests/${userId}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'active' })
-        });
-        if (!res.ok) throw new Error("Failed to approve");
-        // Refresh
-        fetchRequests();
-        fetchStudents();
-        initCharts(); // Update charts to reflect new data
-        alert("Student approved!");
-      } catch (e) {
-        alert(e.message);
-      }
+      await respondToRequest(userId, 'approve');
     }
 
     async function rejectRequest(userId) {
-      if (!confirm("Reject this request?")) return;
-      try {
-        const res = await fetch(`/api/coach/requests/${userId}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'rejected' })
-        });
-        if (!res.ok) throw new Error("Failed to reject");
-        fetchRequests();
-      } catch (e) {
-        alert(e.message);
-      }
+      await respondToRequest(userId, 'reject');
     }
 
     async function fetchStudents() {
@@ -1964,23 +1870,23 @@
 
         // Update badge
         if (countBadge) {
-          countBadge.textContent = requests.length;
-          if (requests.length > 0) countBadge.classList.remove('hidden');
+          countBadge.textContent = Array.isArray(requests) ? requests.length : 0;
+          if (Array.isArray(requests) && requests.length > 0) countBadge.classList.remove('hidden');
           else countBadge.classList.add('hidden');
         }
 
-        if (requests.length === 0) {
+        if (!Array.isArray(requests) || requests.length === 0) {
           list.innerHTML = `
             <div class="flex flex-col items-center justify-center p-8 text-center opacity-50 space-y-2">
               <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
               <p class="text-[10px] font-black uppercase text-slate-400">No pending requests</p>
             </div>`;
           lucide.createIcons();
-          emptyMsg.classList.remove('hidden');
+          if (emptyMsg) emptyMsg.classList.remove('hidden');
           return;
         }
 
-        emptyMsg.classList.add('hidden');
+        if (emptyMsg) emptyMsg.classList.add('hidden');
         list.innerHTML = '';
 
         requests.forEach(req => {
@@ -1997,37 +1903,44 @@
                 <img src="${userPhoto}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-slate-100">
                 <div>
                   <h4 class="font-black text-slate-800 text-lg">${req.user_name_input || req.username}</h4>
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${req.booking_category || 'General'}</p>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${req.email}</p>
                   <div class="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
-                    ${req.session_type || '1:1 Session'}
+                    ${req.booking_category || 'General'}
                   </div>
                 </div>
               </div>
 
-              <!-- Request Details -->
-              <div class="flex-1 space-y-4">
+              <!-- Booking Message -->
+              <div class="flex-1 space-y-3">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goal / Reason</p>
-                  <p class="text-sm text-slate-600 leading-relaxed font-medium">"${req.booking_goal || 'No details provided'}"</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Their Message</p>
+                  <p class="text-sm text-slate-700 leading-relaxed font-medium">"${req.booking_goal || 'No message provided'}"</p>
                 </div>
-                
                 <div class="flex flex-wrap gap-4">
                   <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
-                    <i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i>
-                    <span>Requested: <span class="text-slate-700">${reqDate}</span></span>
+                    <i data-lucide="layout" class="w-4 h-4 text-indigo-400"></i>
+                    <span>${req.session_type || '1:1 Session'}</span>
                   </div>
                   <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
-                    <i data-lucide="globe" class="w-4 h-4 text-purple-500"></i>
+                    <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
+                    <span>${reqDate}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                    <i data-lucide="globe" class="w-4 h-4 text-purple-400"></i>
                     <span>${req.user_timezone || 'UTC'}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Actions: View Profile Only -->
+              <!-- Actions -->
               <div class="flex flex-col gap-2 min-w-[140px] justify-center">
-                <button onclick="viewUserProfile(${req.user_id})" 
+                <button onclick="respondToRequest(${req.user_id}, 'approve')" 
                   class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
-                  <i data-lucide="eye" class="w-4 h-4"></i> View Profile
+                  <i data-lucide="check-circle" class="w-4 h-4"></i> Approve
+                </button>
+                <button onclick="respondToRequest(${req.user_id}, 'reject')" 
+                  class="w-full py-3 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="x-circle" class="w-4 h-4"></i> Decline
                 </button>
               </div>
             </div>
@@ -2048,11 +1961,10 @@
         if (!res.ok) throw new Error('Failed to load profile');
         const data = await res.json();
 
-        const { user, booking } = data;
+        const { user } = data;
+        const booking = data.booking || {};
         const userPhoto = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user_name_input || user.username)}&background=6366f1&color=fff&size=128`;
         const memberSince = new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        const reqDate = booking.requested_time ? new Date(booking.requested_time).toLocaleString() : 'Flexible';
-        const isConnected = booking && booking.booking_goal !== undefined; // has an active connection if booking exists
 
         // Create modal
         const existingModal = document.getElementById('userProfileModal');

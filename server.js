@@ -2772,7 +2772,14 @@ app.post("/api/book-coach", requireAuth, async (req, res) => {
 
     if (existing.length > 0) {
       if (existing[0].status === 'active') {
-        return res.status(200).json({ success: true, message: "Already connected", status: 'active' });
+        // ALLOW RE-BOOKING for testing: Move status back to pending and update details
+        await db.query(`
+          UPDATE user_coach_connections 
+          SET status = 'pending', booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
+          WHERE user_id = ? AND coach_id = ?
+        `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+
+        return res.json({ success: true, message: "Booking request sent (re-booked for testing)", status: 'pending' });
       }
       if (existing[0].status === 'pending') {
         // Update details even if pending
