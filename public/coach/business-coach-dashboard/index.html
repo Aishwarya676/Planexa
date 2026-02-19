@@ -919,6 +919,39 @@
 
   </main>
 
+  <!-- USER PROFILE PREVIEW MODAL -->
+  <div id="user-profile-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" id="close-profile-modal"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="glass-card relative w-full max-w-2xl transform rounded-[2rem] bg-white p-8 shadow-2xl transition-all">
+        <!-- Close Button -->
+        <button id="close-profile-modal-btn"
+          class="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-600 transition-colors">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <div id="modal-content" class="space-y-8">
+          <!-- Populated by JS -->
+          <div class="animate-pulse space-y-6">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 bg-slate-200 rounded-2xl"></div>
+              <div class="space-y-2">
+                <div class="h-6 bg-slate-200 rounded-lg w-32"></div>
+                <div class="h-4 bg-slate-100 rounded-lg w-48"></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="h-20 bg-slate-50 rounded-2xl"></div>
+              <div class="h-20 bg-slate-50 rounded-2xl"></div>
+              <div class="h-20 bg-slate-50 rounded-2xl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // INITIALIZATION
     document.addEventListener('DOMContentLoaded', () => {
@@ -1041,6 +1074,10 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
+                  <button onclick="viewUserProfile(${req.id})" 
+                    class="p-3 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-2xl transition-all" title="View Full Profile">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                  </button>
                   <button onclick="rejectRequest(${req.id})" 
                     class="px-6 py-3 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-2xl text-xs font-black uppercase tracking-wider transition-all">
                     Reject
@@ -1214,6 +1251,101 @@
         handleAnalyticsFilterChange();
       }
     }
+
+    // USER PROFILE VIEW MODAL LOGIC
+    async function viewUserProfile(userId) {
+      const modal = document.getElementById('user-profile-modal');
+      const content = document.getElementById('modal-content');
+      if (!modal || !content) return;
+
+      // Show modal with loading state
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const res = await fetch(`/api/coach/user-profile/${userId}`);
+        if (!res.ok) throw new Error('Failed to load profile');
+        const data = await res.json();
+
+        const student = data.user;
+        const booking = data.booking || {};
+        const stats = data.stats || {};
+        const photoUrl = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.username)}&background=6366f1&color=fff`;
+
+        content.innerHTML = `
+          <div class="flex flex-col md:flex-row items-center gap-6 pb-6 border-b border-slate-100">
+            <img src="${photoUrl}" class="w-20 h-20 rounded-[2rem] object-cover shadow-xl shadow-indigo-100">
+            <div class="text-center md:text-left">
+              <h3 class="text-2xl font-black text-slate-800">${booking.user_name_input || student.username}</h3>
+              <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">${student.email}</p>
+              <div class="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+                <span class="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-wider">${booking.booking_category || 'General'}</span>
+                <span class="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase tracking-wider">${booking.session_type || 'One-time Session'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="p-4 bg-slate-50 rounded-3xl text-center">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Tasks</p>
+              <p class="text-xl font-black text-slate-800">${stats.totalTasks}</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-3xl text-center">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Completed</p>
+              <p class="text-xl font-black text-green-600">${stats.completedTasks}</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-3xl text-center col-span-2 md:col-span-1">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goals</p>
+              <p class="text-xl font-black text-indigo-600">${stats.totalGoals}</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest">Coaching Message</h4>
+            <div class="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 italic text-slate-600 text-sm leading-relaxed">
+              "${booking.booking_goal || 'No message provided.'}"
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Requested for: <span class="text-slate-800 ml-1 font-black">${booking.requested_time || 'Flexible'}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="closeProfileModal()" class="px-6 py-3 text-slate-400 text-xs font-black uppercase tracking-wider hover:text-slate-600 transition-all">Close</button>
+              <button onclick="approveFromModal(${student.id})" class="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100">Approve Student</button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        content.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-12 text-center text-red-500">
+            <i data-lucide="alert-circle" class="w-12 h-12 mb-4"></i>
+            <p class="font-bold">Error loading user profile</p>
+            <p class="text-xs mt-1 text-slate-400">${err.message}</p>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('user-profile-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    async function approveFromModal(userId) {
+      closeProfileModal();
+      await approveRequest(userId);
+    }
+
+    // Modal listeners
+    document.getElementById('close-profile-modal')?.addEventListener('click', closeProfileModal);
+    document.getElementById('close-profile-modal-btn')?.addEventListener('click', closeProfileModal);
     function openChatWithStudent(id, name) {
       const overlay = document.getElementById('coach-chat-overlay');
       if (overlay && !overlay.classList.contains('opacity-100')) {
