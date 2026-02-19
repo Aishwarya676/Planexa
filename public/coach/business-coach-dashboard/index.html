@@ -1999,88 +1999,125 @@
 
 
             <!-- Student Management Section -->
-            <div class="p-6 border-b border-slate-100">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Assign to Student</h3>
-
-              <!-- Assignment Type Tabs -->
-              <div class="flex gap-2 mb-5 bg-slate-50 p-1 rounded-2xl">
-                <button onclick="switchAssignTab('todo', ${userId})" id="assign-tab-todo"
-                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-indigo-600 text-white transition-all">
-                  <i data-lucide="check-square" class="w-3.5 h-3.5 inline-block mr-1"></i> Task
-                </button>
-                <button onclick="switchAssignTab('goal', ${userId})" id="assign-tab-goal"
-                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all">
-                  <i data-lucide="target" class="w-3.5 h-3.5 inline-block mr-1"></i> Goal
-                </button>
-                <button onclick="switchAssignTab('reminder', ${userId})" id="assign-tab-reminder"
-                  class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all">
-                  <i data-lucide="bell" class="w-3.5 h-3.5 inline-block mr-1"></i> Reminder
-                </button>
-              </div>
-
-              <!-- Task Form -->
-              <div id="assign-panel-todo" class="space-y-3">
-                <input id="assign-todo-text" type="text" placeholder="Task description..." 
-                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <div class="grid grid-cols-2 gap-3">
-                  <select id="assign-todo-priority" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="important">Important</option>
-                    <option value="not_important">Not Important</option>
-                  </select>
-                  <select id="assign-todo-urgent" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="urgent">Urgent</option>
-                    <option value="not_urgent">Not Urgent</option>
-                  </select>
+            <div class="p-8 bg-slate-50/50">
+              <div class="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm overflow-hidden p-8">
+                <div class="flex items-center gap-3 mb-6">
+                  <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">Assign Items</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Send new tasks or goals to this student</p>
+                  </div>
                 </div>
-                <button onclick="assignToStudent('todo', ${userId})"
-                  class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Assign Task
-                </button>
-              </div>
 
-              <!-- Goal Form -->
-              <div id="assign-panel-goal" class="space-y-3 hidden">
-                <input id="assign-goal-text" type="text" placeholder="Goal title..." 
-                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <div class="grid grid-cols-2 gap-3">
-                  <select id="assign-goal-category" class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="Personal">Personal</option>
-                    <option value="Career">Career</option>
-                    <option value="Health">Health</option>
-                    <option value="Financial">Financial</option>
-                    <option value="Academic">Academic</option>
-                    <option value="Work">Work</option>
-                  </select>
-                  <input id="assign-goal-total" type="number" placeholder="Target hrs (e.g. 10)" min="0"
-                    class="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <!-- Assignment Type Tabs (Modern Pill Style) -->
+                <div class="flex p-1 bg-slate-100 rounded-2xl mb-8">
+                  <button onclick="switchAssignTab('todo', ${userId})" id="assign-tab-todo"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-indigo-600 shadow-sm transition-all border border-slate-200/50">
+                    <i data-lucide="check-square" class="w-4 h-4"></i> Task
+                  </button>
+                  <button onclick="switchAssignTab('goal', ${userId})" id="assign-tab-goal"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-500 hover:text-slate-800 transition-all">
+                    <i data-lucide="target" class="w-4 h-4"></i> Goal
+                  </button>
+                  <button onclick="switchAssignTab('reminder', ${userId})" id="assign-tab-reminder"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-500 hover:text-slate-800 transition-all">
+                    <i data-lucide="bell" class="w-4 h-4"></i> Reminder
+                  </button>
                 </div>
-                <button onclick="assignToStudent('goal', ${userId})"
-                  class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Assign Goal
-                </button>
-              </div>
 
-              <!-- Reminder Form -->
-              <div id="assign-panel-reminder" class="space-y-3 hidden">
-                <input id="assign-reminder-title" type="text" placeholder="Reminder title..." 
-                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <input id="assign-reminder-when" type="datetime-local"
-                  class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <button onclick="assignToStudent('reminder', ${userId})"
-                  class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Set Reminder
-                </button>
-              </div>
+                <!-- Form Panels -->
+                <div class="space-y-6">
+                  <!-- Task Form -->
+                  <div id="assign-panel-todo" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Task Details</label>
+                      <input id="assign-todo-text" type="text" placeholder="What needs to be done?" 
+                        class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Priority</label>
+                        <select id="assign-todo-priority" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-50 transition-all">
+                          <option value="important">Important</option>
+                          <option value="not_important">Normal</option>
+                        </select>
+                      </div>
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Urgency</label>
+                        <select id="assign-todo-urgent" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-50 transition-all">
+                          <option value="urgent">Urgent</option>
+                          <option value="not_urgent">Not Urgent</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button onclick="assignToStudent('todo', ${userId})"
+                      class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-2 group">
+                      <i data-lucide="plus" class="w-5 h-5 transition-transform group-hover:rotate-90"></i> Assign Task
+                    </button>
+                  </div>
 
-              <!-- Feedback message -->
-              <div id="assign-feedback" class="mt-3 text-xs font-bold text-center hidden"></div>
+                  <!-- Goal Form -->
+                  <div id="assign-panel-goal" class="space-y-4 hidden h-full animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Goal Objective</label>
+                      <input id="assign-goal-text" type="text" placeholder="Set a big milestone..." 
+                        class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
+                        <select id="assign-goal-category" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-50 transition-all">
+                          <option value="Personal">Personal</option>
+                          <option value="Career">Career</option>
+                          <option value="Health">Health</option>
+                          <option value="Financial">Financial</option>
+                          <option value="Academic">Academic</option>
+                          <option value="Work">Work</option>
+                        </select>
+                      </div>
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Target Hours</label>
+                        <input id="assign-goal-total" type="number" placeholder="e.g. 10" min="0"
+                          class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                      </div>
+                    </div>
+                    <button onclick="assignToStudent('goal', ${userId})"
+                      class="w-full py-5 bg-purple-600 hover:bg-purple-700 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-purple-100 flex items-center justify-center gap-2 group">
+                      <i data-lucide="target" class="w-5 h-5 transition-transform group-hover:scale-110"></i> Assign Goal
+                    </button>
+                  </div>
+
+                  <!-- Reminder Form -->
+                  <div id="assign-panel-reminder" class="space-y-4 hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Reminder Title</label>
+                      <input id="assign-reminder-title" type="text" placeholder="Don't forget to..." 
+                        class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Scheduled Date & Time</label>
+                      <input id="assign-reminder-when" type="datetime-local"
+                        class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 text-base font-bold text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                    </div>
+                    <button onclick="assignToStudent('reminder', ${userId})"
+                      class="w-full py-5 bg-orange-600 hover:bg-orange-700 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-orange-100 flex items-center justify-center gap-2 group">
+                      <i data-lucide="bell" class="w-5 h-5 transition-transform group-hover:animate-shake"></i> Set Reminder
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Feedback area -->
+                <div id="assign-feedback" class="mt-8 text-xs font-black text-center hidden"></div>
+              </div>
             </div>
 
-            <!-- Close Button -->
-            <div class="px-6 py-5">
+            <!-- Modal Footer -->
+            <div class="px-8 py-6 flex justify-center">
               <button onclick="closeUserProfileModal()" 
-                class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
-                Done
+                class="px-12 py-4 bg-slate-900 text-white rounded-[1.8rem] text-[10px] font-black uppercase tracking-widest transition-all hover:bg-black shadow-lg shadow-slate-200">
+                Done & Close
               </button>
             </div>
           </div>
@@ -2098,15 +2135,14 @@
     // Switch assignment tab
     function switchAssignTab(type, userId) {
       const tabs = ['todo', 'goal', 'reminder'];
-      const colors = { todo: 'bg-indigo-600', goal: 'bg-purple-600', reminder: 'bg-amber-500' };
       tabs.forEach(t => {
         const tab = document.getElementById(`assign-tab-${t}`);
         const panel = document.getElementById(`assign-panel-${t}`);
         if (t === type) {
-          tab.className = `flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider ${colors[t]} text-white transition-all`;
+          tab.className = 'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-indigo-600 shadow-sm transition-all border border-slate-200/50';
           panel.classList.remove('hidden');
         } else {
-          tab.className = 'flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 transition-all';
+          tab.className = 'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-500 hover:text-slate-800 transition-all';
           panel.classList.add('hidden');
         }
       });
@@ -2163,9 +2199,13 @@
       const el = document.getElementById('assign-feedback');
       if (!el) return;
       el.textContent = msg;
-      el.className = `mt-3 text-xs font-bold text-center py-2 px-4 rounded-xl ${type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`;
+      el.className = `mt-8 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center animate-in fade-in zoom-in duration-300 ${type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'
+        }`;
       el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), 4000);
+      setTimeout(() => {
+        el.classList.add('animate-out', 'fade-out', 'zoom-out');
+        setTimeout(() => el.classList.add('hidden'), 300)
+      }, 4000);
     }
 
     function closeUserProfileModal() {

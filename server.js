@@ -2919,6 +2919,15 @@ app.post("/api/coach/assign-todo", async (req, res) => {
       "INSERT INTO todos (user_id, text, priority, urgent) VALUES (?, ?, ?, ?)",
       [studentId, text, priority || 'important', urgent || 'urgent']
     );
+
+    // Notification
+    const [coachInfo] = await db.query("SELECT name FROM coaches WHERE id = ?", [coachId]);
+    const coachName = coachInfo[0]?.name || 'Your Coach';
+    await db.query(
+      "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
+      [studentId, "New Task Assigned", `${coachName} assigned a new task: ${text}`]
+    );
+
     res.json({ success: true, id: result.insertId, message: "Task assigned to student" });
   } catch (e) {
     console.error("Assign todo error:", e);
@@ -2945,6 +2954,15 @@ app.post("/api/coach/assign-goal", async (req, res) => {
       "INSERT INTO goals (user_id, text, category, total, spent) VALUES (?, ?, ?, ?, 0)",
       [studentId, text, category || 'Personal', total || 0]
     );
+
+    // Notification
+    const [coachInfo] = await db.query("SELECT name FROM coaches WHERE id = ?", [coachId]);
+    const coachName = coachInfo[0]?.name || 'Your Coach';
+    await db.query(
+      "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
+      [studentId, "New Goal Assigned", `${coachName} assigned a new goal: ${text}`]
+    );
+
     res.json({ success: true, id: result.insertId, message: "Goal assigned to student" });
   } catch (e) {
     console.error("Assign goal error:", e);
@@ -2971,6 +2989,15 @@ app.post("/api/coach/assign-reminder", async (req, res) => {
       "INSERT INTO reminders (user_id, title, when_time) VALUES (?, ?, ?)",
       [studentId, title, when || null]
     );
+
+    // Notification
+    const [coachInfo] = await db.query("SELECT name FROM coaches WHERE id = ?", [coachId]);
+    const coachName = coachInfo[0]?.name || 'Your Coach';
+    await db.query(
+      "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
+      [studentId, "New Reminder Assigned", `${coachName} assigned a new reminder: ${title}`]
+    );
+
     res.json({ success: true, id: result.insertId, message: "Reminder assigned to student" });
   } catch (e) {
     console.error("Assign reminder error:", e);
