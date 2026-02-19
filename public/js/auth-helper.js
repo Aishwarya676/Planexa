@@ -27,7 +27,10 @@
 
     function markJustLoggedOut() {
         try {
+            // Set a flag in sessionStorage that persists across refreshes but not tabs
             sessionStorage.setItem(LOGOUT_FLAG_KEY, String(Date.now()));
+            // Also store in localStorage briefly for cross-tab awareness if needed,
+            // but sessionStorage is primary for the current flow.
         } catch (e) { }
     }
 
@@ -110,14 +113,16 @@
                     // do not bounce them to the login page. Continue backing out of the site instead.
                     if (wasJustLoggedOut()) {
                         console.log('[Auth] Just logged out; preventing redirect to login page on protected route');
-                        if (history.length > 1) history.back();
-                        else window.location.replace(LANDING_PAGE);
+                        // Use replace to overwrite the protected page in history
+                        window.location.replace(LANDING_PAGE);
                         return;
                     }
 
                     // If user pressed back to get here, continue going back instead of redirecting
                     if (isBackNavigation) {
                         console.log('[Auth] Back-navigation detected on protected page, continuing back');
+                        // If they go back into a protected page after logout, 
+                        // we want to skip over it entirely.
                         history.back();
                         return;
                     }

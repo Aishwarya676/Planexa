@@ -189,6 +189,20 @@
                   </div>
                 </button>
 
+                <!-- Demo Tour -->
+                <button id="coach-demo-tour-btn"
+                  class="dropdown-item w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-indigo-50 transition-all group text-left text-indigo-600">
+                  <div
+                    class="w-10 h-10 bg-indigo-50 rounded-xl text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                    <i data-lucide="play-circle" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <span class="block font-black text-slate-800 text-xs uppercase tracking-tight">Demo Tour</span>
+                    <span class="block text-[10px] font-bold text-indigo-400 uppercase leading-none mt-1">Replay
+                      Guide</span>
+                  </div>
+                </button>
+
                 <div class="h-px bg-slate-100 my-2 mx-2"></div>
 
                 <!-- Log Out -->
@@ -221,7 +235,8 @@
 
       <!-- Stats Row -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div class="glass-card stat-card p-6 rounded-3xl" style="--glow-color: rgba(59, 130, 246, 0.15)">
+        <div id="stat-total-clients" class="glass-card stat-card p-6 rounded-3xl"
+          style="--glow-color: rgba(59, 130, 246, 0.15)">
           <div class="flex justify-between items-start">
             <div>
               <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Clients</p>
@@ -236,7 +251,8 @@
           </div>
         </div>
 
-        <div class="glass-card stat-card p-6 rounded-3xl" style="--glow-color: rgba(168, 85, 247, 0.15)">
+        <div id="stat-total-revenue" class="glass-card stat-card p-6 rounded-3xl"
+          style="--glow-color: rgba(168, 85, 247, 0.15)">
           <div class="flex justify-between items-start">
             <div>
               <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Total Revenue</p>
@@ -2360,6 +2376,8 @@
     }
 
   </script>
+  <script src="/js/tour-manager.js"></script>
+  <script src="/js/coach-tour-manager.js"></script>
 </body>
 
 </html>

@@ -122,6 +122,9 @@ app.use((req, res, next) => {
   // Is it a strict login page? (removed '/' and landing pages from this check)
   const isStrictLoginPage = strictLoginPages.has(reqPath);
 
+  // REDUNDANT: Client-side auth-helper.js handles these with window.location.replace
+  // to prevent back-button traps and history bloating. 
+  /*
   if (isStrictLoginPage && isAuthenticated) {
     if (userType === 'admin') return res.redirect("/admin/admin-dashboard.html");
     if (userType === 'coach') {
@@ -136,6 +139,7 @@ app.use((req, res, next) => {
       return res.redirect("/landing.html");
     }
   }
+  */
 
   // ----------------- ROLE-BASED ACCESS CONTROL -----------------
 
@@ -233,6 +237,11 @@ async function ensureOnboardingColumn() {
     const [columns] = await db.query("SHOW COLUMNS FROM users LIKE 'onboarding_completed'");
     if (columns.length === 0) {
       await db.query("ALTER TABLE users ADD COLUMN onboarding_completed TINYINT(1) DEFAULT 0");
+    }
+
+    const [coachColumns] = await db.query("SHOW COLUMNS FROM coaches LIKE 'onboarding_completed'");
+    if (coachColumns.length === 0) {
+      await db.query("ALTER TABLE coaches ADD COLUMN onboarding_completed TINYINT(1) DEFAULT 0");
     }
   } catch (e) {
     console.error('Error ensuring onboarding column:', e);
@@ -335,7 +344,7 @@ app.get("/api/session", async (req, res) => {
       } else if (req.session.coachId) {
         // Coach
         const [rows] = await db.query(
-          "SELECT c.id, c.name, c.email, cd.status FROM coaches c LEFT JOIN coach_details cd ON c.id = cd.user_id WHERE c.id = ?",
+          "SELECT c.id, c.name, c.email, c.onboarding_completed, cd.status FROM coaches c LEFT JOIN coach_details cd ON c.id = cd.user_id WHERE c.id = ?",
           [req.session.coachId]
         );
         if (rows.length > 0) {
@@ -344,6 +353,7 @@ app.get("/api/session", async (req, res) => {
             isAuthenticated: true,
             coachId: coach.id,
             status: coach.status || 'pending_onboarding',
+            onboarding_completed: !!coach.onboarding_completed,
             user: { ...coach, username: coach.name, user_type: 'coach' },
             userType: 'coach'
           });
@@ -3285,10 +3295,12 @@ app.post("/api/user/complete-onboarding", async (req, res) => {
 
   try {
     const userId = req.session.userId;
+    const coachId = req.session.coachId;
     if (userId) {
       await db.query("UPDATE users SET onboarding_completed = 1 WHERE id = ?", [userId]);
+    } else if (coachId) {
+      await db.query("UPDATE coaches SET onboarding_completed = 1 WHERE id = ?", [coachId]);
     }
-    // For coaches, we could also track this if needed, but for now focus on users
     res.json({ success: true });
   } catch (err) {
     console.error("Error completing onboarding:", err);

@@ -10,7 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="./css/styles.css?v=role1" />
-  <script>document.documentElement.style.visibility='hidden';</script>
+  <script>document.documentElement.style.visibility = 'hidden';</script>
   <script src="/js/auth-helper.js?v=navfix2"></script>
   <script>
     // APPLY THEME ONLY IF LOGGED IN
@@ -165,6 +165,7 @@
             <span>Get Started</span>
           </a>
           <a href="/coach/business-coach-dashboard/onboarding.html"
+            onclick="event.preventDefault(); window.location.replace('/coach/business-coach-dashboard/onboarding.html');"
             class="inline-flex items-center px-4 py-2 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 text-white"
             style="background-color: #4f46e5;" onmouseover="this.style.backgroundColor='#6366f1'"
             onmouseout="this.style.backgroundColor='#4f46e5'">

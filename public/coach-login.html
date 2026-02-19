@@ -9,6 +9,29 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="./css/styles.css?v=role1">
+  <script>
+    // Break redirect loops when navigating back after logout
+    (function () {
+      const now = Date.now();
+      const lastVisit = sessionStorage.getItem('coach-login-page-last-visit');
+
+      // If we visited this page less than 2 seconds ago, we're in a loop
+      if (lastVisit && (now - parseInt(lastVisit)) < 2000) {
+        // Break the loop by going back one more time
+        console.log('[Coach Login] Redirect loop detected, breaking by going back');
+        history.back();
+        return;
+      }
+
+      // Record this visit
+      sessionStorage.setItem('coach-login-page-last-visit', now.toString());
+
+      // Clear the timestamp after 3 seconds (means user is staying on login page intentionally)
+      setTimeout(() => {
+        sessionStorage.removeItem('coach-login-page-last-visit');
+      }, 3000);
+    })();
+  </script>
   <script src="/js/auth-helper.js"></script>
   <style>
     :root {
@@ -142,7 +165,8 @@
     <div class="glass-card">
       <!-- Info Pane -->
       <div class="info-side">
-        <a href="./landing.html" class="flex items-center gap-3 mb-12 hover:opacity-80 transition-opacity">
+        <a href="./landing.html" onclick="event.preventDefault(); window.location.replace('./landing.html');"
+          class="flex items-center gap-3 mb-12 hover:opacity-80 transition-opacity">
           <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
             <i data-lucide="rocket" class="w-6 h-6 text-indigo-600"></i>
           </div>
