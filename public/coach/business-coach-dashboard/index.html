@@ -1285,21 +1285,6 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="p-4 bg-slate-50 rounded-3xl text-center">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Tasks</p>
-              <p class="text-xl font-black text-slate-800">${stats.totalTasks}</p>
-            </div>
-            <div class="p-4 bg-slate-50 rounded-3xl text-center">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Completed</p>
-              <p class="text-xl font-black text-green-600">${stats.completedTasks}</p>
-            </div>
-            <div class="p-4 bg-slate-50 rounded-3xl text-center col-span-2 md:col-span-1">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Goals</p>
-              <p class="text-xl font-black text-indigo-600">${stats.totalGoals}</p>
-            </div>
-          </div>
-
           <div class="space-y-4">
             <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest">Coaching Message</h4>
             <div class="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 italic text-slate-600 text-sm leading-relaxed">
@@ -1313,7 +1298,7 @@
             </div>
             <div class="flex gap-2">
               <button onclick="closeProfileModal()" class="px-6 py-3 text-slate-400 text-xs font-black uppercase tracking-wider hover:text-slate-600 transition-all">Close</button>
-              <button onclick="approveFromModal(${student.id})" class="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100">Approve Student</button>
+              <button onclick="approveFromModal(${student.id})" class="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all shadow-lg shadow-indigo-100">Approve Request</button>
             </div>
           </div>
         `;
