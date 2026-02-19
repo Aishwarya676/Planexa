@@ -1240,10 +1240,13 @@
     document.getElementById('close-profile-modal')?.addEventListener('click', closeProfileModal);
     document.getElementById('close-profile-modal-btn')?.addEventListener('click', closeProfileModal);
     function openChatWithStudent(id, name) {
-      const overlay = document.getElementById('coach-chat-overlay');
-      if (overlay && !overlay.classList.contains('opacity-100')) {
-        toggleCoachChat();
+      // Switch to Messages Tab
+      const messageTabBtn = document.querySelector('[data-tab="messages"]');
+      if (messageTabBtn) {
+        messageTabBtn.click();
       }
+
+      // Select the specific student in chat
       selectChatUser({ id, username: name });
     }
 
