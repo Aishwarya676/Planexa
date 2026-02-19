@@ -55,7 +55,6 @@
     }
 
     .glass-card:hover {
-      transform: translateY(-4px) scale(1.01);
       box-shadow: 0 20px 40px -10px rgba(31, 38, 135, 0.15);
       background: rgba(255, 255, 255, 0.85);
     }
@@ -135,7 +134,7 @@
             <button id="coach-profile-btn"
               class="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10 group">
               <div id="nav-profile-img-container"
-                class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform overflow-hidden">
+                class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 transition-transform overflow-hidden">
                 <i data-lucide="user" class="w-4 h-4"></i>
               </div>
               <span class="font-black text-white text-xs uppercase tracking-widest hidden sm:block">Profile</span>
@@ -1068,7 +1067,7 @@
             card.innerHTML = `
                 <div class="flex items-center gap-4 min-w-[240px]">
                   <div onclick="viewUserProfile(${student.id})" 
-                    class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0 cursor-pointer hover:bg-indigo-700 hover:scale-105 transition-all" 
+                    class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0 cursor-pointer hover:bg-indigo-700 transition-all" 
                     title="Click to manage student">
                     ${student.username.substring(0, 1).toUpperCase()}
                   </div>
@@ -1758,11 +1757,11 @@
           const isActive = activeChatUser?.id === student.id;
           const div = document.createElement('div');
           div.className = `p-4 flex items-center gap-4 cursor-pointer transition-all rounded-2xl group ${isActive
-            ? 'bg-white shadow-xl shadow-indigo-100/50 border border-slate-100 translate-x-1'
-            : 'hover:bg-white/60 hover:translate-x-1'}`;
+            ? 'bg-white shadow-xl shadow-indigo-100/50 border border-slate-100'
+            : 'hover:bg-white/60'}`;
 
           div.innerHTML = `
-            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors group-hover:scale-105">
+            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors">
               ${student.username.charAt(0).toUpperCase()}
             </div>
             <div class="flex-1 min-w-0">
@@ -1772,7 +1771,7 @@
               </div>
               <p class="text-[10px] font-bold text-slate-400 truncate tracking-tight uppercase">Platform User</p>
             </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 transition-transform group-hover:translate-x-1"></i>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 transition-transform"></i>
           `;
           div.onclick = () => selectChatUser(student);
           list.appendChild(div);
