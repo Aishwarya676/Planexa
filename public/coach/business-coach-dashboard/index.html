@@ -1252,6 +1252,82 @@
       }
     }
 
+    // USER PROFILE VIEW MODAL LOGIC
+    async function viewUserProfile(userId) {
+      const modal = document.getElementById('user-profile-modal');
+      const content = document.getElementById('modal-content');
+      if (!modal || !content) return;
+
+      // Show modal with loading state
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const res = await fetch(`/api/coach/user-profile/${userId}`);
+        if (!res.ok) throw new Error('Failed to load profile');
+        const data = await res.json();
+
+        const student = data.user;
+        const booking = data.booking || {};
+        const stats = data.stats || {};
+        const photoUrl = booking.user_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.username)}&background=6366f1&color=fff`;
+
+        content.innerHTML = `
+          <div class="flex flex-col md:flex-row items-center gap-6 pb-6 border-b border-slate-100">
+            <img src="${photoUrl}" class="w-20 h-20 rounded-[2rem] object-cover shadow-xl shadow-indigo-100">
+            <div class="text-center md:text-left">
+              <h3 class="text-2xl font-black text-slate-800">${booking.user_name_input || student.username}</h3>
+              <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">${student.email}</p>
+              <div class="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+                <span class="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-wider">${booking.booking_category || 'General'}</span>
+                <span class="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black uppercase tracking-wider">${booking.session_type || 'One-time Session'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest">Coaching Message</h4>
+            <div class="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 italic text-slate-600 text-sm leading-relaxed">
+              "${booking.booking_goal || 'No message provided.'}"
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Requested for: <span class="text-slate-800 ml-1 font-black">${booking.requested_time || 'Flexible'}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="closeProfileModal()" class="px-6 py-3 text-slate-400 text-xs font-black uppercase tracking-wider hover:text-slate-600 transition-all">Close</button>
+              <button onclick="approveFromModal(${student.id})" class="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all shadow-lg shadow-indigo-100">Approve Request</button>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        content.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-12 text-center text-red-500">
+            <i data-lucide="alert-circle" class="w-12 h-12 mb-4"></i>
+            <p class="font-bold">Error loading user profile</p>
+            <p class="text-xs mt-1 text-slate-400">${err.message}</p>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('user-profile-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    async function approveFromModal(userId) {
+      closeProfileModal();
+      await approveRequest(userId);
+    }
+
     // Modal listeners
     document.getElementById('close-profile-modal')?.addEventListener('click', closeProfileModal);
     document.getElementById('close-profile-modal-btn')?.addEventListener('click', closeProfileModal);
@@ -2035,31 +2111,59 @@
               </div>
             </div>
 
+            <!-- Stats Row -->
+            <div class="grid grid-cols-3 gap-4 p-6 -mt-4">
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-indigo-600">${stats.totalTasks}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tasks</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-green-600">${completionRate}%</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 text-center">
+                <p class="text-2xl font-black text-purple-600">${stats.totalGoals}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Goals</p>
+              </div>
+            </div>
+
             <!-- Booking Details -->
-            <div class="p-8">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Booking Request</h3>
-              <div class="bg-indigo-50 rounded-3xl p-6 border border-indigo-100 space-y-4">
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Booking Request</h3>
+              <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
                 <div>
-                  <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Goal / Reason</p>
-                  <p class="text-sm text-slate-700 font-medium leading-relaxed">"${booking.booking_goal || 'No details provided'}"</p>
+                  <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Goal / Reason</p>
+                  <p class="text-sm text-slate-700 font-medium">"${booking.booking_goal || 'No details provided'}"</p>
                 </div>
-                <div class="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest pt-2 border-t border-indigo-100">
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="tag" class="w-4 h-4 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="users" class="w-4 h-4 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i> ${reqDate}</span>
-                  <span class="inline-flex items-center gap-2 text-slate-500"><i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
+                <div class="flex flex-wrap gap-4 text-xs font-bold">
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="tag" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.booking_category || 'General'}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="users" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.session_type || '1:1'}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i> ${reqDate}</span>
+                  <span class="inline-flex items-center gap-1.5 text-slate-500"><i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-500"></i> ${booking.user_timezone || 'UTC'}</span>
                 </div>
               </div>
             </div>
 
+            <!-- Goals -->
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Goals</h3>
+              <div class="bg-white rounded-2xl p-4 border border-slate-100">${goalsHtml}</div>
+            </div>
+
+            <!-- Recent Tasks -->
+            <div class="px-6 pb-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Recent Tasks</h3>
+              <div class="bg-white rounded-2xl p-4 border border-slate-100">${tasksHtml}</div>
+            </div>
+
             <!-- Action Buttons -->
-            <div class="px-8 pb-8 flex gap-4">
+            <div class="px-6 pb-8 flex gap-3">
               <button onclick="respondToRequest(${userId}, 'approve')" 
-                class="flex-1 py-4 bg-indigo-600 hover:bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-5 h-5"></i> Approve Request
+                class="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i> Approve
               </button>
               <button onclick="respondToRequest(${userId}, 'reject')" 
-                class="flex-1 py-4 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                class="flex-1 py-4 bg-white border-2 border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-2xl text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                 <i data-lucide="x-circle" class="w-5 h-5"></i> Decline
               </button>
             </div>
@@ -2156,8 +2260,8 @@
         if (prodBadge) {
           prodBadge.textContent = `Productivity: ${percentage}%`;
           prodBadge.className = `px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border shadow-sm shadow-emerald-100/50 ${percentage >= 70 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-              percentage >= 40 ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                'bg-orange-50 text-orange-600 border-orange-100'
+            percentage >= 40 ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+              'bg-orange-50 text-orange-600 border-orange-100'
             }`;
         }
 
