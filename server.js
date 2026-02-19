@@ -801,8 +801,94 @@ app.get("/api/coach/me", async (req, res) => {
       ...profile
     });
   } catch (e) {
-    console.error('coach/me error:', e);
-    return res.status(500).json({ error: "Failed to fetch coach" });
+    console.error("Error fetching coach profile:", e);
+    return res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+/* ---------------- COACH ANALYTICS ---------------- */
+app.get("/api/coach/analytics/clients", async (req, res) => {
+  try {
+    if (!req.session || !req.session.coachId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const coachId = req.session.coachId;
+
+    // 1. Get all active connected clients
+    const [clients] = await db.query(
+      `SELECT u.id, u.username, u.email 
+       FROM users u
+       JOIN user_coach_connections ucc ON u.id = ucc.user_id
+       WHERE ucc.coach_id = ? AND ucc.status = 'active'`,
+      [coachId]
+    );
+
+    if (clients.length === 0) {
+      return res.json([]);
+    }
+
+    // 2. For each client, fetch analytics
+    const analyticsData = await Promise.all(clients.map(async (client) => {
+      // Fetch Todos Stats
+      const [todos] = await db.query(
+        `SELECT 
+           COUNT(*) as total,
+           SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed
+         FROM todos 
+         WHERE user_id = ?`,
+        [client.id]
+      );
+
+      // Fetch Goals Stats & Details
+      const [goalsStats] = await db.query(
+        `SELECT 
+           COUNT(*) as total,
+           SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed
+         FROM goals 
+         WHERE user_id = ?`,
+        [client.id]
+      );
+
+      const [activeGoals] = await db.query(
+        `SELECT id, text, category, total, spent, done 
+         FROM goals 
+         WHERE user_id = ? AND done = 0`,
+        [client.id]
+      );
+
+      // Fetch Weekly Task Completion (Last 7 Days)
+      const [weeklyStats] = await db.query(
+        `SELECT DATE(completed_at) as date, COUNT(*) as count 
+         FROM todos 
+         WHERE user_id = ? AND done = 1 AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+         GROUP BY DATE(completed_at)
+         ORDER BY date ASC`,
+        [client.id]
+      );
+
+      return {
+        userId: client.id,
+        name: client.username || client.email.split('@')[0], // Fallback name
+        email: client.email,
+        todos: {
+          total: todos[0].total || 0,
+          completed: Math.floor(todos[0].completed || 0), // Ensure number
+          weekly: weeklyStats // Return the raw date/count data
+        },
+        goals: {
+          total: goalsStats[0].total || 0,
+          completed: Math.floor(goalsStats[0].completed || 0), // Ensure number
+          active: activeGoals
+        }
+      };
+    }));
+
+    res.json(analyticsData);
+
+  } catch (e) {
+    console.error("Error fetching client analytics:", e);
+    res.status(500).json({ error: "Failed to fetch analytics" });
   }
 });
 
@@ -1929,6 +2015,7 @@ app.post("/api/todos", requireAuth, async (req, res) => {
       "INSERT INTO todos (user_id, text, priority, urgent) VALUES (?, ?, ?, ?)",
       [req.userId, text, priority, urgent]
     );
+    notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
     res.json({ id: result.insertId, text, priority, urgent, done: 0 });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1943,6 +2030,7 @@ app.put("/api/todos/:id", requireAuth, async (req, res) => {
       "UPDATE todos SET done = ?, completed_at = ? WHERE id = ? AND user_id = ?",
       [done ? 1 : 0, completedAt, req.params.id, req.userId]
     );
+    notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1954,6 +2042,7 @@ app.get("/api/user/analytics", requireAuth, analyticsController.getUserAnalytics
 app.delete("/api/todos/:id", requireAuth, async (req, res) => {
   try {
     await db.query("DELETE FROM todos WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
+    notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2061,6 +2150,7 @@ app.post("/api/goals", requireAuth, async (req, res) => {
       "INSERT INTO goals (user_id, text, category, total, spent) VALUES (?, ?, ?, ?, ?)",
       [req.userId, text, category, total, spent]
     );
+    notifyStudentUpdate(req.userId, 'goal'); // Notify Coach
     res.json({ id: result.insertId, text, category, total, spent, done: 0 });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2074,6 +2164,7 @@ app.put("/api/goals/:id", requireAuth, async (req, res) => {
       "UPDATE goals SET spent = ? WHERE id = ? AND user_id = ?",
       [spent, req.params.id, req.userId]
     );
+    notifyStudentUpdate(req.userId, 'goal'); // Notify Coach
     res.json({ success: true, spent });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2083,6 +2174,7 @@ app.put("/api/goals/:id", requireAuth, async (req, res) => {
 app.delete("/api/goals/:id", requireAuth, async (req, res) => {
   try {
     await db.query("DELETE FROM goals WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
+    notifyStudentUpdate(req.userId, 'goal'); // Notify Coach
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2965,22 +3057,62 @@ app.get("/api/coach/student/:id/analytics", async (req, res) => {
     // 1. Basic Stats
     const [tasksCompleted] = await db.query("SELECT COUNT(*) as count FROM todos WHERE user_id = ? AND done = 1", [studentId]);
     const [allTodos] = await db.query("SELECT COUNT(*) as count FROM todos WHERE user_id = ?", [studentId]);
-    const [goals] = await db.query("SELECT category, total, spent, text FROM goals WHERE user_id = ?", [studentId]);
+    const [goals] = await db.query("SELECT category, total, spent, text, done, created_at FROM goals WHERE user_id = ?", [studentId]);
 
     // 2. Historical Task Data (Last 7 Days)
     const [taskHistory] = await db.query(`
-      SELECT DATE(created_at) as date, COUNT(*) as count
+      SELECT DATE(COALESCE(completed_at, created_at)) as date, COUNT(*) as count
       FROM todos
-      WHERE user_id = ? AND done = 1 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at) ASC
+      WHERE user_id = ? 
+        AND done = 1
+        AND COALESCE(completed_at, created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+      GROUP BY DATE(COALESCE(completed_at, created_at))
+      ORDER BY DATE(COALESCE(completed_at, created_at)) ASC
     `, [studentId]);
 
+    // 3. Weekly Goals (Completed this week vs Total active this week)
+    const [weeklyGoals] = await db.query(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN done = 1 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as completed_this_week,
+        SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as total_completed
+      FROM goals 
+      WHERE user_id = ? AND (done = 0 OR created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY))
+    `, [studentId]);
+
+    // 4. Most Active Day Calculation
+    const [activeDayRows] = await db.query(`
+      SELECT DAYNAME(COALESCE(completed_at, created_at)) as day_name, COUNT(*) as count
+      FROM todos
+      WHERE user_id = ? AND done = 1
+      GROUP BY day_name
+      ORDER BY count DESC
+      LIMIT 1
+    `, [studentId]);
+
+    const mostActiveDay = activeDayRows.length > 0 ? activeDayRows[0].day_name : 'No activity';
+
+    // 5. Completion Percentages
+    const totalTasks = allTodos[0].count;
+    const completedTasksNum = tasksCompleted[0].count;
+    const tasksPercLeft = totalTasks > 0 ? Math.round(((totalTasks - completedTasksNum) / totalTasks) * 100) : 0;
+
+    const totalGoalsCount = goals.length;
+    const completedGoalsCount = goals.filter(g => g.done === 1).length;
+    const goalsPercLeft = totalGoalsCount > 0 ? Math.round(((totalGoalsCount - completedGoalsCount) / totalGoalsCount) * 100) : 0;
+
     res.json({
-      tasksCompleted: tasksCompleted[0].count,
-      totalTasks: allTodos[0].count,
+      tasksCompleted: completedTasksNum,
+      totalTasks: totalTasks,
+      tasksPercLeft,
+      goalsPercLeft,
       goals: goals,
-      taskHistory: taskHistory
+      taskHistory: taskHistory,
+      weeklyGoals: {
+        total: weeklyGoals[0].total || 0,
+        completed: weeklyGoals[0].completed_this_week || 0
+      },
+      mostActiveDay
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -3001,31 +3133,31 @@ app.get("/api/coach/analytics", async (req, res) => {
     // If we want "New Active Clients", maybe we should track `updated_at` when status changed?
     // For simplicity, let's just use `created_at` but only for those currently active.
     const [growth] = await db.query(`
-      SELECT DATE_FORMAT(created_at, '%b') as month, COUNT(*) as count
+      SELECT DATE_FORMAT(MIN(created_at), '%b') as month, COUNT(*) as count
       FROM user_coach_connections
       WHERE coach_id = ? AND status = 'active'
-      GROUP BY MONTH(created_at)
-      ORDER BY MONTH(created_at) ASC
+      GROUP BY YEAR(created_at), MONTH(created_at)
+      ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC
     `, [coachId]);
 
     // Aggregate Student Performance (Active students only)
     const [performance] = await db.query(`
-      SELECT DATE_FORMAT(t.created_at, '%b') as month, COUNT(*) as count
+      SELECT DATE_FORMAT(MIN(t.created_at), '%b') as month, COUNT(*) as count
       FROM todos t
       JOIN user_coach_connections ucc ON t.user_id = ucc.user_id
       WHERE ucc.coach_id = ? AND t.done = 1 AND ucc.status = 'active'
-      GROUP BY MONTH(t.created_at)
-      ORDER BY MONTH(t.created_at) ASC
+      GROUP BY YEAR(t.created_at), MONTH(t.created_at)
+      ORDER BY YEAR(t.created_at) ASC, MONTH(t.created_at) ASC
     `, [coachId]);
 
     // Aggregate Student Goals (Active students only)
     const [goalPerformance] = await db.query(`
-      SELECT DATE_FORMAT(g.created_at, '%b') as month, COUNT(*) as count
+      SELECT DATE_FORMAT(MIN(g.created_at), '%b') as month, COUNT(*) as count
       FROM goals g
       JOIN user_coach_connections ucc ON g.user_id = ucc.user_id
       WHERE ucc.coach_id = ? AND ucc.status = 'active'
-      GROUP BY MONTH(g.created_at)
-      ORDER BY MONTH(g.created_at) ASC
+      GROUP BY YEAR(g.created_at), MONTH(g.created_at)
+      ORDER BY YEAR(g.created_at) ASC, MONTH(g.created_at) ASC
     `, [coachId]);
 
     res.json({
@@ -3035,7 +3167,65 @@ app.get("/api/coach/analytics", async (req, res) => {
       goalPerformance: goalPerformance
     });
   } catch (e) {
+    console.error("Coach Analytics Error:", e);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// 6. Get Client-Specific Analytics (For individual graphs)
+app.get("/api/coach/analytics/clients", async (req, res) => {
+  const coachId = req.session?.coachId;
+  if (!coachId) return res.status(401).json({ error: "Not authenticated as coach" });
+
+  try {
+    // Get all active students
+    const [students] = await db.query(`
+      SELECT u.id, u.username, u.name 
+      FROM user_coach_connections ucc
+      JOIN users u ON ucc.user_id = u.id
+      WHERE ucc.coach_id = ? AND ucc.status = 'active'
+    `, [coachId]);
+
+    const analyticsData = await Promise.all(students.map(async (student) => {
+      // Task Stats
+      const [todos] = await db.query(`
+        SELECT 
+          COUNT(*) as total, 
+          SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed 
+        FROM todos WHERE user_id = ?
+      `, [student.id]);
+
+      // Weekly Activity (Last 7 Days)
+      const [weekly] = await db.query(`
+        SELECT DATE(completed_at) as date, COUNT(*) as count
+        FROM todos
+        WHERE user_id = ? AND done = 1 AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        GROUP BY DATE(completed_at)
+      `, [student.id]);
+
+      // Active Goals
+      const [goals] = await db.query(`
+        SELECT text, total, spent FROM goals WHERE user_id = ? AND done = 0
+      `, [student.id]);
+
+      return {
+        userId: student.id,
+        name: student.name || student.username,
+        todos: {
+          total: todos[0].total || 0,
+          completed: todos[0].completed || 0,
+          weekly: weekly // [{ date: '2023-01-01', count: 5 }]
+        },
+        goals: {
+          active: goals
+        }
+      };
+    }));
+
+    res.json(analyticsData);
+  } catch (e) {
+    console.error("Client analytics error:", e);
+    res.status(500).json({ error: "Failed to fetch client analytics" });
   }
 });
 
@@ -3475,8 +3665,72 @@ async function migrateNotificationSchema() {
 }
 migrateNotificationSchema();
 
+async function notifyStudentUpdate(studentId, type) {
+  try {
+    const [coaches] = await db.query(
+      "SELECT coach_id FROM user_coach_connections WHERE user_id = ? AND status = 'active'",
+      [studentId]
+    );
+    coaches.forEach(c => {
+      io.to(`coach_${c.coach_id}`).emit('student_update', { studentId, type });
+    });
+  } catch (e) {
+    console.error("Socket notification error:", e);
+  }
+}
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
+// Coach: Get specific student analytics
+app.get("/api/coach/student-analytics/:studentId", requireAnyAuth, async (req, res) => {
+  try {
+    const coachId = req.session.coachId || req.session.userId;
+    const studentId = req.params.studentId;
+
+    if (!coachId) return res.status(401).json({ error: "Unauthorized" });
+
+    // Verify connection exists
+    const [conn] = await db.query(
+      "SELECT status FROM user_coach_connections WHERE user_id = ? AND coach_id = ? AND status = 'active'",
+      [studentId, coachId]
+    );
+
+    if (conn.length === 0) {
+      return res.status(403).json({ error: "No active coaching connection with this student" });
+    }
+
+    // 1. Fetch Student Goals
+    const [goals] = await db.query(
+      "SELECT text, category, total, spent, done, created_at FROM goals WHERE user_id = ? ORDER BY created_at DESC",
+      [studentId]
+    );
+
+    // 2. Fetch Recent Tasks (Last 5)
+    const [recentTasks] = await db.query(
+      "SELECT text, priority, done, completed_at, created_at FROM todos WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+      [studentId]
+    );
+
+    // 3. Simple Stats
+    const [todoStats] = await db.query(
+      "SELECT COUNT(*) as total, SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed FROM todos WHERE user_id = ?",
+      [studentId]
+    );
+
+    res.json({
+      goals: goals,
+      recentTasks: recentTasks,
+      stats: {
+        totalTasks: todoStats[0].total,
+        completedTasks: todoStats[0].completed
+      }
+    });
+
+  } catch (e) {
+    console.error("Coach analytics error:", e);
+    res.status(500).json({ error: "Failed to fetch student analytics" });
+  }
+});
 
 /* ---------------- ADMIN COACH MANAGEMENT ---------------- */
 
