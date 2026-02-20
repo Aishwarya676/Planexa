@@ -121,11 +121,15 @@ const siteAccessMiddleware = (req, res, next) => {
     return next();
   }
 
-  // Check for site access in session OR signed cookie
-  const hasSessionAccess = req.session && req.session.hasSiteAccess;
+  // Check for site access in signed cookie OR session
   const hasCookieAccess = req.signedCookies && req.signedCookies.hasSiteAccess === 'true';
+  const hasSessionAccess = req.session && req.session.hasSiteAccess;
 
-  if (hasSessionAccess || hasCookieAccess) {
+  if (hasCookieAccess || hasSessionAccess) {
+    // Restore session flag from cookie so session-based checks also pass
+    if (hasCookieAccess && req.session && !req.session.hasSiteAccess) {
+      req.session.hasSiteAccess = true;
+    }
     return next();
   }
 
@@ -1626,7 +1630,8 @@ app.post("/api/logout", async (req, res) => {
   }
 
   req.session.destroy(() => {
-    res.clearCookie("connect.sid");
+    res.clearCookie("connect.sid"); // Only clear the auth session cookie
+    // DO NOT clear hasSiteAccess cookie - user should not need to re-enter site password after logout
     res.json({ success: true });
   });
 });
