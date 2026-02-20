@@ -16,6 +16,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 // Define allowed origins
 const allowedOrigins = [
@@ -96,7 +97,7 @@ const siteAccessMiddleware = (req, res, next) => {
   const reqPath = req.path;
 
   // Exclude static assets, the access page, and the check API
-  const isPublicAsset = reqPath.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf)$/i);
+  const isPublicAsset = reqPath.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf|favicon\.ico)$/i);
   const isAccessPage = reqPath === '/site-access.html';
   const isCheckApi = reqPath === '/api/check-site-password';
 
@@ -574,7 +575,14 @@ app.post("/api/check-site-password", (req, res) => {
   if (password === sitePassword) {
     if (req.session) {
       req.session.hasSiteAccess = true;
-      return res.json({ success: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        res.json({ success: true });
+      });
+      return;
     } else {
       return res.status(500).json({ error: "Session not initialized" });
     }
