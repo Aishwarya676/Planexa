@@ -78,10 +78,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
+    proxy: true,
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === 'production' || process.env.DB_HOST !== 'localhost',
     },
   })
 );
