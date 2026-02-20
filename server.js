@@ -75,14 +75,14 @@ const sessionStore = new MySQLStore({
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: sessionStore,
     proxy: true,
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === 'production' || process.env.DB_HOST !== 'localhost',
+      secure: false, // temporarily false to ensure cookie is accepted regardless of proxy header config
     },
   })
 );
