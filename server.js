@@ -81,7 +81,6 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
       secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -91,7 +90,31 @@ const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-star
 const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
-// Coach pages could be added here later
+
+/* ---------------- Site Access Middleware ---------------- */
+const siteAccessMiddleware = (req, res, next) => {
+  const reqPath = req.path;
+
+  // Exclude static assets, the access page, and the check API
+  const isPublicAsset = reqPath.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf)$/i);
+  const isAccessPage = reqPath === '/site-access.html';
+  const isCheckApi = reqPath === '/api/check-site-password';
+
+  if (isPublicAsset || isAccessPage || isCheckApi) {
+    return next();
+  }
+
+  // Check for site access in session
+  if (req.session && req.session.hasSiteAccess) {
+    return next();
+  }
+
+  // Redirect to password wall
+  const query = reqPath !== '/' ? `?next=${encodeURIComponent(reqPath)}` : '';
+  res.redirect(`/site-access.html${query}`);
+};
+
+app.use(siteAccessMiddleware);
 
 app.use((req, res, next) => {
   const reqPath = req.path;
@@ -250,6 +273,51 @@ async function ensureOnboardingColumn() {
 ensureOnboardingColumn();
 fixCoachSchema();
 ensureCoachesTable();
+ensureFeedbackTable();
+ensureAnnouncementsTable();
+
+async function ensureAnnouncementsTable() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS coach_announcements (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        coach_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        start_datetime DATETIME NOT NULL,
+        end_datetime DATETIME NOT NULL,
+        timezone VARCHAR(100) NOT NULL,
+        visibility ENUM('public', 'private') DEFAULT 'private',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB
+    `);
+    console.log("Coach announcements table ensured");
+  } catch (e) {
+    console.error("Error ensuring announcements table:", e);
+  }
+}
+
+async function ensureFeedbackTable() {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS website_feedback (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        user_type VARCHAR(50) NULL,
+        good_points TEXT,
+        bad_points TEXT,
+        helpful_ui TEXT,
+        not_working TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB
+    `);
+    console.log("Feedback table ensured");
+  } catch (e) {
+    console.error("Error ensuring feedback table:", e);
+  }
+}
+
 async function ensureCoachesTable() {
   if (coachesTableEnsured) return;
   try {
@@ -498,6 +566,44 @@ app.get("/api/admin/stats", async (req, res) => {
   }
 });
 
+/* ---------------- Site Password Check API ---------------- */
+app.post("/api/check-site-password", (req, res) => {
+  const { password } = req.body;
+  const sitePassword = process.env.SITE_PASSWORD || "51}Thl51[Nj";
+
+  if (password === sitePassword) {
+    if (req.session) {
+      req.session.hasSiteAccess = true;
+      return res.json({ success: true });
+    } else {
+      return res.status(500).json({ error: "Session not initialized" });
+    }
+  }
+
+  res.status(401).json({ success: false, error: "Incorrect password" });
+});
+
+/*
+// Feedback API
+app.post("/api/feedback", async (req, res) => {
+  try {
+    const { goodPoints, badPoints, helpfulUI, notWorking } = req.body;
+    const userId = req.session?.userId || req.session?.coachId || null;
+    const userType = req.session?.userType || (req.session?.coachId ? "coach" : "user");
+
+    await db.query(
+      "INSERT INTO website_feedback (user_id, user_type, good_points, bad_points, helpful_ui, not_working) VALUES (?, ?, ?, ?, ?, ?)",
+      [userId, userType, goodPoints, badPoints, helpfulUI, notWorking]
+    );
+
+    res.json({ success: true, message: "Feedback submitted successfully" });
+  } catch (e) {
+    console.error("Error submitting feedback:", e);
+    res.status(500).json({ error: "Failed to submit feedback" });
+  }
+});
+*/
+
 // Get all users (admin only)
 app.get("/api/admin/users", async (req, res) => {
   try {
@@ -566,6 +672,33 @@ app.post("/api/admin/users/:id/status", async (req, res) => {
     res.status(500).json({ error: "Failed to update status" });
   }
 });
+
+/*
+// GET Website Feedback (Admin Only)
+app.get("/api/admin/feedback", async (req, res) => {
+  try {
+    if (!req.session.userId) return res.status(401).json({ error: "Not authenticated" });
+
+    let isAdmin = req.session.isAdmin;
+    if (!isAdmin) {
+      const [u] = await db.query("SELECT user_type FROM users WHERE id = ?", [req.session.userId]);
+      if (u.length > 0 && u[0].user_type === 'admin') isAdmin = true;
+    }
+    if (!isAdmin) return res.status(403).json({ error: "Unauthorized" });
+
+    const [rows] = await db.query(`
+      SELECT f.*, u.username, u.email as user_email 
+      FROM website_feedback f 
+      LEFT JOIN users u ON f.user_id = u.id AND f.user_type = 'user'
+      ORDER BY f.created_at DESC
+    `);
+    res.json(rows);
+  } catch (e) {
+    console.error("Error fetching feedback:", e);
+    res.status(500).json({ error: "Failed to fetch feedback" });
+  }
+});
+*/
 
 // Delete user
 app.delete("/api/admin/users/:id", async (req, res) => {
@@ -787,6 +920,73 @@ app.post("/api/coach/login", async (req, res) => {
   } catch (e) {
     console.error('Coach login error:', e);
     return res.status(500).json({ error: "Login failed" });
+  }
+});
+
+/* ---------------- COACH ANNOUNCEMENTS ---------------- */
+app.post("/api/coach/announcements", async (req, res) => {
+  try {
+    if (!req.session.coachId) {
+      return res.status(401).json({ error: "Unauthorized. Coach only." });
+    }
+
+    const { title, description, start_datetime, end_datetime, timezone, visibility } = req.body;
+    if (!title || !start_datetime || !end_datetime || !timezone) {
+      return res.status(400).json({ error: "Required fields missing" });
+    }
+
+    const coachId = req.session.coachId;
+
+    // 1. Save to coach_announcements
+    const [result] = await db.query(
+      "INSERT INTO coach_announcements (coach_id, title, description, start_datetime, end_datetime, timezone, visibility) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [coachId, title, description, start_datetime, end_datetime, timezone, visibility || 'private']
+    );
+
+    const announcementId = result.insertId;
+
+    // 2. Notify Users
+    let targetUserIds = [];
+    if (visibility === 'public') {
+      const [allUsers] = await db.query("SELECT id FROM users WHERE user_type != 'admin'");
+      targetUserIds = allUsers.map(u => u.id);
+    } else {
+      const [students] = await db.query("SELECT user_id FROM user_coach_connections WHERE coach_id = ? AND status = 'active'", [coachId]);
+      targetUserIds = students.map(u => u.user_id);
+    }
+
+    if (targetUserIds.length > 0) {
+      const notificationTitle = `New Event: ${title}`;
+      const notificationBody = `Coach has announced a new event starting on ${start_datetime} (${timezone}).`;
+
+      const values = targetUserIds.map(uid => [uid, notificationTitle, notificationBody]);
+      await db.query("INSERT INTO notifications (user_id, title, body) VALUES ?", [values]);
+
+      // Real-time socket notification can be added here if needed
+      // io.emit('announcement', { title, body: notificationBody });
+    }
+
+    res.json({ success: true, message: "Announcement posted successfully", announcementId });
+  } catch (err) {
+    console.error("Error posting announcement:", err);
+    res.status(500).json({ error: "Failed to post announcement" });
+  }
+});
+
+app.get("/api/coach/announcements", async (req, res) => {
+  try {
+    if (!req.session.coachId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const [rows] = await db.query(
+      "SELECT * FROM coach_announcements WHERE coach_id = ? ORDER BY created_at DESC",
+      [req.session.coachId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching announcements:", err);
+    res.status(500).json({ error: "Failed to fetch announcements" });
   }
 });
 
@@ -2832,11 +3032,12 @@ app.get("/api/coach/students", async (req, res) => {
              ucc.status,
              (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id AND t.done = 1) as tasksDone,
              (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id) as totalTasks,
-             (SELECT COUNT(*) FROM goals g WHERE g.user_id = u.id) as totalGoals
+             (SELECT COUNT(*) FROM goals g WHERE g.user_id = u.id) as totalGoals,
+             (SELECT COUNT(*) FROM messages m WHERE m.sender_id = u.id AND m.receiver_id = ? AND m.sender_type = 'user' AND m.is_read = 0) as unreadCount
       FROM user_coach_connections ucc
       JOIN users u ON ucc.user_id = u.id
       WHERE ucc.coach_id = ? AND ucc.status = 'active'
-    `, [coachId]);
+    `, [coachId, coachId]);
     res.json(students);
   } catch (e) {
     console.error("Get students error:", e);
@@ -3103,13 +3304,14 @@ app.get("/api/user/my-coach", requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId;
     const [rows] = await db.query(
-      `SELECT c.id, c.name, cd.coach_type, cd.profile_photo 
+      `SELECT c.id, c.name, cd.coach_type, cd.profile_photo,
+              (SELECT COUNT(*) FROM messages m WHERE m.sender_id = c.id AND m.receiver_id = ? AND m.sender_type = 'coach' AND m.is_read = 0) as unreadCount
        FROM coaches c 
        JOIN user_coach_connections ucc ON c.id = ucc.coach_id 
        LEFT JOIN coach_details cd ON c.id = cd.user_id
        WHERE ucc.user_id = ? AND ucc.status = 'active'
        LIMIT 1`,
-      [userId]
+      [userId, userId]
     );
     if (rows.length === 0) return res.json(null);
     res.json(rows[0]);
@@ -3668,10 +3870,17 @@ app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
 
     const [rows] = await db.query(query, params);
 
+    // Mark received messages as read
+    const receivedType = myType === 'coach' ? 'user' : 'coach';
+    await db.query(
+      "UPDATE messages SET is_read = 1 WHERE receiver_id = ? AND sender_id = ? AND sender_type = ? AND is_read = 0",
+      [myId, otherId, receivedType]
+    );
+
     // Add direction field to each message (server-authoritative)
     const messagesWithDirection = rows.map(msg => ({
       ...msg,
-      direction: (msg.sender_id === myId && msg.sender_type === myType) ? 'sent' : 'received'
+      direction: (msg.sender_id === myId && msg.sender_id && msg.sender_type === myType) ? 'sent' : 'received'
     }));
 
     console.log(`[Messages] Retrieved ${messagesWithDirection.length} messages for ${myType} ${myId}`);

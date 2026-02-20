@@ -125,9 +125,16 @@
           <li><button data-tab="approvals" class="tab-btn flex items-center gap-1">Approvals <span id="approval-count"
                 class="hidden bg-orange-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg shadow-orange-200 animate-pulse">0</span></button>
           </li>
-          <li><button data-tab="messages" class="tab-btn flex items-center gap-1.5">
+          <li><button data-tab="messages" class="tab-btn flex items-center gap-1.5 relative">
               <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Messages
+              <span id="total-messages-count"
+                class="hidden bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg shadow-red-200">0</span>
             </button></li>
+          <li><button data-tab="announcements" class="tab-btn flex items-center gap-1.5 relative">
+              <i data-lucide="megaphone" class="w-3.5 h-3.5"></i> Announcements
+            </button></li>
+
+
 
           <!-- Profile Dropdown -->
           <li class="relative ml-4" id="coach-profile-dropdown-container">
@@ -915,7 +922,91 @@
       </div>
     </section>
 
+    <!-- TAB: ANNOUNCEMENTS -->
+    <section id="tab-announcements" class="tab-panel hidden fade-in">
+      <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl mb-10">
+        <h2 class="text-3xl font-black text-slate-800 mb-2">Announce an Event</h2>
+        <p class="text-slate-500 font-medium mb-8">Notify your students or the entire platform about upcoming sessions.
+        </p>
 
+        <form id="announcement-form" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Event Title</label>
+              <input type="text" id="announcement-title" required placeholder="e.g. Career Strategy Session"
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Visibility</label>
+              <select id="announcement-visibility"
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none cursor-pointer">
+                <option value="private">Private (My Students Only)</option>
+                <option value="public">Public (Everyone on Planexa)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Event Description</label>
+            <textarea id="announcement-description" rows="3" placeholder="Tell users what this event is about..."
+              class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-medium transition-all outline-none resize-none"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Start Date</label>
+              <input type="date" id="announcement-start-date" required
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Start Time</label>
+              <input type="time" id="announcement-start-time" required
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">End Date</label>
+              <input type="date" id="announcement-end-date" required
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">End Time</label>
+              <input type="time" id="announcement-end-time" required
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Timezone</label>
+              <select id="announcement-timezone" required
+                class="w-full bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-bold transition-all outline-none cursor-pointer">
+                <option value="Asia/Calcutta" selected>Asia/Calcutta (GMT+5:30)</option>
+                <option value="UTC">UTC (GMT+0)</option>
+                <option value="America/New_York">America/New_York (GMT-5:00)</option>
+                <option value="Europe/London">Europe/London (GMT+0:00)</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="submit" id="post-announcement-btn"
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-[0.98]">
+                Broadcast Announcement
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="glass-card p-8 rounded-[2rem] border border-slate-100 shadow-xl">
+        <h3 class="text-2xl font-black text-slate-800 mb-6">Past Announcements</h3>
+        <div id="announcements-list" class="space-y-4">
+          <!-- Populated by JS -->
+          <div class="py-12 text-center text-slate-400 font-medium">
+            <i data-lucide="history" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+            <p>Your previous announcements will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- USER PROFILE PREVIEW MODAL -->
@@ -986,7 +1077,104 @@
 
       initCoachChat();
       initAccountManagement();
+      initAnnouncements();
     });
+
+    async function initAnnouncements() {
+      const form = document.getElementById('announcement-form');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('post-announcement-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Broadcasting...';
+
+        const data = {
+          title: document.getElementById('announcement-title').value,
+          visibility: document.getElementById('announcement-visibility').value,
+          description: document.getElementById('announcement-description').value,
+          start_datetime: `${document.getElementById('announcement-start-date').value} ${document.getElementById('announcement-start-time').value}`,
+          end_datetime: `${document.getElementById('announcement-end-date').value} ${document.getElementById('announcement-end-time').value}`,
+          timezone: document.getElementById('announcement-timezone').value
+        };
+
+        try {
+          const res = await fetch('/api/coach/announcements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (!res.ok) throw new Error(await res.text());
+
+          alert('Announcement broadcasted successfully!');
+          form.reset();
+          fetchAnnouncements();
+        } catch (err) {
+          console.error(err);
+          alert('Failed to post announcement. Please try again.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+
+      // Initial load
+      fetchAnnouncements();
+    }
+
+    async function fetchAnnouncements() {
+      const list = document.getElementById('announcements-list');
+      if (!list) return;
+
+      try {
+        const res = await fetch('/api/coach/announcements');
+        const announcements = await res.json();
+
+        if (announcements.length === 0) {
+          list.innerHTML = `
+            <div class="py-12 text-center text-slate-400 font-medium">
+              <i data-lucide="history" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+              <p>Your previous announcements will appear here.</p>
+            </div>`;
+          lucide.createIcons();
+          return;
+        }
+
+        list.innerHTML = announcements.map(ann => `
+          <div class="p-6 bg-slate-50 border border-slate-100 rounded-2xl hover:border-indigo-200 transition-all group">
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                  <i data-lucide="${ann.visibility === 'public' ? 'globe' : 'lock'}" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-800">${ann.title}</h4>
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${ann.visibility} Announcement</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${new Date(ann.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="text-sm text-slate-600 mb-4 line-clamp-2">${ann.description || 'No description provided.'}</p>
+            <div class="flex flex-wrap gap-4 pt-4 border-t border-slate-200/50">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                <span>Starts: ${new Date(ann.start_datetime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                <span>${ann.timezone}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error fetching announcements:', err);
+      }
+    }
 
     function initAccountManagement() {
       const deactivateBtn = document.getElementById('deactivateAccBtn');
@@ -1065,11 +1253,16 @@
             const card = document.createElement('div');
             card.className = 'user-card fade-in flex flex-col md:flex-row md:items-center gap-6';
             card.innerHTML = `
-                <div class="flex items-center gap-4 min-w-[240px]">
+                <div class="flex items-center gap-4 min-w-[240px] relative">
                   <div onclick="viewUserProfile(${student.id})" 
-                    class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0 cursor-pointer hover:bg-indigo-700 transition-all" 
+                    class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 shrink-0 cursor-pointer hover:bg-indigo-700 transition-all relative" 
                     title="Click to manage student">
                     ${student.username.substring(0, 1).toUpperCase()}
+                    ${student.unreadCount > 0 ? `
+                      <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                        ${student.unreadCount}
+                      </span>
+                    ` : ''}
                   </div>
                   <div class="min-w-0 cursor-pointer" onclick="viewUserProfile(${student.id})" title="Click to manage student">
                     <h4 class="font-bold text-slate-800 truncate hover:text-indigo-600 transition-colors">${student.username}</h4>
@@ -1128,6 +1321,15 @@
         }
 
         lucide.createIcons();
+
+        // Update Total Message Count
+        const totalUnread = (students || []).reduce((sum, s) => sum + (Number(s.unreadCount) || 0), 0);
+        const totalBadge = document.getElementById('total-messages-count');
+        if (totalBadge) {
+          totalBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+          if (totalUnread > 0) totalBadge.classList.remove('hidden');
+          else totalBadge.classList.add('hidden');
+        }
 
         // Show FAB only if there are active students
         const coachChatFab = document.getElementById('coach-chat-fab');
@@ -1761,8 +1963,13 @@
             : 'hover:bg-white/60'}`;
 
           div.innerHTML = `
-            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors">
+            <div class="w-12 h-12 rounded-2xl ${isActive ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center font-black text-lg shadow-sm transition-colors relative">
               ${student.username.charAt(0).toUpperCase()}
+              ${student.unreadCount > 0 ? `
+                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                  ${student.unreadCount}
+                </span>
+              ` : ''}
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-start mb-0.5">
@@ -1777,7 +1984,18 @@
           list.appendChild(div);
         });
         lucide.createIcons();
+        updateTotalUnreadBadge(students);
       } catch (e) { console.error(e); }
+    }
+
+    function updateTotalUnreadBadge(students) {
+      const totalUnread = (students || []).reduce((sum, s) => sum + (Number(s.unreadCount) || 0), 0);
+      const totalBadge = document.getElementById('total-messages-count');
+      if (totalBadge) {
+        totalBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+        if (totalUnread > 0) totalBadge.classList.remove('hidden');
+        else totalBadge.classList.add('hidden');
+      }
     }
 
     async function selectChatUser(user) {
@@ -2524,6 +2742,7 @@
   </script>
   <script src="/js/tour-manager.js"></script>
   <script src="/js/coach-tour-manager.js"></script>
+  <!-- <script src="/js/feedback.js"></script> -->
 </body>
 
 </html>

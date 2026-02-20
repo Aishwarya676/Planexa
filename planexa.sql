@@ -281,3 +281,29 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- 23. Website Feedback
+CREATE TABLE IF NOT EXISTS website_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    user_type VARCHAR(50),
+    good_points TEXT,
+    bad_points TEXT,
+    helpful_ui TEXT,
+    not_working TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 24. Coach Event Announcements
+CREATE TABLE IF NOT EXISTS coach_announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    coach_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    target_audience ENUM('all', 'my_students') DEFAULT 'all',
+    start_date DATE,
+    end_date DATE,
+    timezone VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

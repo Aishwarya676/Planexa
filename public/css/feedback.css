@@ -1,0 +1,145 @@
+/* Feedback Button */
+.feedback-trigger {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.feedback-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    background: #0056b3;
+}
+
+/* Feedback Modal */
+.feedback-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.feedback-modal.active {
+    display: flex;
+}
+
+.feedback-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 12px;
+    padding: 30px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .feedback-content {
+    background: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #333;
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.feedback-header h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.dark-mode .feedback-header h3 {
+    color: #fff;
+}
+
+.close-feedback {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.feedback-form .form-group {
+    margin-bottom: 20px;
+}
+
+.feedback-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.feedback-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.dark-mode .feedback-form textarea {
+    background: #2d2d2d;
+    border-color: #444;
+    color: #eee;
+}
+
+.submit-feedback {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.submit-feedback:hover {
+    background: #0056b3;
+}
+
+.submit-feedback:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Response Message */
+.feedback-success {
+    text-align: center;
+    padding: 20px;
+}
+
+.feedback-success i {
+    font-size: 48px;
+    color: #28a745;
+    margin-bottom: 15px;
+    display: block;
+}

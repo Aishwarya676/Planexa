@@ -92,9 +92,22 @@
                 console.log('[Chat] Incoming:', msg);
                 if (currentCoach && msg.sender_id == currentCoach.id && msg.sender_type === 'coach') {
                     appendMessage(msg, 'incoming');
-                    // Only show dot if NOT on the messages tab
+                    // Only show badge if NOT on the messages tab
                     if (window.location.hash !== '#messages') {
-                        document.getElementById('chat-notif-dot')?.classList.remove('hidden');
+                        const dot = document.getElementById('chat-notif-dot');
+                        if (dot) {
+                            const current = parseInt(dot.textContent) || 0;
+                            dot.textContent = current + 1;
+                            dot.classList.remove('hidden');
+                        }
+
+                        // Also update sidebar if it exists
+                        const sidebarBadge = document.getElementById('sidebar-coach-unread');
+                        if (sidebarBadge) {
+                            const val = parseInt(sidebarBadge.textContent) || 0;
+                            sidebarBadge.textContent = val + 1;
+                            sidebarBadge.classList.remove('hidden');
+                        }
                     }
                 }
             });
@@ -111,11 +124,29 @@
         if (coachNameHeader) coachNameHeader.textContent = coach.name || coach.username || 'Your Coach';
 
         const avatarHtml = coach.profile_photo
-            ? `<img src="${coach.profile_photo}" class="w-full h-full object-cover">`
-            : `<span>${(coach.name || coach.username || 'C').charAt(0)}</span>`;
+            ? `<div class="relative w-full h-full">
+                 <img src="${coach.profile_photo}" class="w-full h-full object-cover rounded-xl">
+                 <span id="sidebar-coach-unread" class="${coach.unreadCount > 0 ? '' : 'hidden'} absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                   ${coach.unreadCount || 0}
+                 </span>
+               </div>`
+            : `<div class="relative w-full h-full flex items-center justify-center">
+                 <span>${(coach.name || coach.username || 'C').charAt(0)}</span>
+                 <span id="sidebar-coach-unread" class="${coach.unreadCount > 0 ? '' : 'hidden'} absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                   ${coach.unreadCount || 0}
+                 </span>
+               </div>`;
 
         if (coachImg) coachImg.innerHTML = avatarHtml;
         if (coachAvatarHeader) coachAvatarHeader.innerHTML = avatarHtml;
+
+        // Update Navbar Badge on initial load
+        const navBadge = document.getElementById('chat-notif-dot');
+        if (navBadge) {
+            navBadge.textContent = coach.unreadCount || 0;
+            if (coach.unreadCount > 0) navBadge.classList.remove('hidden');
+            else navBadge.classList.add('hidden');
+        }
     }
 
     async function loadHistory() {
@@ -125,6 +156,18 @@
             const messages = await res.json();
 
             console.log(`[Chat] Loaded ${messages.length} messages from server`);
+
+            // Clear unread counts in UI since we opened the chat
+            const navBadge = document.getElementById('chat-notif-dot');
+            if (navBadge) {
+                navBadge.textContent = '0';
+                navBadge.classList.add('hidden');
+            }
+            const sideBadge = document.getElementById('sidebar-coach-unread');
+            if (sideBadge) {
+                sideBadge.textContent = '0';
+                sideBadge.classList.add('hidden');
+            }
 
             // Clear welcome state if history found
             if (messages.length > 0) {
