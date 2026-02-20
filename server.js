@@ -82,7 +82,7 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // temporarily false to ensure cookie is accepted regardless of proxy header config
+      secure: true, // Force secure for production HTTPS reliability
     },
   })
 );
@@ -92,6 +92,20 @@ const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-star
 const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
+
+app.use((req, res, next) => {
+  const reqPath = req.path;
+
+  // 1. GLOBAL CACHE CONTROL (High priority to prevent bypassed states)
+  // Prevent caching for ALL HTML pages to ensure back button security and fresh states
+  if (reqPath.endsWith('.html') || reqPath === '/' || !path.extname(reqPath)) {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    res.set("Surrogate-Control", "no-store");
+  }
+  next();
+});
 
 /* ---------------- Site Access Middleware ---------------- */
 const siteAccessMiddleware = (req, res, next) => {
@@ -123,15 +137,6 @@ app.use(siteAccessMiddleware);
 
 app.use((req, res, next) => {
   const reqPath = req.path;
-
-  // ----------------- GLOBAL CACHE CONTROL -----------------
-  // Prevent caching for ALL HTML pages to ensure back button security
-  if (reqPath.endsWith('.html') || reqPath === '/' || !path.extname(reqPath)) {
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.set("Pragma", "no-cache");
-    res.set("Expires", "0");
-    res.set("Surrogate-Control", "no-store");
-  }
 
   // Session check helper
   const isAuthenticated = req.session && (req.session.userId || req.session.coachId);
@@ -582,7 +587,7 @@ app.post("/api/check-site-password", (req, res) => {
       httpOnly: true,
       signed: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' || process.env.DB_HOST !== 'localhost'
+      secure: true // MANDATORY for desktop HTTPS persistence
     });
 
     if (req.session) {
