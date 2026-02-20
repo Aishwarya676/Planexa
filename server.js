@@ -115,7 +115,7 @@ const siteAccessMiddleware = (req, res, next) => {
   // Exclude static assets, the access page, and the check API
   const isPublicAsset = reqPath.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf|favicon\.ico)$/i);
   const isAccessPage = reqPath === '/site-access.html';
-  const isCheckApi = reqPath === '/api/check-site-password';
+  const isCheckApi = reqPath === '/api/check-site-password' || reqPath === '/api/verify-site-token';
 
   if (isPublicAsset || isAccessPage || isCheckApi) {
     return next();
@@ -587,31 +587,43 @@ app.post("/api/check-site-password", (req, res) => {
   const sitePassword = (process.env.SITE_PASSWORD || "51}Thl51[Nj").trim();
 
   if (password && password.trim() === sitePassword) {
-    // Set a signed cookie as a robust fallback for production
-    res.cookie('hasSiteAccess', 'true', {
-      httpOnly: true,
-      signed: true,
-      sameSite: 'lax',
-      secure: false, // Match session cookie for uniform persistence
-      maxAge: 7 * 24 * 60 * 60 * 1000 // Persist for 7 days
-    });
+    // Generate a deterministic HMAC token from the secret — client stores this in localStorage
+    // Server can verify it anytime without a database lookup
+    const secret = process.env.SESSION_SECRET || "planexa_secret_777";
+    const token = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
 
+    // Also set session flag immediately
     if (req.session) {
       req.session.hasSiteAccess = true;
       req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ error: "Failed to save session" });
-        }
-        res.json({ success: true });
+        if (err) console.error("Session save error:", err);
       });
-      return;
-    } else {
-      return res.status(500).json({ error: "Session not initialized" });
     }
+
+    return res.json({ success: true, token });
   }
 
   res.status(401).json({ success: false, error: "Incorrect password" });
+});
+
+/* ---------------- Site Token Verify API ---------------- */
+app.post("/api/verify-site-token", (req, res) => {
+  const { token } = req.body;
+  const secret = process.env.SESSION_SECRET || "planexa_secret_777";
+  const expectedToken = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
+
+  if (token && token === expectedToken) {
+    // Token is valid — restore session access
+    if (req.session) {
+      req.session.hasSiteAccess = true;
+      req.session.save((err) => {
+        if (err) console.error("Session restore error:", err);
+      });
+    }
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false });
 });
 
 /*

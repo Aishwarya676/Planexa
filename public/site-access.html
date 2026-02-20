@@ -119,6 +119,46 @@
         const errorMsg = document.getElementById('error-msg');
         const submitBtn = document.getElementById('submit-btn');
 
+        const STORAGE_KEY = 'planexa_site_token';
+
+        function getNextUrl() {
+            const next = new URLSearchParams(window.location.search).get('next') || '/landing.html';
+            return next;
+        }
+
+        function doRedirect(next) {
+            const sep = next.includes('?') ? '&' : '?';
+            window.location.replace(`${next}${sep}_=` + Date.now());
+        }
+
+        // On page load: check if we have a stored token and auto-verify
+        window.onload = async () => {
+            const storedToken = localStorage.getItem(STORAGE_KEY);
+            if (storedToken) {
+                try {
+                    const res = await fetch('/api/verify-site-token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: storedToken })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        // Token valid — skip password wall entirely
+                        doRedirect(getNextUrl());
+                        return;
+                    } else {
+                        // Invalid token — clear it and show form
+                        localStorage.removeItem(STORAGE_KEY);
+                    }
+                } catch (e) {
+                    // Network error — clear and show form
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+            // No valid token — show the form
+            passwordInput.focus();
+        };
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const password = passwordInput.value;
@@ -137,12 +177,11 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    // Success! Redirect to the original destination or home
-                    const next = new URLSearchParams(window.location.search).get('next') || '/landing.html';
-
-                    // Add a cache-buster to the next URL to force desktop browsers to re-evaluate the state
-                    const separator = next.includes('?') ? '&' : '?';
-                    window.location.replace(`${next}${separator}verify_success=${Date.now()}`);
+                    // Save the HMAC token to localStorage for permanent persistence
+                    if (data.token) {
+                        localStorage.setItem(STORAGE_KEY, data.token);
+                    }
+                    doRedirect(getNextUrl());
                 } else {
                     errorMsg.textContent = data.error || 'Access denied.';
                     errorMsg.classList.remove('hidden');
@@ -159,13 +198,9 @@
             }
         });
 
-        // Handle auto-focus
-        window.onload = () => passwordInput.focus();
-
         // Security Hardenings: Disable Right Click & Inspect Shortcuts
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
-            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
             if (
                 e.keyCode === 123 ||
                 (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
