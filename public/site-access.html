@@ -139,7 +139,10 @@
                 if (data.success) {
                     // Success! Redirect to the original destination or home
                     const next = new URLSearchParams(window.location.search).get('next') || '/landing.html';
-                    window.location.replace(next);
+
+                    // Add a cache-buster to the next URL to force desktop browsers to re-evaluate the state
+                    const separator = next.includes('?') ? '&' : '?';
+                    window.location.replace(`${next}${separator}verify_success=${Date.now()}`);
                 } else {
                     errorMsg.textContent = data.error || 'Access denied.';
                     errorMsg.classList.remove('hidden');
