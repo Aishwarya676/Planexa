@@ -82,7 +82,8 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // Relaxed for maximum compatibility across proxy configurations
+      secure: false, // Relaxed for compatibility
+      maxAge: 7 * 24 * 60 * 60 * 1000, // Persist for 7 days
     },
   })
 );
@@ -587,7 +588,8 @@ app.post("/api/check-site-password", (req, res) => {
       httpOnly: true,
       signed: true,
       sameSite: 'lax',
-      secure: false // Match session cookie for uniform persistence
+      secure: false, // Match session cookie for uniform persistence
+      maxAge: 7 * 24 * 60 * 60 * 1000 // Persist for 7 days
     });
 
     if (req.session) {
