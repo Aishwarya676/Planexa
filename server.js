@@ -121,13 +121,16 @@ const siteAccessMiddleware = (req, res, next) => {
     return next();
   }
 
-  // Check for site access in signed cookie OR session
-  const hasCookieAccess = req.signedCookies && req.signedCookies.hasSiteAccess === 'true';
+  // Check for site access in session, signed cookie, OR HMAC cookie (most reliable)
+  const secret = process.env.SESSION_SECRET || 'planexa_secret_777';
+  const expectedToken = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
+
+  const hasCookieAccess = req.cookies && req.cookies.siteAccessMark === expectedToken;
   const hasSessionAccess = req.session && req.session.hasSiteAccess;
 
   if (hasCookieAccess || hasSessionAccess) {
-    // Restore session flag from cookie so session-based checks also pass
-    if (hasCookieAccess && req.session && !req.session.hasSiteAccess) {
+    // Keep session in sync
+    if (req.session && !req.session.hasSiteAccess) {
       req.session.hasSiteAccess = true;
     }
     return next();
@@ -592,6 +595,14 @@ app.post("/api/check-site-password", (req, res) => {
     const secret = process.env.SESSION_SECRET || "planexa_secret_777";
     const token = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
 
+    // Set a regular (non-httpOnly) cookie so the server can read it on every request
+    // This eliminates the redirect flash completely
+    res.cookie('siteAccessMark', token, {
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+    });
+
     // Also set session flag immediately
     if (req.session) {
       req.session.hasSiteAccess = true;
@@ -613,7 +624,14 @@ app.post("/api/verify-site-token", (req, res) => {
   const expectedToken = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
 
   if (token && token === expectedToken) {
-    // Token is valid — restore session access
+    // Set the server-readable cookie so future requests don't flash the password page
+    res.cookie('siteAccessMark', expectedToken, {
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+    });
+
+    // Restore session access
     if (req.session) {
       req.session.hasSiteAccess = true;
       req.session.save((err) => {
