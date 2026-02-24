@@ -127,8 +127,7 @@
         }
 
         function doRedirect(next) {
-            const sep = next.includes('?') ? '&' : '?';
-            window.location.replace(`${next}${sep}_=` + Date.now());
+            window.location.replace(next);
         }
 
         // On page load: check if we have a stored token and auto-verify

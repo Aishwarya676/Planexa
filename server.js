@@ -2456,7 +2456,13 @@ app.delete("/api/goals/:id", requireAuth, async (req, res) => {
 /* --- CALENDAR EVENTS --- */
 app.get("/api/calendar/events", requireAuth, async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM events WHERE user_id = ? ORDER BY event_date ASC, event_time ASC", [req.userId]);
+    const [rows] = await db.query(
+      `SELECT id, user_id, title, DATE_FORMAT(event_date, '%Y-%m-%d') as event_date, 
+              event_time, description, event_type, created_at 
+       FROM events WHERE user_id = ? 
+       ORDER BY event_date ASC, event_time ASC`,
+      [req.userId]
+    );
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2485,42 +2491,26 @@ app.delete("/api/calendar/events/:id", requireAuth, async (req, res) => {
   }
 });
 
-
-
-/* --- CALENDAR EVENTS API --- */
-app.get("/api/calendar/events", requireAuth, async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM events WHERE user_id = ? ORDER BY event_date ASC",
-      [req.userId]
-    );
-    res.json(rows);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/api/calendar/events", requireAuth, async (req, res) => {
-  const { title, date, time, description, type } = req.body;
+/* --- RESCHEDULE CALENDAR EVENT --- */
+app.put("/api/calendar/events/:id/reschedule", requireAuth, async (req, res) => {
+  const { date } = req.body;
+  if (!date) return res.status(400).json({ error: "date is required" });
+  console.log(`[Reschedule] Updating event ${req.params.id} to ${date} for user ${req.userId}`);
   try {
     const [result] = await db.query(
-      "INSERT INTO events (user_id, title, event_date, event_time, description, event_type) VALUES (?, ?, ?, ?, ?, ?)",
-      [req.userId, title, date, time || '12:00:00', description || null, type || 'personal']
+      "UPDATE events SET event_date = ? WHERE id = ? AND user_id = ?",
+      [date, req.params.id, req.userId]
     );
-    res.json({ id: result.insertId, title, date, time, description, type });
+    console.log(`[Reschedule] Result:`, result);
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Event not found" });
+    res.json({ success: true, id: req.params.id, date });
   } catch (e) {
+    console.error(`[Reschedule] Error:`, e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-app.delete("/api/calendar/events/:id", requireAuth, async (req, res) => {
-  try {
-    await db.query("DELETE FROM events WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
+
 
 
 /* ---------------- SIGN OUT ---------------- */

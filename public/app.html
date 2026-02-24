@@ -615,6 +615,51 @@
         </div>
       </div>
     </div>
+    <!-- Task Rollover Modal -->
+    <div id="rollover-modal"
+      class="fixed inset-0 bg-black bg-opacity-60 flex items-start justify-center pt-[42vh] hidden"
+      style="z-index: 9999;">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-5 border-b border-amber-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <circle cx="12" cy="16" r="2" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">Missed Task</h3>
+              <p class="text-xs text-amber-600 font-medium">from a previous day</p>
+            </div>
+          </div>
+        </div>
+        <!-- Body -->
+        <div class="px-6 py-5">
+          <p class="text-slate-500 text-sm mb-2">You didn't complete:</p>
+          <p id="rollover-event-title" class="text-slate-800 font-semibold text-base mb-1"></p>
+          <p id="rollover-event-date" class="text-xs text-slate-400 mb-5"></p>
+          <p class="text-slate-600 text-sm font-medium">Should we move this to the next day?</p>
+        </div>
+        <!-- Actions -->
+        <div class="px-6 pb-6 flex gap-3">
+          <button id="rollover-skip-btn"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all">
+            Keep as-is
+          </button>
+          <button id="rollover-move-btn"
+            class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg transition-all">
+            Move to Next Day
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Birthday Modal -->
     <div id="birthday-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
       <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
