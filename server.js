@@ -319,6 +319,19 @@ ensureFeedbackTable();
 ensureCoachesTable();
 migrateAnnouncementTables(); // ADDED MIGRATION STEP
 
+async function migrateAnnouncementType() {
+  try {
+    const [columns] = await db.query("SHOW COLUMNS FROM coach_announcements LIKE 'type'");
+    if (columns.length === 0) {
+      console.log("Adding type to coach_announcements");
+      await db.query("ALTER TABLE coach_announcements ADD COLUMN type VARCHAR(50) DEFAULT 'announcement'");
+    }
+  } catch (e) {
+    console.error("Error migrating announcement type:", e.message);
+  }
+}
+migrateAnnouncementType();
+
 async function ensureAnnouncementsTable() {
   try {
     await db.query(`
@@ -1038,7 +1051,7 @@ app.post("/api/coach/announcements", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized. Coach only." });
     }
 
-    const { title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details } = req.body;
+    const { title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details, type } = req.body;
     if (!title || !start_datetime || !end_datetime || !timezone) {
       return res.status(400).json({ error: "Required fields missing" });
     }
@@ -1047,8 +1060,8 @@ app.post("/api/coach/announcements", async (req, res) => {
 
     // 1. Save to coach_announcements
     const [result] = await db.query(
-      "INSERT INTO coach_announcements (coach_id, title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [coachId, title, description, start_datetime, end_datetime, timezone, visibility || 'private', flyer_url, payment_details]
+      "INSERT INTO coach_announcements (coach_id, title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [coachId, title, description, start_datetime, end_datetime, timezone, visibility || 'private', flyer_url, payment_details, type || 'announcement']
     );
 
     const announcementId = result.insertId;
@@ -1064,11 +1077,14 @@ app.post("/api/coach/announcements", async (req, res) => {
     }
 
     if (targetUserIds.length > 0) {
-      const notificationTitle = `New Event: ${title}`;
-      const notificationBody = `Coach has announced a new event starting on ${start_datetime} (${timezone}).`;
+      const isWebinar = (type === 'webinar');
+      const notificationTitle = isWebinar ? `New Webinar: ${title}` : `New Event: ${title}`;
+      const notificationBody = isWebinar
+        ? `Topic: ${title}\nDate: ${start_datetime} (${timezone})\nPrivacy: ${visibility}`
+        : `Coach has announced a new event: ${title}`;
 
-      const values = targetUserIds.map(uid => [uid, notificationTitle, notificationBody, announcementId, flyer_url, payment_details]);
-      await db.query("INSERT INTO notifications (user_id, title, body, announcement_id, flyer_url, payment_details) VALUES ?", [values]);
+      const values = targetUserIds.map(uid => [uid, notificationTitle, notificationBody, announcementId, flyer_url, payment_details, type || 'announcement']);
+      await db.query("INSERT INTO notifications (user_id, title, body, announcement_id, flyer_url, payment_details, type) VALUES ?", [values]);
 
       // Real-time socket notification can be added here if needed
       // io.emit('announcement', { title, body: notificationBody });
@@ -1703,7 +1719,7 @@ app.get("/api/notifications", async (req, res) => {
     }
 
     const [notifications] = await db.query(
-      `SELECT id, title, body, reminder_id, is_read, announcement_id, flyer_url, payment_details, created_at 
+      `SELECT id, title, body, reminder_id, is_read, announcement_id, flyer_url, payment_details, created_at, type 
        FROM notifications 
        WHERE user_id = ? AND is_deleted = 0
        ORDER BY created_at DESC 
@@ -2799,6 +2815,21 @@ setInterval(async () => {
 }, 5000); // Check every 5 seconds for higher precision
 
 console.log("📢 Notification scheduler started");
+
+/* ---------------- WEBINAR AUTO-CLEANUP ---------------- */
+// Automatically delete webinars older than 24 hours
+setInterval(async () => {
+  try {
+    const [result] = await db.query(
+      "DELETE FROM coach_announcements WHERE type = 'webinar' AND created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+    );
+    if (result.affectedRows > 0) {
+      console.log(`[Cleanup] Deleted ${result.affectedRows} expired webinars older than 24h.`);
+    }
+  } catch (error) {
+    console.error("Webinar cleanup job error:", error);
+  }
+}, 6 * 60 * 60 * 1000); // Run every 6 hours
 
 /* ---------------- START SERVER ---------------- */
 
@@ -4171,7 +4202,8 @@ async function migrateNotificationSchema() {
   try {
     const columns = [
       "ADD COLUMN is_deleted BOOLEAN DEFAULT 0",
-      "ADD COLUMN announcement_id INT NULL"
+      "ADD COLUMN announcement_id INT NULL",
+      "ADD COLUMN type VARCHAR(50) DEFAULT 'announcement'"
     ];
     for (const col of columns) {
       try {

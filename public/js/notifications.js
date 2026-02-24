@@ -66,7 +66,7 @@
 
             ${notif.announcement_id ? `
               <button onclick="joinEvent(${notif.announcement_id}, this)" class="mt-2 w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
-                <i data-lucide="calendar-plus" class="w-4 h-4"></i> Join Event
+                <i data-lucide="calendar-plus" class="w-4 h-4"></i> ${notif.type === 'webinar' ? 'Join Webinar' : 'Join Event'}
               </button>
             ` : ''}
 
