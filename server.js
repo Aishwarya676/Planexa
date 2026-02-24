@@ -2171,11 +2171,16 @@ async function ensureUserTables() {
       )
     `);
 
-    // Migration: ensure completed_at exists
+    // Migration: ensure completed_at and event_id exist
     try {
       await db.query("ALTER TABLE todos ADD COLUMN completed_at TIMESTAMP NULL");
     } catch (e) {
-      if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice:", e.message);
+      if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice (completed_at):", e.message);
+    }
+    try {
+      await db.query("ALTER TABLE todos ADD COLUMN event_id INT NULL");
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice (event_id):", e.message);
     }
 
     // Shopping
@@ -2393,12 +2398,22 @@ app.get("/api/todos", requireAuth, async (req, res) => {
 app.post("/api/todos", requireAuth, async (req, res) => {
   const { text, priority, urgent } = req.body;
   try {
+    // 1. Create Calendar Event first to get event_id
+    // Simple one-way sync: Add to Today's date
+    const today = new Date().toISOString().split('T')[0];
+    const [eventResult] = await db.query(
+      "INSERT INTO events (user_id, title, event_date, event_time, description, event_type) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.userId, text, today, '12:00:00', 'Auto-added from To-Do', 'todo']
+    );
+    const eventId = eventResult.insertId;
+
+    // 2. Insert into todos with the linked eventId
     const [result] = await db.query(
-      "INSERT INTO todos (user_id, text, priority, urgent) VALUES (?, ?, ?, ?)",
-      [req.userId, text, priority, urgent]
+      "INSERT INTO todos (user_id, text, priority, urgent, event_id) VALUES (?, ?, ?, ?, ?)",
+      [req.userId, text, priority, urgent, eventId]
     );
     notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
-    res.json({ id: result.insertId, text, priority, urgent, done: 0 });
+    res.json({ id: result.insertId, text, priority, urgent, done: 0, event_id: eventId });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -2423,6 +2438,15 @@ app.get("/api/user/analytics", requireAuth, analyticsController.getUserAnalytics
 
 app.delete("/api/todos/:id", requireAuth, async (req, res) => {
   try {
+    // 1. Get the event_id before deleting the todo
+    const [rows] = await db.query("SELECT event_id FROM todos WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
+    if (rows.length > 0 && rows[0].event_id) {
+      const eventId = rows[0].event_id;
+      // 2. Delete the associated calendar event
+      await db.query("DELETE FROM events WHERE id = ? AND user_id = ?", [eventId, req.userId]);
+    }
+
+    // 3. Delete the todo
     await db.query("DELETE FROM todos WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
     notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
     res.json({ success: true });
