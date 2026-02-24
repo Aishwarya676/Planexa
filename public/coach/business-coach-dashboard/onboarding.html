@@ -512,21 +512,6 @@
                         </div>
                     </div>
 
-                    <div class="earnings-breakdown bg-indigo-50 p-4 rounded-lg border border-indigo-100 mt-4">
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">Your Base Rate:</span>
-                            <span class="font-semibold" id="baseRateDisplay">₹0.00</span>
-                        </div>
-                        <div class="flex justify-between mb-2 text-red-500">
-                            <span>Platform Fee (20%):</span>
-                            <span id="feeDisplay">-₹0.00</span>
-                        </div>
-                        <hr class="my-2 border-indigo-200">
-                        <div class="flex justify-between text-lg font-bold text-indigo-700">
-                            <span>You Earn:</span>
-                            <span id="earningsDisplay">₹0.00</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Terms & Submit -->
@@ -600,11 +585,6 @@
                         select.appendChild(opt);
                     });
 
-                    // Add "Other" at the end if you want
-                    const otherOpt = document.createElement('option');
-                    otherOpt.value = 'other';
-                    otherOpt.textContent = 'Other';
-                    select.appendChild(otherOpt);
 
                 } catch (err) {
                     console.error('Error loading categories:', err);
@@ -844,21 +824,6 @@
                 addCertificationBtn.click();
             }
 
-            // Pricing Calculation Logic
-            const hourlyRateInput = document.getElementById('hourlyRate');
-            const baseRateDisplay = document.getElementById('baseRateDisplay');
-            const feeDisplay = document.getElementById('feeDisplay');
-            const earningsDisplay = document.getElementById('earningsDisplay');
-
-            hourlyRateInput.addEventListener('input', function () {
-                const rate = parseFloat(this.value) || 0;
-                const fee = rate * 0.20;
-                const earnings = rate - fee;
-
-                baseRateDisplay.textContent = `₹${rate.toFixed(2)}`;
-                feeDisplay.textContent = `-₹${fee.toFixed(2)}`;
-                earningsDisplay.textContent = `₹${earnings.toFixed(2)}`;
-            });
 
             // Form Submission - Save to backend then show success
             const form = document.getElementById('onboardingForm');
