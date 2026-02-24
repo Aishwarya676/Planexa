@@ -839,6 +839,18 @@
                   Offline</p>
               </div>
             </div>
+            <div class="flex items-center gap-2">
+              <button
+                class="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-200/50"
+                title="Voice Call">
+                <i data-lucide="phone" class="w-4 h-4"></i>
+              </button>
+              <button
+                class="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-200/50"
+                title="Video Call">
+                <i data-lucide="video" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
 
           <!-- Messages Container -->
@@ -866,6 +878,11 @@
               class="flex gap-4 items-center bg-slate-50 p-3 rounded-[1.5rem] border border-slate-200 focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
               <input id="full-chat-input" type="text" autocomplete="off" placeholder="Type your message..."
                 class="flex-1 bg-transparent border-none py-2 px-4 text-sm text-slate-800 focus:ring-0 outline-none font-medium">
+              <button type="button"
+                class="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all"
+                title="Voice Message">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+              </button>
               <button type="submit"
                 class="p-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95">
                 <i data-lucide="send-horizontal" class="w-5 h-5"></i>
@@ -975,6 +992,39 @@
             </div>
           </div>
 
+          <!-- New: Flyer & Payment -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Event Flyer
+                (Optional)</label>
+              <div id="announcement-flyer-dropzone"
+                class="w-full h-40 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100/50 transition-all group relative overflow-hidden">
+                <div id="flyer-placeholder" class="flex flex-col items-center space-y-2 pointer-events-none">
+                  <div
+                    class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 shadow-sm border border-slate-100 transition-all">
+                    <i data-lucide="image-plus" class="w-6 h-6"></i>
+                  </div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click or drag flyer image
+                  </p>
+                </div>
+                <div id="flyer-preview-container" class="hidden absolute inset-0">
+                  <img id="flyer-preview" src="" class="w-full h-full object-cover">
+                  <button type="button" id="remove-flyer"
+                    class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-all z-10">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <input type="file" id="announcement-flyer-input" accept="image/*" class="hidden">
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Payment Details
+                (Optional)</label>
+              <textarea id="announcement-payment" rows="6" placeholder="e.g. UPI ID: planexa@bank, or Bank details..."
+                class="w-full h-40 bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 rounded-2xl px-5 py-3.5 text-slate-800 font-medium transition-all outline-none resize-none"></textarea>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Timezone</label>
@@ -1042,6 +1092,31 @@
     </div>
   </div>
 
+  <!-- INTERESTED USERS MODAL -->
+  <div id="interests-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeInterestsModal()">
+    </div>
+
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="glass-card relative w-full max-w-xl transform rounded-[2rem] bg-white p-8 shadow-2xl transition-all">
+        <button onclick="closeInterestsModal()"
+          class="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-600 transition-colors">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+
+        <h3 class="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
+          <i data-lucide="users" class="w-6 h-6 text-indigo-600"></i>
+          Interested Students
+        </h3>
+
+        <div id="interests-modal-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          <!-- Populated by JS -->
+          <p class="text-slate-500 text-center py-8">Loading interested students...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // INITIALIZATION
     document.addEventListener('DOMContentLoaded', () => {
@@ -1091,13 +1166,18 @@
         btn.disabled = true;
         btn.textContent = 'Broadcasting...';
 
+        const flyerPreview = document.getElementById('flyer-preview');
+        const flyerUrl = flyerPreview && flyerPreview.src.startsWith('data:') ? flyerPreview.src : null;
+
         const data = {
           title: document.getElementById('announcement-title').value,
           visibility: document.getElementById('announcement-visibility').value,
           description: document.getElementById('announcement-description').value,
           start_datetime: `${document.getElementById('announcement-start-date').value} ${document.getElementById('announcement-start-time').value}`,
           end_datetime: `${document.getElementById('announcement-end-date').value} ${document.getElementById('announcement-end-time').value}`,
-          timezone: document.getElementById('announcement-timezone').value
+          timezone: document.getElementById('announcement-timezone').value,
+          flyer_url: flyerUrl,
+          payment_details: document.getElementById('announcement-payment').value
         };
 
         try {
@@ -1110,6 +1190,8 @@
           if (!res.ok) throw new Error(await res.text());
 
           alert('Announcement broadcasted successfully!');
+          const removeBtn = document.getElementById('remove-flyer');
+          if (removeBtn) removeBtn.click();
           form.reset();
           fetchAnnouncements();
         } catch (err) {
@@ -1120,6 +1202,67 @@
           btn.textContent = originalText;
         }
       });
+
+      // Flyer Upload Logic
+      const flyerDropzone = document.getElementById('announcement-flyer-dropzone');
+      const flyerInput = document.getElementById('announcement-flyer-input');
+      const flyerPlaceholder = document.getElementById('flyer-placeholder');
+      const flyerPreviewContainer = document.getElementById('flyer-preview-container');
+      const flyerPreview = document.getElementById('flyer-preview');
+      const removeFlyerBtn = document.getElementById('remove-flyer');
+
+      if (flyerDropzone && flyerInput) {
+        flyerDropzone.addEventListener('click', (e) => {
+          if (e.target.closest('#remove-flyer')) return;
+          flyerInput.click();
+        });
+
+        flyerInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) handleFlyerFile(file);
+        });
+
+        flyerDropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          flyerDropzone.classList.add('bg-indigo-50', 'border-indigo-400');
+        });
+
+        ['dragleave', 'drop'].forEach(name => {
+          flyerDropzone.addEventListener(name, () => {
+            flyerDropzone.classList.remove('bg-indigo-50', 'border-indigo-400');
+          });
+        });
+
+        flyerDropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file && file.type.startsWith('image/')) {
+            handleFlyerFile(file);
+          }
+        });
+
+        removeFlyerBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          flyerInput.value = '';
+          flyerPreview.src = '';
+          flyerPreviewContainer.classList.add('hidden');
+          flyerPlaceholder.classList.remove('hidden');
+        });
+
+        function handleFlyerFile(file) {
+          if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            alert('Image too large. Max 10MB.');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            flyerPreview.src = e.target.result;
+            flyerPlaceholder.classList.add('hidden');
+            flyerPreviewContainer.classList.remove('hidden');
+          };
+          reader.readAsDataURL(file);
+        }
+      }
 
       // Initial load
       fetchAnnouncements();
@@ -1158,6 +1301,22 @@
               <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${new Date(ann.created_at).toLocaleDateString()}</span>
             </div>
             <p class="text-sm text-slate-600 mb-4 line-clamp-2">${ann.description || 'No description provided.'}</p>
+            
+            ${ann.flyer_url ? `
+              <div class="mb-4 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+                <img src="${ann.flyer_url}" class="w-full h-auto max-h-64 object-cover">
+              </div>
+            ` : ''}
+
+            ${ann.payment_details ? `
+              <div class="mb-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                 <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                   <i data-lucide="credit-card" class="w-3 h-3"></i> Payment Details
+                 </p>
+                 <p class="text-xs font-bold text-indigo-700 whitespace-pre-wrap">${ann.payment_details}</p>
+              </div>
+            ` : ''}
+
             <div class="flex flex-wrap gap-4 pt-4 border-t border-slate-200/50">
               <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
@@ -1167,6 +1326,15 @@
                 <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                 <span>${ann.timezone}</span>
               </div>
+              <div class="ml-auto flex items-center gap-2">
+                <button onclick="viewInterests(${ann.id})" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-2 shadow-sm">
+                  <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                  View Interested
+                </button>
+                <button onclick="deleteAnnouncement(this, ${ann.id})" class="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-rose-100" title="Delete Announcement">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
             </div>
           </div>
         `).join('');
@@ -1175,6 +1343,111 @@
         console.error('Error fetching announcements:', err);
       }
     }
+
+    async function viewInterests(announcementId) {
+      const modal = document.getElementById('interests-modal');
+      const content = document.getElementById('interests-modal-content');
+      if (!modal || !content) return;
+
+      modal.classList.remove('hidden');
+      content.innerHTML = '<p class="text-slate-500 text-center py-8 flex flex-col items-center gap-2"><i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> Loading interested students...</p>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`/api/coach/announcements/${announcementId}/interests`);
+        const interests = await res.json();
+
+        if (interests.length === 0) {
+          content.innerHTML = `
+            <div class="text-center py-8 space-y-2">
+              <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                <i data-lucide="user-minus" class="w-6 h-6"></i>
+              </div>
+              <p class="text-slate-500 font-medium">No students have joined this event yet.</p>
+            </div>`;
+          lucide.createIcons();
+          return;
+        }
+
+        content.innerHTML = interests.map(user => `
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4 group hover:border-indigo-200 transition-all">
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100 font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all">
+              ${user.username.substring(0, 1).toUpperCase()}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-slate-800 truncate">${user.username}</h4>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">${user.email}</p>
+            </div>
+            <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+              Interested
+            </div>
+          </div>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error fetching interests:', err);
+        content.innerHTML = '<p class="text-red-500 text-center py-8">Failed to load interested students.</p>';
+      }
+    }
+
+    window.viewInterests = viewInterests;
+
+    function closeInterestsModal() {
+      const modal = document.getElementById('interests-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    window.closeInterestsModal = closeInterestsModal;
+
+    async function deleteAnnouncement(btn, announcementId) {
+      if (!confirm('Are you sure you want to delete this announcement? This action cannot be undone.')) return;
+
+      const card = btn.closest('.group');
+      if (card) {
+        card.style.opacity = '0.5';
+        card.style.pointerEvents = 'none';
+      }
+
+      try {
+        const res = await fetch(`/api/coach/announcements/${announcementId}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (card) {
+            card.style.transform = 'scale(0.95)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+              card.remove();
+              // Check if list is empty to show empty state
+              const list = document.getElementById('announcements-list');
+              if (list && list.children.length === 0) {
+                fetchAnnouncements();
+              }
+            }, 300);
+          } else {
+            fetchAnnouncements();
+          }
+          showNotification('Success', 'Announcement deleted successfully', 'success');
+        } else {
+          if (card) {
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+          }
+          showNotification('Error', data.error || 'Failed to delete announcement', 'error');
+        }
+      } catch (err) {
+        console.error('Error deleting announcement:', err);
+        if (card) {
+          card.style.opacity = '1';
+          card.style.pointerEvents = 'auto';
+        }
+        showNotification('Error', 'An unexpected error occurred', 'error');
+      }
+    }
+
+    window.deleteAnnouncement = deleteAnnouncement;
 
     function initAccountManagement() {
       const deactivateBtn = document.getElementById('deactivateAccBtn');

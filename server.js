@@ -244,6 +244,30 @@ webpush.setVapidDetails(
 /* ---------------- ADMIN EXTENSIONS ---------------- */
 const adminRoutes = require("./src/routes/adminRoutes");
 const analyticsController = require("./src/controllers/analyticsController");
+
+// Helper to get userId from session or token
+const getUserId = (req) => {
+  if (req.session && req.session.userId) return req.session.userId;
+  return null;
+};
+
+// Middleware to ensure authentication (User only)
+const requireAuth = (req, res, next) => {
+  if (req.session && req.session.userId) {
+    req.userId = req.session.userId;
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+};
+
+// Middleware to ensure authentication (Any role)
+const requireAnyAuth = (req, res, next) => {
+  if (req.session && (req.session.userId || req.session.coachId)) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+};
+
 app.use("/api", adminRoutes);
 
 
@@ -290,9 +314,10 @@ async function ensureOnboardingColumn() {
 }
 ensureOnboardingColumn();
 fixCoachSchema();
-ensureCoachesTable();
-ensureFeedbackTable();
 ensureAnnouncementsTable();
+ensureFeedbackTable();
+ensureCoachesTable();
+migrateAnnouncementTables(); // ADDED MIGRATION STEP
 
 async function ensureAnnouncementsTable() {
   try {
@@ -302,6 +327,8 @@ async function ensureAnnouncementsTable() {
         coach_id INT NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT,
+        flyer_url TEXT,
+        payment_details TEXT,
         start_datetime DATETIME NOT NULL,
         end_datetime DATETIME NOT NULL,
         timezone VARCHAR(100) NOT NULL,
@@ -313,6 +340,26 @@ async function ensureAnnouncementsTable() {
     console.log("Coach announcements table ensured");
   } catch (e) {
     console.error("Error ensuring announcements table:", e);
+  }
+}
+
+async function migrateAnnouncementTables() {
+  try {
+    // Check if columns exist in coach_announcements
+    const [cCols] = await db.query("SHOW COLUMNS FROM coach_announcements LIKE 'flyer_url'");
+    if (cCols.length === 0) {
+      console.log("Adding flyer_url and payment_details to coach_announcements");
+      await db.query("ALTER TABLE coach_announcements ADD COLUMN flyer_url TEXT, ADD COLUMN payment_details TEXT");
+    }
+
+    // Check if columns exist in notifications
+    const [nCols] = await db.query("SHOW COLUMNS FROM notifications LIKE 'flyer_url'");
+    if (nCols.length === 0) {
+      console.log("Adding flyer_url and payment_details to notifications");
+      await db.query("ALTER TABLE notifications ADD COLUMN flyer_url TEXT, ADD COLUMN payment_details TEXT");
+    }
+  } catch (e) {
+    console.error("Error migrating announcement tables:", e.message);
   }
 }
 
@@ -991,7 +1038,7 @@ app.post("/api/coach/announcements", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized. Coach only." });
     }
 
-    const { title, description, start_datetime, end_datetime, timezone, visibility } = req.body;
+    const { title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details } = req.body;
     if (!title || !start_datetime || !end_datetime || !timezone) {
       return res.status(400).json({ error: "Required fields missing" });
     }
@@ -1000,8 +1047,8 @@ app.post("/api/coach/announcements", async (req, res) => {
 
     // 1. Save to coach_announcements
     const [result] = await db.query(
-      "INSERT INTO coach_announcements (coach_id, title, description, start_datetime, end_datetime, timezone, visibility) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [coachId, title, description, start_datetime, end_datetime, timezone, visibility || 'private']
+      "INSERT INTO coach_announcements (coach_id, title, description, start_datetime, end_datetime, timezone, visibility, flyer_url, payment_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [coachId, title, description, start_datetime, end_datetime, timezone, visibility || 'private', flyer_url, payment_details]
     );
 
     const announcementId = result.insertId;
@@ -1020,8 +1067,8 @@ app.post("/api/coach/announcements", async (req, res) => {
       const notificationTitle = `New Event: ${title}`;
       const notificationBody = `Coach has announced a new event starting on ${start_datetime} (${timezone}).`;
 
-      const values = targetUserIds.map(uid => [uid, notificationTitle, notificationBody]);
-      await db.query("INSERT INTO notifications (user_id, title, body) VALUES ?", [values]);
+      const values = targetUserIds.map(uid => [uid, notificationTitle, notificationBody, announcementId, flyer_url, payment_details]);
+      await db.query("INSERT INTO notifications (user_id, title, body, announcement_id, flyer_url, payment_details) VALUES ?", [values]);
 
       // Real-time socket notification can be added here if needed
       // io.emit('announcement', { title, body: notificationBody });
@@ -1048,6 +1095,91 @@ app.get("/api/coach/announcements", async (req, res) => {
   } catch (err) {
     console.error("Error fetching announcements:", err);
     res.status(500).json({ error: "Failed to fetch announcements" });
+  }
+});
+
+/* ---------------- ANNOUNCEMENT INTERESTS ---------------- */
+
+// 1. User: Mark Interest in an Announcement
+app.post("/api/announcement/:id/interest", requireAuth, async (req, res) => {
+  try {
+    const announcementId = req.params.id;
+    const userId = req.userId;
+
+    // Check if already interested
+    const [existing] = await db.query(
+      "SELECT id FROM announcement_interests WHERE announcement_id = ? AND user_id = ?",
+      [announcementId, userId]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "Already marked as interested" });
+    }
+
+    await db.query(
+      "INSERT INTO announcement_interests (announcement_id, user_id) VALUES (?, ?)",
+      [announcementId, userId]
+    );
+
+    res.json({ success: true, message: "Expressed interest in event" });
+  } catch (e) {
+    console.error("Interest Error:", e);
+    res.status(500).json({ error: "Failed to record interest" });
+  }
+});
+
+// 2. Coach: Get Interests for an Announcement
+app.get("/api/coach/announcements/:id/interests", async (req, res) => {
+  try {
+    if (!req.session.coachId) return res.status(401).json({ error: "Unauthorized" });
+    const announcementId = req.params.id;
+
+    // Verify coach owns the announcement
+    const [ann] = await db.query(
+      "SELECT coach_id FROM coach_announcements WHERE id = ?",
+      [announcementId]
+    );
+
+    if (ann.length === 0 || ann[0].coach_id !== req.session.coachId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const [interests] = await db.query(`
+      SELECT u.username, u.email, ai.created_at
+      FROM announcement_interests ai
+      JOIN users u ON ai.user_id = u.id
+      WHERE ai.announcement_id = ?
+      ORDER BY ai.created_at DESC
+    `, [announcementId]);
+
+    res.json(interests);
+  } catch (e) {
+    console.error("Fetch Interests Error:", e);
+    res.status(500).json({ error: "Failed to fetch interests" });
+  }
+});
+
+// 3. Coach: Delete an Announcement
+app.delete("/api/coach/announcements/:id", async (req, res) => {
+  try {
+    if (!req.session.coachId) return res.status(401).json({ error: "Unauthorized" });
+    const announcementId = req.params.id;
+
+    // Verify coach owns the announcement
+    const [ann] = await db.query(
+      "SELECT coach_id FROM coach_announcements WHERE id = ?",
+      [announcementId]
+    );
+
+    if (ann.length === 0 || ann[0].coach_id !== req.session.coachId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await db.query("DELETE FROM coach_announcements WHERE id = ?", [announcementId]);
+    res.json({ success: true, message: "Announcement deleted successfully" });
+  } catch (e) {
+    console.error("Delete Announcement Error:", e);
+    res.status(500).json({ error: "Failed to delete announcement" });
   }
 });
 
@@ -1571,7 +1703,7 @@ app.get("/api/notifications", async (req, res) => {
     }
 
     const [notifications] = await db.query(
-      `SELECT id, title, body, reminder_id, is_read, created_at 
+      `SELECT id, title, body, reminder_id, is_read, announcement_id, flyer_url, payment_details, created_at 
        FROM notifications 
        WHERE user_id = ? AND is_deleted = 0
        ORDER BY created_at DESC 
@@ -2233,28 +2365,6 @@ migrateEventsTable();
 
 /* ---------------- DATA API ROUTES ---------------- */
 
-// Helper to get userId from session or token
-const getUserId = (req) => {
-  if (req.session && req.session.userId) return req.session.userId;
-  return null;
-};
-
-// Middleware to ensure authentication (User only)
-const requireAuth = (req, res, next) => {
-  if (req.session && req.session.userId) {
-    req.userId = req.session.userId;
-    return next();
-  }
-  res.status(401).json({ error: "Unauthorized" });
-};
-
-// Middleware to ensure authentication (Any role)
-const requireAnyAuth = (req, res, next) => {
-  if (req.session && (req.session.userId || req.session.coachId)) {
-    return next();
-  }
-  res.status(401).json({ error: "Unauthorized" });
-};
 
 // --- USER THEME API ---
 app.put("/api/user/theme", requireAuth, async (req, res) => {
@@ -4036,7 +4146,8 @@ io.on("connection", (socket) => {
 async function migrateNotificationSchema() {
   try {
     const columns = [
-      "ADD COLUMN is_deleted BOOLEAN DEFAULT 0"
+      "ADD COLUMN is_deleted BOOLEAN DEFAULT 0",
+      "ADD COLUMN announcement_id INT NULL"
     ];
     for (const col of columns) {
       try {
@@ -4045,6 +4156,20 @@ async function migrateNotificationSchema() {
         if (e.errno !== 1060 && e.code !== 'ER_DUP_FIELDNAME') console.log("Notification migration notice:", e.message);
       }
     }
+
+    // Create Interests table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS announcement_interests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        announcement_id INT NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_interest (announcement_id, user_id),
+        FOREIGN KEY (announcement_id) REFERENCES coach_announcements(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB
+    `);
+    console.log("Announcement interests table ensured");
   } catch (e) {
     console.error("Migration error:", e);
   }
