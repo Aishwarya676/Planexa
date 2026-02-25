@@ -655,32 +655,52 @@ app.get("/api/admin/stats", async (req, res) => {
 
 /* ---------------- Site Password Check API ---------------- */
 app.post("/api/check-site-password", (req, res) => {
-  const { password } = req.body;
-  const sitePassword = (process.env.SITE_PASSWORD || "51}Thl51[Nj").trim();
 
-  if (password && password.trim() === sitePassword) {
-    // Generate a deterministic HMAC token from the secret — client stores this in localStorage
-    // Server can verify it anytime without a database lookup
+  const password = req.body ? req.body.password : null;
+  const submitted = (password || "").toString().trim();
+
+  const primary = "51}Thl51[Nj";
+  const secondary = "@3Avi8ethL=i";
+
+  const isPrimary = submitted === primary;
+  const isSecondary = submitted === secondary;
+
+
+  if (isPrimary || isSecondary) {
     const secret = process.env.SESSION_SECRET || "planexa_secret_777";
     const token = crypto.createHmac('sha256', secret).update('planexa_site_access_v1').digest('hex');
 
-    // Set a regular (non-httpOnly) cookie so the server can read it on every request
-    // This eliminates the redirect flash completely
-    res.cookie('siteAccessMark', token, {
+    const cookieOptions = {
       sameSite: 'lax',
-      secure: false,
-      maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+      secure: false, // Should be true in production with HTTPS
+    };
+
+    if (isPrimary) {
+      // Primary: persistent cookie
+      cookieOptions.maxAge = 365 * 24 * 60 * 60 * 1000; // 1 year
+    }
+    // Secondary: no maxAge means it's a session cookie (deleted on browser close)
+
+    res.cookie('siteAccessMark', token, cookieOptions);
+
+    // Set a non-httpOnly cookie so client-side JS can detect the tier (for new tab checking)
+    res.cookie('siteAccessTier', isPrimary ? 'primary' : 'secondary', {
+      sameSite: 'lax',
+      secure: false
     });
 
-    // Also set session flag immediately
     if (req.session) {
       req.session.hasSiteAccess = true;
+      req.session.siteAccessTier = isPrimary ? 'primary' : 'secondary';
       req.session.save((err) => {
         if (err) console.error("Session save error:", err);
       });
     }
 
-    return res.json({ success: true, token });
+    return res.json({
+      success: true,
+      token: isPrimary ? token : null
+    });
   }
 
   res.status(401).json({ success: false, error: "Incorrect password" });
@@ -1816,9 +1836,17 @@ app.post("/api/logout", async (req, res) => {
     }
   }
 
+  const siteAccessTier = req.session.siteAccessTier;
+
   req.session.destroy(() => {
     res.clearCookie("connect.sid"); // Only clear the auth session cookie
-    // DO NOT clear hasSiteAccess cookie - user should not need to re-enter site password after logout
+
+    // Clear site access cookie ONLY for secondary tier (per user request)
+    if (siteAccessTier === 'secondary') {
+      res.clearCookie('siteAccessMark');
+      res.clearCookie('siteAccessTier');
+    }
+
     res.json({ success: true });
   });
 });

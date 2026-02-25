@@ -179,7 +179,12 @@
                     // Save the HMAC token to localStorage for permanent persistence
                     if (data.token) {
                         localStorage.setItem(STORAGE_KEY, data.token);
+                    } else {
+                        // Secondary password or session-only: clear any old persistent token
+                        localStorage.removeItem(STORAGE_KEY);
                     }
+                    // Mark this tab as having site access (for the auth-helper.js check)
+                    sessionStorage.setItem('tab_site_access', 'true');
                     doRedirect(getNextUrl());
                 } else {
                     errorMsg.textContent = data.error || 'Access denied.';

@@ -59,6 +59,19 @@
         checkAuthPromise = (async () => {
             const path = window.location.pathname;
 
+            // --- SITE ACCESS GUARD (TAB-SPECIFIC FOR SECONDARY) ---
+            const cookies = document.cookie.split('; ').reduce((acc, c) => {
+                const [k, v] = c.split('=');
+                if (k && v) acc[k.trim()] = v.trim();
+                return acc;
+            }, {});
+
+            if (cookies.siteAccessTier === 'secondary' && !sessionStorage.getItem('tab_site_access')) {
+                console.log('[Auth] New tab detected for secondary site access. Redirecting to password wall.');
+                window.location.replace('/site-access.html?next=' + encodeURIComponent(window.location.pathname + window.location.search));
+                return;
+            }
+
             // --- IMMEDIATE VISIBILITY GUARD ---
             if (isProtectedPage(path)) {
                 document.documentElement.style.visibility = 'hidden';
