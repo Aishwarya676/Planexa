@@ -2245,7 +2245,7 @@ async function ensureObjectivesTable() {
 }
 
 // Call this during server startup
-ensureObjectivesTable();
+// ensureObjectivesTable(); // Moved to main startup sequence
 
 // Ensure admin_audit table has correct schema
 async function ensureAdminAuditTable() {
@@ -2457,6 +2457,9 @@ async function ensureUserTables() {
   }
 }
 ensureUserTables();
+
+// Ensure objectives table exists
+ensureObjectivesTable();
 
 // --- SCHEMA MIGRATION ---
 async function migrateCoachSchema() {
