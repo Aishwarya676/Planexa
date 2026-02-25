@@ -331,7 +331,6 @@ async function migrateAnnouncementType() {
   }
 }
 migrateAnnouncementType();
-ensureObjectivesTable();
 
 async function ensureAnnouncementsTable() {
   try {
@@ -2166,7 +2165,7 @@ app.post("/api/user/objective", async (req, res) => {
           is_active BOOLEAN DEFAULT TRUE,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           INDEX idx_user_active (user_id, is_active),
-          INDEX idx_created_at (created_at)
+          INDEX idx_created_at (created_at DESC)
         )
       `);
       console.log("✓ Objectives table ensured");
@@ -2235,7 +2234,7 @@ async function ensureObjectivesTable() {
           is_active BOOLEAN DEFAULT TRUE,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           INDEX idx_user_active (user_id, is_active),
-          INDEX idx_created_at (created_at)
+          INDEX idx_created_at (created_at DESC)
         )
       `);
 
@@ -2255,11 +2254,7 @@ async function ensureObjectivesTable() {
       }
 
       // Remove objective columns from users table
-      try {
-        await db.query("ALTER TABLE users DROP COLUMN objective_category, DROP COLUMN objective_text");
-      } catch (dropErr) {
-        console.log("Note: objective columns already removed or not present in users table");
-      }
+      await db.query("ALTER TABLE users DROP COLUMN objective_category, DROP COLUMN objective_text");
 
     } else {
       console.log('Objectives table already exists');
