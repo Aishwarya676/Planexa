@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="relative ${isLatest ? '' : 'border-l-4 border-red-500 pl-4'} flex justify-between items-start" style="${!isLatest ? 'text-decoration: line-through; text-decoration-color: #ef4444;' : ''}">
             <div class="flex-1">
               <div class="mb-2">
-                <span class="inline-block px-3 py-1 bg-[#334155] text-[#94A3B8] text-xs font-bold uppercase tracking-wider rounded-full">
+                <span class="inline-block px-3 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full" style="background-color: ${categoryColor(obj.objective_category).color}">
                   ${obj.objective_category}
                 </span>
               </div>
@@ -481,17 +481,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let goals = [];
 
   const categoryColor = (cat) => {
-    switch ((cat || 'Personal').toLowerCase()) {
-      case 'academic': return { border: 'border-l-4 border-sky-800', dot: 'bg-sky-900', badge: 'bg-sky-900 text-white', text: 'text-white', bar: 'bg-sky-800' };
-      case 'financial': return { border: 'border-l-4 border-emerald-800', dot: 'bg-emerald-900', badge: 'bg-emerald-900 text-white', text: 'text-white', bar: 'bg-emerald-800' };
-      case 'mental health': return { border: 'border-l-4 border-violet-800', dot: 'bg-violet-900', badge: 'bg-violet-900 text-white', text: 'text-white', bar: 'bg-violet-800' };
-      case 'hobbies': return { border: 'border-l-4 border-pink-800', dot: 'bg-pink-900', badge: 'bg-pink-900 text-white', text: 'text-white', bar: 'bg-pink-800' };
-      case 'health': return { border: 'border-l-4 border-green-800', dot: 'bg-green-900', badge: 'bg-green-900 text-white', text: 'text-white', bar: 'bg-green-800' };
-      case 'career': return { border: 'border-l-4 border-amber-800', dot: 'bg-amber-900', badge: 'bg-amber-900 text-white', text: 'text-white', bar: 'bg-amber-800' };
-      case 'relationship': return { border: 'border-l-4 border-rose-800', dot: 'bg-rose-900', badge: 'bg-rose-900 text-white', text: 'text-white', bar: 'bg-rose-800' };
-      case 'work': return { border: 'border-l-4 border-slate-800', dot: 'bg-slate-900', badge: 'bg-slate-900 text-white', text: 'text-white', bar: 'bg-slate-800' };
-      case 'personal': return { border: 'border-l-4 border-indigo-800', dot: 'bg-indigo-900', badge: 'bg-indigo-900 text-white', text: 'text-white', bar: 'bg-indigo-800' };
-      default: return { border: 'border-l-4 border-gray-800', dot: 'bg-gray-900', badge: 'bg-gray-900 text-white', text: 'text-white', bar: 'bg-gray-800' };
+    const c = (cat || 'Personal').toLowerCase();
+    switch (c) {
+      case 'physical': return { color: '#10B981', label: 'Emerald Green' };
+      case 'financial': return { color: '#1E3A8A', label: 'Deep Blue' };
+      case 'career': return { color: '#7C3AED', label: 'Royal Purple' };
+      case 'personal development': return { color: '#F59E0B', label: 'Amber' };
+      case 'spiritual': return { color: '#A78BFA', label: 'Soft Violet' };
+      case 'social': return { color: '#38BDF8', label: 'Sky Blue' };
+      case 'relationships': return { color: '#F43F5E', label: 'Rose Pink' };
+      default: return { color: '#6366F1', label: 'Indigo' };
     }
   };
 
@@ -509,30 +508,35 @@ document.addEventListener('DOMContentLoaded', () => {
     goals.forEach(g => {
       const colors = categoryColor(g.category);
       const li = document.createElement('li');
-      li.className = `card p-3 border border-slate-200 shadow-sm ${colors.border}`;
+      li.className = `card p-3 border border-slate-200 shadow-sm transition-all hover:shadow-md`;
+      li.style.borderLeft = `4px solid ${colors.color}`;
+
       const progress = pct(g.spent, g.total);
       li.innerHTML = `
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="inline-block w-2.5 h-2.5 rounded-full ${colors.dot}"></span>
+            <span class="inline-block w-2.5 h-2.5 rounded-full" style="background-color: ${colors.color}"></span>
             <div>
-              <div class="font-medium ${g.done ? 'line-through text-slate-400' : ''}">${g.text}</div>
-              <span class="text-[11px] px-2 py-0.5 rounded-full ${colors.badge}">${g.category || 'Personal'}</span>
+              <div class="font-bold text-slate-800 ${g.done ? 'line-through text-slate-400' : ''}">${g.text}</div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold text-white uppercase tracking-wider" style="background-color: ${colors.color}">${g.category || 'Personal'}</span>
             </div>
           </div>
             <div class="flex items-center gap-2">
-            <span class="text-xs ${colors.text}">${progress}%</span>
-            <button class="icon-btn text-blue-500 hover:bg-blue-50 p-1 rounded" title="Edit Progress" data-action="edit" data-id="${g.id}">
+            <span class="text-xs font-bold text-slate-500">${progress}%</span>
+            <button class="icon-btn text-indigo-500 hover:bg-indigo-50 p-1.5 rounded-lg transition-colors" title="Edit Progress" data-action="edit" data-id="${g.id}">
               <i data-lucide="pencil" class="w-4 h-4"></i>
             </button>
-            <button class="icon-btn text-red-500 hover:bg-red-50 p-1 rounded" title="Delete" data-action="remove" data-id="${g.id}">
+            <button class="icon-btn text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors" title="Delete" data-action="remove" data-id="${g.id}">
               <i data-lucide="trash" class="w-4 h-4"></i>
             </button>
           </div>        </div>
-        <div class="mt-3 h-2 w-full bg-slate-200 rounded">
-          <div class="h-2 rounded ${colors.bar}" style="width:${progress}%"></div>
+        <div class="mt-3 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-1000" style="width:${progress}%; background-color: ${colors.color}"></div>
         </div>
-        <div class="mt-2 text-xs text-slate-600">${g.spent || 0}h / ${g.total || 0}h</div>
+        <div class="mt-2 flex justify-between items-center text-[10px] font-bold text-slate-400 tracking-wide uppercase">
+          <span>Progress</span>
+          <span>${g.spent || 0}h / ${g.total || 0}h</span>
+        </div>
       `;
       goalList.appendChild(li);
     });
@@ -769,19 +773,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const pctVal = g.total > 0 ? (g.spent / g.total) * 100 : 0;
       const pctDisp = Math.round(pctVal);
 
-      let colorClass = 'bg-blue-500';
-      if (g.category === 'Health') colorClass = 'bg-green-500';
-      if (g.category === 'Career') colorClass = 'bg-purple-500';
-      if (g.category === 'Financial') colorClass = 'bg-emerald-500';
+      const colors = categoryColor(g.category);
 
       const div = document.createElement('div');
       div.innerHTML = `
-          <div class="flex justify-between text-sm mb-1.5 font-medium text-gray-700">
+          <div class="flex justify-between text-sm mb-1.5 font-bold text-slate-700 tracking-tight">
             <span>${g.text || 'Goal'}</span>
-            <span>${pctDisp}%</span>
+            <span style="color: ${colors.color}">${pctDisp}%</span>
           </div>
-          <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full ${colorClass} rounded-full transition-all" style="width: ${pctDisp}%"></div>
+          <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-1000" style="width: ${pctDisp}%; background-color: ${colors.color}"></div>
           </div>
       `;
       container.appendChild(div);
