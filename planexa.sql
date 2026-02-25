@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     theme_id VARCHAR(50) DEFAULT 'default',
     theme_colors JSON,
     calendar_token VARCHAR(255) UNIQUE,
+    onboarding_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX (email)
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS coaches (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     hashed_password VARCHAR(255) NOT NULL,
+    onboarding_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX (email)
@@ -246,6 +248,10 @@ CREATE TABLE IF NOT EXISTS notifications (
     title VARCHAR(255),
     body TEXT,
     reminder_id INT,
+    announcement_id INT,
+    flyer_url TEXT,
+    payment_details TEXT,
+    type ENUM('reminder', 'announcement', 'webinar') DEFAULT 'reminder',
     is_read BOOLEAN DEFAULT FALSE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -294,16 +300,43 @@ CREATE TABLE IF NOT EXISTS website_feedback (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 24. Coach Event Announcements
+-- 24. Objectives Table (for objective history tracking)
+CREATE TABLE IF NOT EXISTS objectives (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    objective_category VARCHAR(255) NOT NULL,
+    objective_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_active (user_id, is_active),
+    INDEX idx_created_at (created_at DESC)
+) ENGINE=InnoDB;
+
+-- 25. Coach Event Announcements
 CREATE TABLE IF NOT EXISTS coach_announcements (
     id INT AUTO_INCREMENT PRIMARY KEY,
     coach_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    target_audience ENUM('all', 'my_students') DEFAULT 'all',
-    start_date DATE,
-    end_date DATE,
-    timezone VARCHAR(50),
+    start_datetime DATETIME NOT NULL,
+    end_datetime DATETIME NOT NULL,
+    timezone VARCHAR(50) NOT NULL,
+    visibility ENUM('public', 'private') DEFAULT 'private',
+    flyer_url TEXT,
+    payment_details TEXT,
+    type ENUM('announcement', 'webinar') DEFAULT 'announcement',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 26. Announcement Interests
+CREATE TABLE IF NOT EXISTS announcement_interests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    announcement_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (announcement_id) REFERENCES coach_announcements(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_interest (announcement_id, user_id)
 ) ENGINE=InnoDB;
