@@ -2150,6 +2150,9 @@ app.post("/api/user/objective", async (req, res) => {
   }
 
   try {
+    console.log("Saving objective for user:", req.session.userId);
+    console.log("Objective data:", { objectiveCategory, objectiveText });
+    
     // Set all previous objectives for this user to inactive
     await db.query(
       "UPDATE objectives SET is_active = FALSE WHERE user_id = ? AND is_active = TRUE",
@@ -2162,10 +2165,16 @@ app.post("/api/user/objective", async (req, res) => {
       [req.session.userId, objectiveCategory, objectiveText]
     );
 
+    console.log("Objective saved successfully");
     res.json({ success: true });
   } catch (err) {
     console.error("Error saving objective:", err);
-    res.status(500).json({ error: "Failed to save objective" });
+    console.error("Error details:", {
+      code: err.code,
+      sqlMessage: err.sqlMessage,
+      sqlState: err.sqlState
+    });
+    res.status(500).json({ error: "Failed to save objective", details: err.message });
   }
 });
 
@@ -4332,6 +4341,31 @@ async function migrateNotificationSchema() {
   }
 }
 migrateNotificationSchema();
+
+// Ensure announcement interests table exists
+async function ensureAnnouncementInterestsTable() {
+  try {
+    const [tables] = await db.query("SHOW TABLES LIKE 'announcement_interests'");
+    if (tables.length === 0) {
+      await db.query(`
+        CREATE TABLE announcement_interests (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          announcement_id INT NOT NULL,
+          user_id INT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (announcement_id) REFERENCES coach_announcements(id) ON DELETE CASCADE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_interest (announcement_id, user_id)
+        )
+      `);
+      console.log('✓ Announcement interests table created');
+    } else {
+      console.log('✓ Announcement interests table already exists');
+    }
+  } catch (err) {
+    console.error('Error ensuring announcement interests table:', err);
+  }
+}
 
 async function notifyStudentUpdate(studentId, type) {
   try {
