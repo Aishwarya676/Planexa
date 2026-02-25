@@ -3641,9 +3641,16 @@ app.get("/api/coach/user-profile/:userId", async (req, res) => {
       [userId]
     );
 
+    // Get active objective
+    const [objective] = await db.query(
+      "SELECT objective_text, objective_category FROM objectives WHERE user_id = ? AND is_active = TRUE",
+      [userId]
+    );
+
     res.json({
       user,
       booking: booking[0] || {},
+      objective: objective[0] || null,
       stats: {
         totalTasks: taskStats[0]?.total || 0,
         completedTasks: taskStats[0]?.completed || 0,
@@ -4485,9 +4492,16 @@ app.get("/api/coach/student-analytics/:studentId", requireAnyAuth, async (req, r
       [studentId]
     );
 
+    // 4. Fetch Active Objective
+    const [objective] = await db.query(
+      "SELECT objective_text, objective_category FROM objectives WHERE user_id = ? AND is_active = TRUE",
+      [studentId]
+    );
+
     res.json({
       goals: goals,
       recentTasks: recentTasks,
+      objective: objective[0] || null,
       stats: {
         totalTasks: todoStats[0].total,
         completedTasks: todoStats[0].completed
