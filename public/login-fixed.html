@@ -359,6 +359,11 @@
               </div>
             </div>
 
+            <div class="space-y-4 pt-2 border-t border-gray-100">
+
+
+            </div>
+
             <button type="submit"
               class="btn-premium w-full py-3.5 mt-4 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
               <i data-lucide="user-plus" class="w-4 h-4"></i> Create account
@@ -840,22 +845,25 @@
             throw err;
           }
 
-          // SUCCESS: Do NOT auto-login.
-          alert('Account created successfully! Please log in with your new credentials.');
-
-          // Clear any stale local session data
-          localStorage.removeItem('planner.user');
-          localStorage.removeItem('planner.theme');
-          localStorage.removeItem('planner.themeId');
-
-          // Switch back to login form
-          registerSection.classList.add('hidden');
-          loginSection.classList.remove('hidden');
-
-          // Pre-fill email
-          emailEl.value = email;
-          passEl.value = '';
-          passEl.focus();
+          // SUCCESS: Log user in and redirect to objective setup
+          const loginRes = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, password, rememberMe: false })
+          });
+          
+          const loginData = await loginRes.json();
+          if (loginRes.ok) {
+            const standardizedData = {
+              isAuthenticated: true,
+              user: loginData.user,
+              userType: loginData.user?.user_type
+            };
+            localStorage.setItem(NAME_KEY, JSON.stringify(standardizedData));
+          }
+          
+          window.location.href = data.redirectTo || '/objective-setup.html';
 
         } catch (err) {
           console.error('Register error:', err);

@@ -62,10 +62,187 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   syncTime();
 
+  // -------------------- User Objectives --------------------
+  async function loadUserObjective() {
+    try {
+      const data = await api.get('/api/session');
+      const container = document.getElementById('nav-objective-container');
+      const panelTextEl = document.getElementById('panel-objective-text');
+      if (!container) return;
+
+      if (data && data.isAuthenticated) {
+        if (data.objective_text) {
+          if (panelTextEl) panelTextEl.innerText = data.objective_text;
+        } else {
+          if (panelTextEl) panelTextEl.innerText = "No objective set. Click to set your goal.";
+        }
+        if (panelTextEl) {
+          panelTextEl.style.cursor = data.objective_text ? 'default' : 'pointer';
+          panelTextEl.onclick = () => {
+            if (!data.objective_text) window.location.href = '/objective-setup.html';
+          };
+        }
+        container.classList.remove('hidden');
+      } else {
+        container.classList.add('hidden');
+      }
+    } catch (e) {
+      console.error('Failed to load user objective:', e);
+    }
+  }
+
+  // Load objective history for the main objective tab
+  async function loadObjectiveHistory() {
+    const loadingEl = document.getElementById('objective-loading');
+    const emptyEl = document.getElementById('objective-empty');
+    const listEl = document.getElementById('objective-list');
+
+    try {
+      loadingEl.classList.remove('hidden');
+      emptyEl.classList.add('hidden');
+      listEl.classList.add('hidden');
+
+      const objectives = await api.get('/api/user/objectives');
+
+      loadingEl.classList.add('hidden');
+
+      if (!objectives || objectives.length === 0) {
+        emptyEl.classList.remove('hidden');
+        // Handle create first objective button
+        const createBtn = document.getElementById('create-first-objective');
+        if (createBtn) {
+          createBtn.addEventListener('click', () => {
+            window.location.href = '/objective-setup.html';
+          });
+        }
+        return;
+      }
+
+      listEl.innerHTML = '';
+      listEl.classList.remove('hidden');
+
+      objectives.forEach((obj, index) => {
+        const isLatest = index === 0;
+        const objDiv = document.createElement('div');
+        objDiv.className = `relative ${isLatest ? '' : 'opacity-75'}`;
+
+        objDiv.innerHTML = `
+          ${!isLatest ? '<div class="absolute inset-0 bg-red-500/10 rounded-lg"></div>' : ''}
+          <div class="relative ${isLatest ? '' : 'border-l-4 border-red-500 pl-4'}" style="${!isLatest ? 'text-decoration: line-through; text-decoration-color: #ef4444;' : ''}">
+            <div class="mb-2">
+              <span class="inline-block px-3 py-1 bg-[#334155] text-[#94A3B8] text-xs font-bold uppercase tracking-wider rounded-full">
+                ${obj.objective_category}
+              </span>
+            </div>
+            <q class="text-xl md:text-2xl lg:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-[#94A3B8] leading-tight tracking-tight block ${isLatest ? 'mt-4' : ''}" style="${!isLatest ? 'color: #64748b;' : ''}">
+              ${obj.objective_text}
+            </q>
+          </div>
+        `;
+
+        listEl.appendChild(objDiv);
+      });
+
+    } catch (e) {
+      console.error('Failed to load objective history:', e);
+      loadingEl.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+    }
+  }
+
+  loadUserObjective();
+  loadObjectiveHistory();
+
+  // -------------------- Edit Objective Modal --------------------
+  const editObjectiveBtn = document.getElementById('edit-objective-btn');
+  const editObjectiveModal = document.getElementById('edit-objective-modal');
+  const closeObjectiveModal = document.getElementById('close-objective-modal');
+  const cancelObjectiveEdit = document.getElementById('cancel-objective-edit');
+  const editObjectiveForm = document.getElementById('edit-objective-form');
+  const editObjectiveCategory = document.getElementById('edit-objective-category');
+  const editObjectiveText = document.getElementById('edit-objective-text');
+
+  // Open edit modal
+  if (editObjectiveBtn) {
+    editObjectiveBtn.addEventListener('click', async () => {
+      try {
+        const data = await api.get('/api/session');
+        if (data && data.isAuthenticated) {
+          // Pre-populate form with current values
+          editObjectiveCategory.value = data.objective_category || '';
+          editObjectiveText.value = data.objective_text || '';
+
+          // Show modal
+          editObjectiveModal.classList.remove('hidden');
+          editObjectiveModal.style.opacity = '1';
+        }
+      } catch (e) {
+        console.error('Failed to load objective data:', e);
+        alert('Failed to load objective data. Please try again.');
+      }
+    });
+  }
+
+  // Close modal handlers
+  [closeObjectiveModal, cancelObjectiveEdit].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        editObjectiveModal.classList.add('hidden');
+        editObjectiveModal.style.opacity = '0';
+        editObjectiveForm.reset();
+      });
+    }
+  });
+
+  // Save objective updates
+  if (editObjectiveForm) {
+    editObjectiveForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const category = editObjectiveCategory.value;
+      const text = editObjectiveText.value.trim();
+
+      if (!category || !text) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      const submitBtn = editObjectiveForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader" class="animate-spin w-4 h-4 mr-2"></i> Updating...';
+
+        await api.post('/api/user/objective', { objectiveCategory: category, objectiveText: text });
+
+        // Close modal and refresh objective display
+        editObjectiveModal.classList.add('hidden');
+        editObjectiveModal.style.opacity = '0';
+        editObjectiveForm.reset();
+
+        // Refresh the objective display
+        await loadUserObjective();
+        await loadObjectiveHistory();
+
+        // Show success message
+        alert('Objective updated successfully!');
+
+      } catch (err) {
+        console.error('Error updating objective:', err);
+        alert(err.message || 'Failed to update objective. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+  }
+
   // -------------------- To-Do --------------------
   const todoInput = document.getElementById('todo-input');
   const todoImportance = document.getElementById('todo-importance');
   const todoUrgency = document.getElementById('todo-urgency');
+  const todoNotify = document.getElementById('todo-notify');
   const todoAdd = document.getElementById('todo-add');
   const todoLists = {
     do: document.getElementById('todo-list-do'),
@@ -91,10 +268,16 @@ document.addEventListener('DOMContentLoaded', () => {
     todos.forEach(t => {
       const li = document.createElement('li');
       li.className = `card flex items-center justify-between p-3 ${t.done ? 'opacity-50' : ''}`;
+      const notifyStr = t.notify_time ? new Date(new Date(t.notify_time.replace(' ', 'T') + 'Z').getTime() - clockDrift).toLocaleString() : '';
       li.innerHTML = `
         <div class="flex items-center gap-2 w-full">
           <input type="checkbox" ${t.done ? 'checked' : ''} class="h-4 w-4" data-action="toggle" data-id="${t.id}">
-          <span class="${t.done ? 'line-through text-slate-400' : ''}">${t.text}</span>
+          <div class="flex flex-col">
+            <span class="${t.done ? 'line-through text-slate-400' : ''}">${t.text}</span>
+            ${t.notify_time ? `<span class="text-[10px] font-bold text-indigo-500 flex items-center gap-1">
+              <i data-lucide="bell" class="w-3 h-3"></i> Notify: ${notifyStr}
+            </span>` : ''}
+          </div>
         </div>
         <button class="icon-btn ml-2 text-red-500 hover:text-red-700" title="Delete" data-action="remove" data-id="${t.id}">
           <i data-lucide="trash" class="w-4 h-4"></i>
@@ -124,11 +307,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!text) return;
     const priority = todoImportance?.value || 'important';
     const urgent = todoUrgency?.value || 'urgent';
+    let notify_time = todoNotify?.value || null;
+
+    if (notify_time) {
+      try {
+        const localDate = new Date(notify_time);
+        if (!isNaN(localDate.getTime())) {
+          const adjustedDate = new Date(localDate.getTime() + clockDrift);
+          notify_time = adjustedDate.getUTCFullYear() + '-' +
+            ('0' + (adjustedDate.getUTCMonth() + 1)).slice(-2) + '-' +
+            ('0' + adjustedDate.getUTCDate()).slice(-2) + ' ' +
+            ('0' + adjustedDate.getUTCHours()).slice(-2) + ':' +
+            ('0' + adjustedDate.getUTCMinutes()).slice(-2) + ':' +
+            ('0' + adjustedDate.getUTCSeconds()).slice(-2);
+        }
+      } catch (e) {
+        console.error('Time conversion error:', e);
+      }
+    }
 
     try {
-      const newTodo = await api.post('/api/todos', { text, priority, urgent });
+      const newTodo = await api.post('/api/todos', { text, priority, urgent, notify_time });
       todos.unshift(newTodo);
       todoInput.value = '';
+      if (todoNotify) todoNotify.value = '';
       renderTodos();
     } catch (e) {
       console.error('Failed to add todo:', e);
@@ -232,102 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // -------------------- Reminders --------------------
-  const remTitle = document.getElementById('rem-title');
-  const remDatetime = document.getElementById('rem-datetime');
-  const remAdd = document.getElementById('rem-add');
-  const remList = document.getElementById('rem-list');
-  let reminders = [];
-
-  const renderReminders = () => {
-    if (!remList) return;
-    remList.innerHTML = '';
-    reminders.forEach(r => {
-      const li = document.createElement('li');
-      li.className = 'card p-3 flex items-center justify-between';
-      const adjustedTime = r.when_time ? new Date(new Date(r.when_time.replace(' ', 'T') + 'Z').getTime() - clockDrift) : null;
-      const dateLabel = adjustedTime ? adjustedTime.toLocaleString() : '';
-      li.innerHTML = `
-        <div class="flex items-center gap-2">
-          <input type="checkbox" ${r.done ? 'checked' : ''} class="h-4 w-4" data-action="toggle" data-id="${r.id}">
-          <div>
-            <div class="${r.done ? 'line-through text-slate-400' : ''}">${r.title}</div>
-            <div class="text-xs text-slate-500">${dateLabel}</div>
-          </div>
-        </div>
-        <button class="icon-btn text-red-500" title="Delete" data-action="remove" data-id="${r.id}"><i data-lucide="trash"></i></button>`;
-      remList.appendChild(li);
-    });
-    if (window.lucide) window.lucide.createIcons();
-  };
-
-  const loadReminders = async () => {
-    try {
-      reminders = await api.get('/api/reminders');
-      renderReminders();
-    } catch (e) { console.error(e); }
-  };
-
-  remAdd?.addEventListener('click', async () => {
-    const title = (remTitle?.value || '').trim();
-    if (!title) return;
-    let when = remDatetime?.value || null;
-
-    // Standardize to UTC for reliable notification delivery
-    if (when) {
-      try {
-        const localDate = new Date(when);
-        if (!isNaN(localDate.getTime())) {
-          // Adjust for server clock drift
-          const adjustedDate = new Date(localDate.getTime() + clockDrift);
-
-          // Format as YYYY-MM-DD HH:mm:ss in UTC for MySQL Compatibility
-          when = adjustedDate.getUTCFullYear() + '-' +
-            ('0' + (adjustedDate.getUTCMonth() + 1)).slice(-2) + '-' +
-            ('0' + adjustedDate.getUTCDate()).slice(-2) + ' ' +
-            ('0' + adjustedDate.getUTCHours()).slice(-2) + ':' +
-            ('0' + adjustedDate.getUTCMinutes()).slice(-2) + ':' +
-            ('0' + adjustedDate.getUTCSeconds()).slice(-2);
-          console.log(`[Reminders] Local: ${remDatetime.value} | Drift: ${clockDrift}ms | Adjusted UTC: ${when}`);
-        }
-      } catch (e) {
-        console.error('Time conversion error:', e);
-      }
-    }
-
-    try {
-      const newRem = await api.post('/api/reminders', { title, when });
-      reminders.unshift(newRem);
-      remTitle.value = '';
-      remDatetime.value = '';
-      renderReminders();
-    } catch (e) { console.error('Failed to add reminder:', e); }
-  });
-
-  remList?.addEventListener('click', async (e) => {
-    const target = e.target.closest('[data-action]');
-    if (!target) return;
-    const id = Number(target.dataset.id);
-    const action = target.dataset.action;
-
-    if (action === 'toggle') {
-      const r = reminders.find(x => x.id === id);
-      if (r) {
-        const newDone = !r.done;
-        try {
-          await api.put(`/api/reminders/${id}`, { done: newDone });
-          r.done = newDone;
-          renderReminders();
-        } catch (e) { console.error(e); }
-      }
-    } else if (action === 'remove') {
-      try {
-        await api.delete(`/api/reminders/${id}`);
-        reminders = reminders.filter(x => x.id !== id);
-        renderReminders();
-      } catch (e) { console.error(e); }
-    }
-  });
 
   // -------------------- Goals --------------------
   const goalTitle = document.getElementById('goal-title');
@@ -649,7 +755,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial loads
   loadTodos();
   loadShopping();
-  loadReminders();
   loadGoals();
 
   // Load analytics when Profile tab is clicked or initially

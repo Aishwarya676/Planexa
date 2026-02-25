@@ -90,7 +90,7 @@ app.use(
 
 /* ---------------- Cache-Control + Route Guards ---------------- */
 const strictLoginPages = new Set(["/login.html", "/login-fixed.html", "/get-started.html", "/landing.html", "/index.html"]);
-const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html"]);
+const publicPages = new Set(["/index.html", "/landing.html", "/get-started.html", "/objective-setup.html"]);
 const userPages = new Set(["/app.html", "/dashboard", "/account.html", "/customization.html", "/customer-service/customer.html"]);
 const adminPages = new Set(["/admin/admin-dashboard.html"]);
 
@@ -469,7 +469,7 @@ app.get("/api/session", async (req, res) => {
       if (req.session.userId) {
         // Regular User
         const [rows] = await db.query(
-          "SELECT id, username, email, user_type, onboarding_completed FROM users WHERE id = ?",
+          "SELECT id, username, email, user_type, onboarding_completed, objective_category, objective_text FROM users WHERE id = ?",
           [req.session.userId]
         );
         if (rows.length > 0) {
@@ -484,6 +484,8 @@ app.get("/api/session", async (req, res) => {
             user: rows[0],
             userType: rows[0].user_type,
             onboarding_completed: rows[0].onboarding_completed,
+            objective_category: rows[0].objective_category,
+            objective_text: rows[0].objective_text,
             canMessage: connectionsSlice[0].count > 0
           });
         }
@@ -515,10 +517,15 @@ app.get("/api/session", async (req, res) => {
     if (token) {
       const decoded = jwt.verify(token, JWT_SECRET);
       const userId = decoded.userId;
-      const [rows2] = await db.query(
-        "SELECT id, username, email, user_type, theme_id, theme_colors, onboarding_completed FROM users WHERE id = ?",
-        [userId]
-      );
+      const [rows2] = await db.query(`
+        SELECT u.id, u.username, u.email, u.user_type, u.theme_id, u.theme_colors, u.onboarding_completed,
+               o.objective_category, o.objective_text
+        FROM users u
+        LEFT JOIN objectives o ON u.id = o.user_id AND o.is_active = TRUE
+        WHERE u.id = ?
+        ORDER BY o.created_at DESC
+        LIMIT 1
+      `, [userId]);
       if (rows2 && rows2.length > 0) {
         let user = rows2[0];
         if (user.theme_colors && typeof user.theme_colors === 'string') {
@@ -534,6 +541,8 @@ app.get("/api/session", async (req, res) => {
           isAuthenticated: true,
           user: user,
           userType: user.user_type,
+          objective_category: user.objective_category,
+          objective_text: user.objective_text,
           canMessage: connections2[0].count > 0
         });
       }
@@ -2044,7 +2053,7 @@ app.post("/api/register", async (req, res) => {
     });
   }
 
-  const { username, email, password, userType } = req.body;
+  const { username, email, password, userType, objectiveCategory, objectiveText } = req.body;
   const type = userType || "user";
 
   if (!username || !email || !password) return res.status(400).json({ error: "All fields required" });
@@ -2117,17 +2126,117 @@ app.post("/api/register", async (req, res) => {
 
     // USER REGISTRATION
     const [result] = await db.query(
-      "INSERT INTO users (username, email, password_hash, user_type) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, type]
+      "INSERT INTO users (username, email, password_hash, user_type, objective_category, objective_text) VALUES (?, ?, ?, ?, ?, ?)",
+      [username, email, hashedPassword, type, null, null]
     );
 
-    res.json({ success: true, message: "Account created successfully! Please log in." });
+    res.json({ success: true, redirectTo: "/objective-setup.html" });
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY") return res.status(400).json({ error: "Email already registered" });
     console.error("Registration error:", err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
+
+/* ---------------- SAVE USER OBJECTIVE ---------------- */
+app.post("/api/user/objective", async (req, res) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const { objectiveCategory, objectiveText } = req.body;
+  if (!objectiveCategory || !objectiveText) {
+    return res.status(400).json({ error: "Objective category and text are required" });
+  }
+
+  try {
+    // Set all previous objectives for this user to inactive
+    await db.query(
+      "UPDATE objectives SET is_active = FALSE WHERE user_id = ? AND is_active = TRUE",
+      [req.session.userId]
+    );
+
+    // Insert new objective as active
+    await db.query(
+      "INSERT INTO objectives (user_id, objective_category, objective_text, is_active) VALUES (?, ?, ?, TRUE)",
+      [req.session.userId, objectiveCategory, objectiveText]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error saving objective:", err);
+    res.status(500).json({ error: "Failed to save objective" });
+  }
+});
+
+/* ---------------- GET USER OBJECTIVES HISTORY ---------------- */
+app.get("/api/user/objectives", async (req, res) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const [objectives] = await db.query(
+      "SELECT id, objective_category, objective_text, created_at, is_active FROM objectives WHERE user_id = ? ORDER BY created_at DESC",
+      [req.session.userId]
+    );
+
+    res.json(objectives);
+  } catch (err) {
+    console.error("Error fetching objectives:", err);
+    res.status(500).json({ error: "Failed to fetch objectives" });
+  }
+});
+
+// Ensure objectives table exists and migrate data
+async function ensureObjectivesTable() {
+  try {
+    // Check if objectives table exists
+    const [tables] = await db.query("SHOW TABLES LIKE 'objectives'");
+    if (tables.length === 0) {
+      // Create objectives table
+      await db.query(`
+        CREATE TABLE objectives (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          objective_category VARCHAR(255) NOT NULL,
+          objective_text TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          is_active BOOLEAN DEFAULT TRUE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          INDEX idx_user_active (user_id, is_active),
+          INDEX idx_created_at (created_at DESC)
+        )
+      `);
+
+      // Migrate existing objectives from users table
+      const [existingObjectives] = await db.query(
+        "SELECT id, objective_category, objective_text FROM users WHERE objective_category IS NOT NULL AND objective_text IS NOT NULL"
+      );
+
+      if (existingObjectives.length > 0) {
+        for (const user of existingObjectives) {
+          await db.query(
+            "INSERT INTO objectives (user_id, objective_category, objective_text, created_at) VALUES (?, ?, ?, NOW())",
+            [user.id, user.objective_category, user.objective_text]
+          );
+        }
+        console.log(`Migrated ${existingObjectives.length} existing objectives to objectives table`);
+      }
+
+      // Remove objective columns from users table
+      await db.query("ALTER TABLE users DROP COLUMN objective_category, DROP COLUMN objective_text");
+
+    } else {
+      console.log('Objectives table already exists');
+    }
+  } catch (err) {
+    console.error('Error ensuring objectives table:', err);
+  }
+}
+
+// Call this during server startup
+ensureObjectivesTable();
 
 // Ensure admin_audit table has correct schema
 async function ensureAdminAuditTable() {
@@ -2181,6 +2290,8 @@ async function ensureUserTables() {
         priority VARCHAR(50) DEFAULT 'important',
         urgent VARCHAR(50) DEFAULT 'urgent',
         done TINYINT(1) DEFAULT 0,
+        notify_time DATETIME NULL,
+        notified TINYINT(1) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         completed_at TIMESTAMP NULL,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -2197,6 +2308,16 @@ async function ensureUserTables() {
       await db.query("ALTER TABLE todos ADD COLUMN event_id INT NULL");
     } catch (e) {
       if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice (event_id):", e.message);
+    }
+    try {
+      await db.query("ALTER TABLE todos ADD COLUMN notify_time DATETIME NULL");
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice (notify_time):", e.message);
+    }
+    try {
+      await db.query("ALTER TABLE todos ADD COLUMN notified TINYINT(1) DEFAULT 0");
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.log("Todos migration notice (notified):", e.message);
     }
 
     // Shopping
@@ -2383,6 +2504,15 @@ async function migrateEventsTable() {
   }
 }
 migrateEventsTable();
+async function migrateUserObjectivesSchema() {
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN objective_category VARCHAR(100) NULL");
+  } catch (e) { }
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN objective_text TEXT NULL");
+  } catch (e) { }
+}
+migrateUserObjectivesSchema();
 
 /* ---------------- DATA API ROUTES ---------------- */
 
@@ -2401,6 +2531,10 @@ app.put("/api/user/theme", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/system/time", (req, res) => {
+  res.json({ utcTime: new Date().toISOString() });
+});
+
 /* --- TODOS --- */
 app.get("/api/todos", requireAuth, async (req, res) => {
   try {
@@ -2412,7 +2546,7 @@ app.get("/api/todos", requireAuth, async (req, res) => {
 });
 
 app.post("/api/todos", requireAuth, async (req, res) => {
-  const { text, priority, urgent } = req.body;
+  const { text, priority, urgent, notify_time } = req.body;
   try {
     // 1. Create Calendar Event first to get event_id
     // Simple one-way sync: Add to Today's date
@@ -2425,11 +2559,11 @@ app.post("/api/todos", requireAuth, async (req, res) => {
 
     // 2. Insert into todos with the linked eventId
     const [result] = await db.query(
-      "INSERT INTO todos (user_id, text, priority, urgent, event_id) VALUES (?, ?, ?, ?, ?)",
-      [req.userId, text, priority, urgent, eventId]
+      "INSERT INTO todos (user_id, text, priority, urgent, notify_time, event_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.userId, text, priority, urgent, notify_time, eventId]
     );
     notifyStudentUpdate(req.userId, 'todo'); // Notify Coach
-    res.json({ id: result.insertId, text, priority, urgent, done: 0, event_id: eventId });
+    res.json({ id: result.insertId, text, priority, urgent, notify_time, event_id: eventId, done: 0 });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -2513,47 +2647,6 @@ app.delete("/api/shopping/:id", requireAuth, async (req, res) => {
   }
 });
 
-/* --- REMINDERS --- */
-app.get("/api/reminders", requireAuth, async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM reminders WHERE user_id = ? ORDER BY created_at DESC", [req.userId]);
-    res.json(rows);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/api/reminders", requireAuth, async (req, res) => {
-  const { title, when } = req.body;
-  try {
-    const [result] = await db.query(
-      "INSERT INTO reminders (user_id, title, when_time) VALUES (?, ?, ?)",
-      [req.userId, title, when || null]
-    );
-    res.json({ id: result.insertId, title, when_time: when, done: 0 });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.put("/api/reminders/:id", requireAuth, async (req, res) => {
-  const { done } = req.body;
-  try {
-    await db.query("UPDATE reminders SET done = ? WHERE id = ? AND user_id = ?", [done ? 1 : 0, req.params.id, req.userId]);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.delete("/api/reminders/:id", requireAuth, async (req, res) => {
-  try {
-    await db.query("DELETE FROM reminders WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
 
 /* --- GOALS --- */
 app.get("/api/goals", requireAuth, async (req, res) => {
@@ -2758,61 +2851,72 @@ app.put("/api/me/username", async (req, res) => {
 });
 
 /* ---------------- NOTIFICATION SCHEDULER ---------------- */
-// Check for due reminders every 10 seconds for high precision
+// Check for due items every 10 seconds for high precision
 setInterval(async () => {
   try {
-    // Check for due reminders that haven't been notified yet
-    // efficient anti-duplicate check: `reminder_id` in notifications table
-    const [reminders] = await db.query(
-      `SELECT r.id, r.user_id, r.title, r.when_time 
+    // 1. Check for due reminders that haven't been notified yet
+    const [reminders] = await db.query(`
+      SELECT r.*, u.id as user_actual_id
        FROM reminders r
-       LEFT JOIN notifications n ON r.id = n.reminder_id
-       WHERE r.done = 0 
-       AND r.when_time <= UTC_TIMESTAMP()
-       AND r.when_time > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 24 HOUR)
-       AND n.id IS NULL`
-    );
+       JOIN users u ON r.user_id = u.id
+       WHERE r.when_time <= UTC_TIMESTAMP() AND r.done = 0
+    `);
 
-    if (reminders.length > 0) {
-      console.log(`[Scheduler] Found ${reminders.length} due reminders.`);
+    // 2. Check for due To-Dos that haven't been notified yet
+    const [dueTodos] = await db.query(`
+      SELECT t.*, u.id as user_actual_id
+      FROM todos t
+      JOIN users u ON t.user_id = u.id
+      WHERE t.notify_time <= UTC_TIMESTAMP() AND t.done = 0 AND t.notified = 0
+    `);
+
+    const allDueItems = [
+      ...reminders.map(r => ({ ...r, type: 'reminder', displayTitle: r.title })),
+      ...dueTodos.map(t => ({ ...t, type: 'todo', displayTitle: t.text }))
+    ];
+
+    if (allDueItems.length > 0) {
+      console.log(`[Scheduler] Found ${allDueItems.length} due items (${reminders.length} reminders, ${dueTodos.length} todos).`);
     }
 
-    for (const reminder of reminders) {
+    for (const item of allDueItems) {
       try {
-        // Get user's push subscription
-        const [subscriptions] = await db.query(
-          "SELECT subscription_json FROM push_subscriptions WHERE user_id = ?",
-          [reminder.user_id]
-        );
+        const [subs] = await db.query("SELECT * FROM push_subscriptions WHERE user_id = ?", [item.user_actual_id]);
 
-        if (subscriptions.length > 0) {
-          const subscription = JSON.parse(subscriptions[0].subscription_json);
-          const payload = JSON.stringify({
-            title: "Reminder",
-            body: reminder.title,
-            url: "/app.html"
-          });
+        const payload = JSON.stringify({
+          title: item.type === 'reminder' ? 'Reminder' : 'To-Do',
+          body: item.displayTitle,
+          icon: '/icon-192.png',
+          data: {
+            url: '/app.html' + (item.type === 'todo' ? '#todo' : '#reminders')
+          }
+        });
 
-          // Store notification FIRST to prevent race conditions/duplicates in next tick
-          await db.query(
-            `INSERT INTO notifications (user_id, title, body, reminder_id) 
-             VALUES (?, ?, ?, ?)`,
-            [reminder.user_id, "Reminder", reminder.title, reminder.id]
-          );
-
-          // Send push notification
-          await webpush.sendNotification(subscription, payload);
-
-          console.log(`✓ Sent notification for reminder: ${reminder.title}`);
+        for (const sub of subs) {
+          try {
+            await webpush.sendNotification(JSON.parse(sub.subscription_json), payload);
+            console.log(`✓ Sent notification for ${item.type}: ${item.displayTitle}`);
+          } catch (err) {
+            if (err.statusCode === 410) {
+              await db.query("DELETE FROM push_subscriptions WHERE id = ?", [sub.id]);
+            }
+          }
         }
-      } catch (error) {
-        console.error(`Error sending notification for reminder ${reminder.id}:`, error);
+
+        // Mark as notified/delete
+        if (item.type === 'reminder') {
+          await db.query("DELETE FROM reminders WHERE id = ?", [item.id]);
+        } else {
+          await db.query("UPDATE todos SET notified = 1 WHERE id = ?", [item.id]);
+        }
+      } catch (err) {
+        console.error(`[Scheduler] Error processing ${item.type}:`, err);
       }
     }
-  } catch (error) {
-    console.error("Notification scheduler error:", error);
+  } catch (e) {
+    console.error(`[Scheduler] Error in notification loop: ${e.message}`);
   }
-}, 5000); // Check every 5 seconds for higher precision
+}, 10000); // Check every 10 seconds
 
 console.log("📢 Notification scheduler started");
 
@@ -2835,22 +2939,19 @@ setInterval(async () => {
 
 // Create complaints table
 db.query(
-  `CREATE TABLE IF NOT EXISTS complaints (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    subject VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  ) ENGINE=InnoDB`
+  `CREATE TABLE IF NOT EXISTS complaints(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB`
 ).catch(() => { });
 
 /* ---------------- EMAIL SERVICE ---------------- */
 const emailTransport = nodemailer.createTransport({
-  // For development without real credentials, we'll log to console.
-  // In production, replace with:
-  // host: 'smtp.gmail.com', port: 587, auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
   jsonTransport: true
 });
 
@@ -2859,7 +2960,7 @@ const emailTransport = nodemailer.createTransport({
 async function sendContactEmail(senderName, senderEmail, subject, message) {
   const targetEmail = process.env.CONTACT_TARGET_EMAIL;
 
-  console.log(`\n================================`);
+  console.log(`\n ================================ `);
   console.log(`📧 Contact Message from ${senderName} (${senderEmail})`);
   console.log(`Subject: ${subject}`);
   console.log(`Message: ${message}`);
@@ -2914,10 +3015,10 @@ app.post("/api/contact", async (req, res) => {
     );
 
     // Log locally for visibility
-    console.log(`\n================================`);
+    console.log(`\n ================================ `);
     console.log(`📥 New Complaint Saved to Dashboard`);
     console.log(`From: ${name} (${email})`);
-    console.log(`Subject: ${subject}`);
+    console.log(`Subject: ${subject} `);
     console.log(`================================\n`);
 
     res.json({ success: true, message: "Thank you for your message! Our team will review it in the admin dashboard." });
@@ -3077,22 +3178,22 @@ app.post("/api/auth/reset-password", async (req, res) => {
 async function ensureCoachArticlesTable() {
   try {
     await db.query(`
-      CREATE TABLE IF NOT EXISTS coach_articles (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        coach_id INT NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL UNIQUE,
-        description VARCHAR(255),
-        content LONGTEXT,
-        category VARCHAR(100),
-        image_url VARCHAR(255),
-        status ENUM('published', 'draft', 'pending') DEFAULT 'draft',
-        published_at TIMESTAMP NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (coach_id) REFERENCES coaches(id)
-      ) ENGINE=InnoDB
-    `);
+      CREATE TABLE IF NOT EXISTS coach_articles(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  coach_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  description VARCHAR(255),
+  content LONGTEXT,
+  category VARCHAR(100),
+  image_url VARCHAR(255),
+  status ENUM('published', 'draft', 'pending') DEFAULT 'draft',
+  published_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY(coach_id) REFERENCES coaches(id)
+) ENGINE = InnoDB
+  `);
     console.log("Coach articles table ensured");
   } catch (e) {
     console.error("Error ensuring coach articles table:", e);
@@ -3103,16 +3204,16 @@ async function ensureCoachRelationshipTables() {
   try {
     // 1. Connection Table
     await db.query(`
-      CREATE TABLE IF NOT EXISTS user_coach_connections (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        coach_id INT NOT NULL,
-        status ENUM('active', 'inactive', 'pending', 'rejected') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_conn (user_id, coach_id),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB
+      CREATE TABLE IF NOT EXISTS user_coach_connections(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    coach_id INT NOT NULL,
+    status ENUM('active', 'inactive', 'pending', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_conn(user_id, coach_id),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+  ) ENGINE = InnoDB
     `);
 
     // Migration: Update content of enum if it already exists but is old
@@ -3122,17 +3223,17 @@ async function ensureCoachRelationshipTables() {
 
     // 2. Coach Reviews Table
     await db.query(`
-      CREATE TABLE IF NOT EXISTS coach_reviews (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        coach_id INT NOT NULL,
-        rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-        comment TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB
-    `);
+      CREATE TABLE IF NOT EXISTS coach_reviews(
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      coach_id INT NOT NULL,
+      rating INT NOT NULL CHECK(rating >= 1 AND rating <= 5),
+      comment TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+    ) ENGINE = InnoDB
+      `);
 
     console.log("Coach relationship and review tables ensured");
   } catch (e) {
@@ -3168,7 +3269,7 @@ async function upgradeBookingSchema() {
 
   for (const col of cols) {
     try {
-      await db.query(`ALTER TABLE user_coach_connections ADD COLUMN ${col}`);
+      await db.query(`ALTER TABLE user_coach_connections ADD COLUMN ${col} `);
     } catch (e) { }
   }
 }
@@ -3193,8 +3294,8 @@ app.post("/api/book-coach", requireAuth, async (req, res) => {
         await db.query(`
           UPDATE user_coach_connections 
           SET status = 'pending', booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
-          WHERE user_id = ? AND coach_id = ?
-        `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+  WHERE user_id = ? AND coach_id = ?
+    `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
 
         return res.json({ success: true, message: "Booking request sent (re-booked for testing)", status: 'pending' });
       }
@@ -3203,8 +3304,8 @@ app.post("/api/book-coach", requireAuth, async (req, res) => {
         await db.query(`
           UPDATE user_coach_connections 
           SET booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
-          WHERE user_id = ? AND coach_id = ?
-        `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+  WHERE user_id = ? AND coach_id = ?
+    `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
 
         return res.status(200).json({ success: true, message: "Request updated", status: 'pending' });
       }
@@ -3213,17 +3314,17 @@ app.post("/api/book-coach", requireAuth, async (req, res) => {
       await db.query(`
         UPDATE user_coach_connections 
         SET status = 'pending', booking_goal = ?, booking_category = ?, session_type = ?, requested_time = ?, user_timezone = ?, user_photo = ?, user_name_input = ?
-        WHERE user_id = ? AND coach_id = ?
-      `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
+  WHERE user_id = ? AND coach_id = ?
+    `, [goal, category, sessionType, requestedTime, timezone, userPhoto, userName, req.userId, coachId]);
 
       return res.json({ success: true, message: "Booking request sent", status: 'pending' });
     }
 
     // Insert new pending connection
     await db.query(`
-      INSERT INTO user_coach_connections (user_id, coach_id, status, booking_goal, booking_category, session_type, requested_time, user_timezone, user_photo, user_name_input)
-      VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
-    `, [req.userId, coachId, goal, category, sessionType, requestedTime, timezone, userPhoto, userName]);
+      INSERT INTO user_coach_connections(user_id, coach_id, status, booking_goal, booking_category, session_type, requested_time, user_timezone, user_photo, user_name_input)
+VALUES(?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
+  `, [req.userId, coachId, goal, category, sessionType, requestedTime, timezone, userPhoto, userName]);
 
     res.json({ success: true, message: "Booking request sent", status: 'pending' });
   } catch (e) {
@@ -3245,16 +3346,16 @@ app.get("/api/coach/students", async (req, res) => {
     }
 
     const [students] = await db.query(`
-      SELECT u.id, u.username, u.email, 
-             ucc.status,
-             (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id AND t.done = 1) as tasksDone,
-             (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id) as totalTasks,
-             (SELECT COUNT(*) FROM goals g WHERE g.user_id = u.id) as totalGoals,
-             (SELECT COUNT(*) FROM messages m WHERE m.sender_id = u.id AND m.receiver_id = ? AND m.sender_type = 'user' AND m.is_read = 0) as unreadCount
+      SELECT u.id, u.username, u.email,
+  ucc.status,
+  (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id AND t.done = 1) as tasksDone,
+    (SELECT COUNT(*) FROM todos t WHERE t.user_id = u.id) as totalTasks,
+      (SELECT COUNT(*) FROM goals g WHERE g.user_id = u.id) as totalGoals,
+        (SELECT COUNT(*) FROM messages m WHERE m.sender_id = u.id AND m.receiver_id = ? AND m.sender_type = 'user' AND m.is_read = 0) as unreadCount
       FROM user_coach_connections ucc
       JOIN users u ON ucc.user_id = u.id
       WHERE ucc.coach_id = ? AND ucc.status = 'active'
-    `, [coachId, coachId]);
+  `, [coachId, coachId]);
     res.json(students);
   } catch (e) {
     console.error("Get students error:", e);
@@ -3269,18 +3370,18 @@ app.get("/api/coach/pending-requests", async (req, res) => {
 
   try {
     const [requests] = await db.query(`
-      SELECT 
-        u.id as user_id, 
-        u.username, 
-        u.email, 
-        ucc.created_at,
-        ucc.booking_goal,
-        ucc.booking_category,
-        ucc.session_type,
-        ucc.requested_time,
-        ucc.user_timezone,
-        ucc.user_photo,
-        ucc.user_name_input
+SELECT
+u.id as user_id,
+  u.username,
+  u.email,
+  ucc.created_at,
+  ucc.booking_goal,
+  ucc.booking_category,
+  ucc.session_type,
+  ucc.requested_time,
+  ucc.user_timezone,
+  ucc.user_photo,
+  ucc.user_name_input
       FROM user_coach_connections ucc
       JOIN users u ON ucc.user_id = u.id
       WHERE ucc.coach_id = ? AND ucc.status = 'pending'
@@ -3310,7 +3411,7 @@ app.post("/api/coach/respond-request", async (req, res) => {
     );
 
     // If approved, maybe send a notification? (Future task)
-    res.json({ success: true, message: `Request ${newStatus}` });
+    res.json({ success: true, message: `Request ${newStatus} ` });
   } catch (e) {
     console.error("Respond request error:", e);
     res.status(500).json({ error: "Failed to update request" });
@@ -3343,7 +3444,7 @@ app.post("/api/coach/assign-todo", async (req, res) => {
     const coachName = coachInfo[0]?.name || 'Your Coach';
     await db.query(
       "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
-      [studentId, "New Task Assigned", `${coachName} assigned a new task: ${text}`]
+      [studentId, "New Task Assigned", `${coachName} assigned a new task: ${text} `]
     );
 
     res.json({ success: true, id: result.insertId, message: "Task assigned to student" });
@@ -3378,7 +3479,7 @@ app.post("/api/coach/assign-goal", async (req, res) => {
     const coachName = coachInfo[0]?.name || 'Your Coach';
     await db.query(
       "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
-      [studentId, "New Goal Assigned", `${coachName} assigned a new goal: ${text}`]
+      [studentId, "New Goal Assigned", `${coachName} assigned a new goal: ${text} `]
     );
 
     res.json({ success: true, id: result.insertId, message: "Goal assigned to student" });
@@ -3413,7 +3514,7 @@ app.post("/api/coach/assign-reminder", async (req, res) => {
     const coachName = coachInfo[0]?.name || 'Your Coach';
     await db.query(
       "INSERT INTO notifications (user_id, title, body) VALUES (?, ?, ?)",
-      [studentId, "New Reminder Assigned", `${coachName} assigned a new reminder: ${title}`]
+      [studentId, "New Reminder Assigned", `${coachName} assigned a new reminder: ${title} `]
     );
 
     res.json({ success: true, id: result.insertId, message: "Reminder assigned to student" });
@@ -3443,13 +3544,13 @@ app.get("/api/coach/user-profile/:userId", async (req, res) => {
     // Get booking details
     const [booking] = await db.query(
       `SELECT booking_goal, booking_category, session_type, requested_time, user_timezone, user_photo, user_name_input 
-       FROM user_coach_connections WHERE user_id = ? AND coach_id = ?`,
+       FROM user_coach_connections WHERE user_id = ? AND coach_id = ? `,
       [userId, coachId]
     );
 
     // Get task stats
     const [taskStats] = await db.query(
-      `SELECT COUNT(*) as total, SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed FROM todos WHERE user_id = ?`,
+      `SELECT COUNT(*) as total, SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed FROM todos WHERE user_id = ? `,
       [userId]
     );
 
@@ -3522,7 +3623,7 @@ app.get("/api/user/my-coach", requireAuth, async (req, res) => {
     const userId = req.session.userId;
     const [rows] = await db.query(
       `SELECT c.id, c.name, cd.coach_type, cd.profile_photo,
-              (SELECT COUNT(*) FROM messages m WHERE m.sender_id = c.id AND m.receiver_id = ? AND m.sender_type = 'coach' AND m.is_read = 0) as unreadCount
+  (SELECT COUNT(*) FROM messages m WHERE m.sender_id = c.id AND m.receiver_id = ? AND m.sender_type = 'coach' AND m.is_read = 0) as unreadCount
        FROM coaches c 
        JOIN user_coach_connections ucc ON c.id = ucc.coach_id 
        LEFT JOIN coach_details cd ON c.id = cd.user_id
@@ -3549,7 +3650,7 @@ app.get("/api/coach/requests", async (req, res) => {
       JOIN users u ON ucc.user_id = u.id
       WHERE ucc.coach_id = ? AND ucc.status = 'pending'
       ORDER BY ucc.created_at DESC
-    `, [coachId]);
+  `, [coachId]);
     res.json(requests);
   } catch (e) {
     console.error("Get requests error:", e);
@@ -3605,22 +3706,22 @@ app.get("/api/coach/student/:id/analytics", async (req, res) => {
     const [taskHistory] = await db.query(`
       SELECT DATE(COALESCE(completed_at, created_at)) as date, COUNT(*) as count
       FROM todos
-      WHERE user_id = ? 
-        AND done = 1
+      WHERE user_id = ?
+  AND done = 1
         AND COALESCE(completed_at, created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
       GROUP BY DATE(COALESCE(completed_at, created_at))
       ORDER BY DATE(COALESCE(completed_at, created_at)) ASC
-    `, [studentId]);
+  `, [studentId]);
 
     // 3. Weekly Goals (Completed this week vs Total active this week)
     const [weeklyGoals] = await db.query(`
-      SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN done = 1 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as completed_this_week,
-        SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as total_completed
+SELECT
+COUNT(*) as total,
+  SUM(CASE WHEN done = 1 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as completed_this_week,
+  SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as total_completed
       FROM goals 
-      WHERE user_id = ? AND (done = 0 OR created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY))
-    `, [studentId]);
+      WHERE user_id = ? AND(done = 0 OR created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY))
+  `, [studentId]);
 
     // 4. Most Active Day Calculation
     const [activeDayRows] = await db.query(`
@@ -3680,7 +3781,7 @@ app.get("/api/coach/analytics", async (req, res) => {
       WHERE coach_id = ? AND status = 'active'
       GROUP BY YEAR(created_at), MONTH(created_at)
       ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC
-    `, [coachId]);
+  `, [coachId]);
 
     // Aggregate Student Performance (Active students only)
     const [performance] = await db.query(`
@@ -3690,7 +3791,7 @@ app.get("/api/coach/analytics", async (req, res) => {
       WHERE ucc.coach_id = ? AND t.done = 1 AND ucc.status = 'active'
       GROUP BY YEAR(t.created_at), MONTH(t.created_at)
       ORDER BY YEAR(t.created_at) ASC, MONTH(t.created_at) ASC
-    `, [coachId]);
+  `, [coachId]);
 
     // Aggregate Student Goals (Active students only)
     const [goalPerformance] = await db.query(`
@@ -3700,7 +3801,7 @@ app.get("/api/coach/analytics", async (req, res) => {
       WHERE ucc.coach_id = ? AND ucc.status = 'active'
       GROUP BY YEAR(g.created_at), MONTH(g.created_at)
       ORDER BY YEAR(g.created_at) ASC, MONTH(g.created_at) ASC
-    `, [coachId]);
+  `, [coachId]);
 
     res.json({
       totalClients: clients[0].count,
@@ -3726,16 +3827,16 @@ app.get("/api/coach/analytics/clients", async (req, res) => {
       FROM user_coach_connections ucc
       JOIN users u ON ucc.user_id = u.id
       WHERE ucc.coach_id = ? AND ucc.status = 'active'
-    `, [coachId]);
+  `, [coachId]);
 
     const analyticsData = await Promise.all(students.map(async (student) => {
       // Task Stats
       const [todos] = await db.query(`
-        SELECT 
-          COUNT(*) as total, 
-          SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed 
+SELECT
+COUNT(*) as total,
+  SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed 
         FROM todos WHERE user_id = ?
-      `, [student.id]);
+  `, [student.id]);
 
       // Weekly Activity (Last 7 Days)
       const [weekly] = await db.query(`
@@ -3743,12 +3844,12 @@ app.get("/api/coach/analytics/clients", async (req, res) => {
         FROM todos
         WHERE user_id = ? AND done = 1 AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
         GROUP BY DATE(completed_at)
-      `, [student.id]);
+  `, [student.id]);
 
       // Active Goals
       const [goals] = await db.query(`
         SELECT text, total, spent FROM goals WHERE user_id = ? AND done = 0
-      `, [student.id]);
+  `, [student.id]);
 
       return {
         userId: student.id,
@@ -3803,9 +3904,9 @@ app.post("/api/articles", async (req, res) => {
     const publishedAt = finalStatus === 'published' ? new Date() : null;
 
     const [result] = await db.query(`
-      INSERT INTO coach_articles (coach_id, title, slug, description, content, category, image_url, status, published_at, keywords, index_page, follow_links, tags, featured)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
+      INSERT INTO coach_articles(coach_id, title, slug, description, content, category, image_url, status, published_at, keywords, index_page, follow_links, tags, featured)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
       coachId, title, slug, description, content, category, imageUrl, finalStatus, publishedAt,
       keywords, indexPage ? 1 : 0, followLinks ? 1 : 0, tags, featured ? 1 : 0
     ]);
@@ -3906,7 +4007,7 @@ app.post("/api/admin/articles/:id/status", async (req, res) => {
 
     await db.query(query, params);
 
-    res.json({ success: true, message: `Article ${status}` });
+    res.json({ success: true, message: `Article ${status} ` });
   } catch (e) {
     console.error("Update article status error:", e);
     res.status(500).json({ error: "Failed to update article status" });
@@ -3930,7 +4031,7 @@ app.get("/api/admin/articles", async (req, res) => {
       FROM coach_articles a
       LEFT JOIN coaches c ON a.coach_id = c.id
       LEFT JOIN users u ON a.coach_id IS NULL AND u.email = ?
-      ORDER BY a.created_at DESC
+  ORDER BY a.created_at DESC
     `, [process.env.ADMIN_EMAIL]);
     res.json(rows);
   } catch (e) {
@@ -3967,19 +4068,19 @@ app.get("/api/articles", async (req, res) => {
       FROM coach_articles a
       LEFT JOIN coaches c ON a.coach_id = c.id
       LEFT JOIN coach_details cd ON c.id = cd.user_id
-      WHERE a.status = 'published' AND (cd.status = 'approved' OR a.coach_id IS NULL)
+      WHERE a.status = 'published' AND(cd.status = 'approved' OR a.coach_id IS NULL)
     `;
     const params = [];
 
     if (category) {
-      query += ` AND a.category = ?`;
+      query += ` AND a.category = ? `;
       params.push(category);
     }
 
     query += ` ORDER BY a.published_at DESC`;
 
     if (limit) {
-      query += ` LIMIT ?`;
+      query += ` LIMIT ? `;
       params.push(Number(limit));
     }
 
@@ -4043,7 +4144,7 @@ app.get("/api/public/reviews", async (req, res) => {
       WHERE cd.status = 'approved'
       ORDER BY r.created_at DESC
       LIMIT 6
-    `);
+  `);
     res.json(reviews);
   } catch (e) {
     console.error("Get public reviews error:", e);
@@ -4058,7 +4159,7 @@ app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
     const myType = req.session.userType || (req.session.coachId ? 'coach' : 'user');
     const otherId = req.params.otherId;
 
-    console.log(`[Messages] Fetching for ${myType} (id: ${myId}) with other: ${otherId}`);
+    console.log(`[Messages] Fetching for ${myType}(id: ${myId}) with other: ${otherId} `);
 
     // Fetch messages where (sender=me AND receiver=other) OR (sender=other AND receiver=me)
     // We need to be careful with sender_type here if IDs can overlap between users and coaches.
@@ -4068,20 +4169,20 @@ app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
     if (myType === 'coach') {
       // I am coach, other is user
       query = `
-        SELECT * FROM messages 
-        WHERE (sender_id = ? AND receiver_id = ? AND sender_type = 'coach')
-           OR (sender_id = ? AND receiver_id = ? AND sender_type = 'user')
+SELECT * FROM messages
+WHERE(sender_id = ? AND receiver_id = ? AND sender_type = 'coach')
+OR(sender_id = ? AND receiver_id = ? AND sender_type = 'user')
         ORDER BY created_at ASC
-      `;
+  `;
       params = [myId, otherId, otherId, myId];
     } else {
       // I am user, other is coach
       query = `
-        SELECT * FROM messages 
-        WHERE (sender_id = ? AND receiver_id = ? AND sender_type = 'user')
-           OR (sender_id = ? AND receiver_id = ? AND sender_type = 'coach')
+SELECT * FROM messages
+WHERE(sender_id = ? AND receiver_id = ? AND sender_type = 'user')
+OR(sender_id = ? AND receiver_id = ? AND sender_type = 'coach')
         ORDER BY created_at ASC
-      `;
+  `;
       params = [myId, otherId, otherId, myId];
     }
 
@@ -4100,7 +4201,7 @@ app.get("/api/messages/:otherId", requireAnyAuth, async (req, res) => {
       direction: (msg.sender_id === myId && msg.sender_id && msg.sender_type === myType) ? 'sent' : 'received'
     }));
 
-    console.log(`[Messages] Retrieved ${messagesWithDirection.length} messages for ${myType} ${myId}`);
+    console.log(`[Messages] Retrieved ${messagesWithDirection.length} messages for ${myType} ${myId} `);
     res.json(messagesWithDirection);
   } catch (e) {
     console.error("Fetch messages error:", e);
@@ -4124,17 +4225,17 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const room = `${userType}_${id}`;
+    const room = `${userType}_${id} `;
     socket.join(room);
     socketToUser.set(socket.id, { id, userType, room });
-    console.log(`[Socket] ${socket.id} identified as ${room}`);
+    console.log(`[Socket] ${socket.id} identified as ${room} `);
     socket.emit("identified", { success: true, room });
   });
 
   socket.on("send_message", async (data) => {
     const sender = socketToUser.get(socket.id);
     if (!sender) {
-      console.warn(`[Socket] Message from unidentified socket: ${socket.id}`);
+      console.warn(`[Socket] Message from unidentified socket: ${socket.id} `);
       return;
     }
 
@@ -4143,7 +4244,7 @@ io.on("connection", (socket) => {
     const receiverType = sender.userType === 'coach' ? 'user' : 'coach';
 
     if (isNaN(rId)) {
-      console.warn(`[Socket] Invalid receiverId: ${receiverId}`);
+      console.warn(`[Socket] Invalid receiverId: ${receiverId} `);
       return;
     }
 
@@ -4178,10 +4279,10 @@ io.on("connection", (socket) => {
       };
 
       // 3. Emit to receiver room
-      const receiverRoom = `${receiverType}_${rId}`;
+      const receiverRoom = `${receiverType}_${rId} `;
       const roomClients = io.sockets.adapter.rooms.get(receiverRoom);
 
-      console.log(`[Socket] Message: ${sender.room} -> ${receiverRoom}. Clients in target: ${roomClients ? roomClients.size : 0}`);
+      console.log(`[Socket] Message: ${sender.room} -> ${receiverRoom}.Clients in target: ${roomClients ? roomClients.size : 0} `);
 
       io.to(receiverRoom).emit("new_message", msg);
       socket.emit("message_sent", msg);
@@ -4207,7 +4308,7 @@ async function migrateNotificationSchema() {
     ];
     for (const col of columns) {
       try {
-        await db.query(`ALTER TABLE notifications ${col}`);
+        await db.query(`ALTER TABLE notifications ${col} `);
       } catch (e) {
         if (e.errno !== 1060 && e.code !== 'ER_DUP_FIELDNAME') console.log("Notification migration notice:", e.message);
       }
@@ -4215,15 +4316,15 @@ async function migrateNotificationSchema() {
 
     // Create Interests table
     await db.query(`
-      CREATE TABLE IF NOT EXISTS announcement_interests (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        announcement_id INT NOT NULL,
-        user_id INT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_interest (announcement_id, user_id),
-        FOREIGN KEY (announcement_id) REFERENCES coach_announcements(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB
+      CREATE TABLE IF NOT EXISTS announcement_interests(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    announcement_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_interest(announcement_id, user_id),
+    FOREIGN KEY(announcement_id) REFERENCES coach_announcements(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE = InnoDB
     `);
     console.log("Announcement interests table ensured");
   } catch (e) {
@@ -4239,14 +4340,14 @@ async function notifyStudentUpdate(studentId, type) {
       [studentId]
     );
     coaches.forEach(c => {
-      io.to(`coach_${c.coach_id}`).emit('student_update', { studentId, type });
+      io.to(`coach_${c.coach_id} `).emit('student_update', { studentId, type });
     });
   } catch (e) {
     console.error("Socket notification error:", e);
   }
 }
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on ${PORT} `));
 
 // Coach: Get specific student analytics
 app.get("/api/coach/student-analytics/:studentId", requireAnyAuth, async (req, res) => {
@@ -4317,7 +4418,7 @@ app.get("/api/admin/coaches", async (req, res) => {
       SELECT c.*, cd.status, cd.coach_type, cd.hours_coached, cd.profile_photo
       FROM coaches c
       LEFT JOIN coach_details cd ON c.id = cd.user_id
-      WHERE (cd.status IS NULL OR cd.status NOT IN ('blocked', 'banned'))
+WHERE(cd.status IS NULL OR cd.status NOT IN('blocked', 'banned'))
       ORDER BY c.created_at DESC
     `);
     res.json(rows);
@@ -4368,7 +4469,7 @@ app.post("/api/admin/coaches/:id/status", async (req, res) => {
       await db.query("UPDATE users SET status = ? WHERE email = ?", [userStatus, email]);
     }
 
-    res.json({ success: true, message: `Coach ${status}` });
+    res.json({ success: true, message: `Coach ${status} ` });
   } catch (e) {
     console.error("Update coach status error:", e);
     res.status(500).json({ error: "Failed to update status" });
@@ -4411,7 +4512,7 @@ app.post("/api/admin/verifications/coaches/:id/status", async (req, res) => {
       await db.query("UPDATE users SET status = ? WHERE email = ?", [userStatus, email]);
     }
 
-    res.json({ success: true, message: `Status updated to ${status}` });
+    res.json({ success: true, message: `Status updated to ${status} ` });
   } catch (e) {
     console.error("Verification status error:", e);
     res.status(500).json({ error: "Failed to update status" });
