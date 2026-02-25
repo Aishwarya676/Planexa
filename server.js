@@ -2217,6 +2217,49 @@ app.get("/api/user/objectives", async (req, res) => {
   }
 });
 
+/* ---------------- DELETE USER OBJECTIVE ---------------- */
+app.delete("/api/user/objectives/:id", async (req, res) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const objectiveId = req.params.id;
+
+  try {
+    // 1. Check if the objective belongs to the user
+    const [rows] = await db.query(
+      "SELECT is_active FROM objectives WHERE id = ? AND user_id = ?",
+      [objectiveId, req.session.userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Objective not found or unauthorized" });
+    }
+
+    const wasActive = rows[0].is_active;
+
+    // 2. Delete the objective
+    await db.query("DELETE FROM objectives WHERE id = ? AND user_id = ?", [objectiveId, req.session.userId]);
+
+    // 3. If the deleted objective was active, set the next most recent as active
+    if (wasActive) {
+      const [remaining] = await db.query(
+        "SELECT id FROM objectives WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+        [req.session.userId]
+      );
+
+      if (remaining.length > 0) {
+        await db.query("UPDATE objectives SET is_active = TRUE WHERE id = ?", [remaining[0].id]);
+      }
+    }
+
+    res.json({ success: true, message: "Objective deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting objective:", err);
+    res.status(500).json({ error: "Failed to delete objective" });
+  }
+});
+
 // Ensure objectives table exists and migrate data
 async function ensureObjectivesTable() {
   try {

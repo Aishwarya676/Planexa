@@ -124,24 +124,55 @@ document.addEventListener('DOMContentLoaded', () => {
       objectives.forEach((obj, index) => {
         const isLatest = index === 0;
         const objDiv = document.createElement('div');
-        objDiv.className = `relative ${isLatest ? '' : 'opacity-75'}`;
+        objDiv.className = `relative group ${isLatest ? '' : 'opacity-75'}`;
 
         objDiv.innerHTML = `
           ${!isLatest ? '<div class="absolute inset-0 bg-red-500/10 rounded-lg"></div>' : ''}
-          <div class="relative ${isLatest ? '' : 'border-l-4 border-red-500 pl-4'}" style="${!isLatest ? 'text-decoration: line-through; text-decoration-color: #ef4444;' : ''}">
-            <div class="mb-2">
-              <span class="inline-block px-3 py-1 bg-[#334155] text-[#94A3B8] text-xs font-bold uppercase tracking-wider rounded-full">
-                ${obj.objective_category}
-              </span>
+          <div class="relative ${isLatest ? '' : 'border-l-4 border-red-500 pl-4'} flex justify-between items-start" style="${!isLatest ? 'text-decoration: line-through; text-decoration-color: #ef4444;' : ''}">
+            <div class="flex-1">
+              <div class="mb-2">
+                <span class="inline-block px-3 py-1 bg-[#334155] text-[#94A3B8] text-xs font-bold uppercase tracking-wider rounded-full">
+                  ${obj.objective_category}
+                </span>
+              </div>
+              <q class="text-xl md:text-2xl lg:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-[#94A3B8] leading-tight tracking-tight block ${isLatest ? 'mt-4' : ''}" style="${!isLatest ? 'color: #64748b;' : ''}">
+                ${obj.objective_text}
+              </q>
             </div>
-            <q class="text-xl md:text-2xl lg:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-[#94A3B8] leading-tight tracking-tight block ${isLatest ? 'mt-4' : ''}" style="${!isLatest ? 'color: #64748b;' : ''}">
-              ${obj.objective_text}
-            </q>
+            <button class="delete-objective-btn p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100" data-id="${obj.id}" title="Delete Objective">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
           </div>
         `;
 
         listEl.appendChild(objDiv);
       });
+
+      // Add delete listener (only once)
+      if (!listEl.dataset.listenerAdded) {
+        listEl.addEventListener('click', async (e) => {
+          const deleteBtn = e.target.closest('.delete-objective-btn');
+          if (!deleteBtn) return;
+
+          const id = deleteBtn.dataset.id;
+          if (!confirm('Are you sure you want to delete this objective?')) return;
+
+          try {
+            deleteBtn.disabled = true;
+            await api.delete(`/api/user/objectives/${id}`);
+            await loadUserObjective();
+            await loadObjectiveHistory();
+            alert('Objective deleted successfully!');
+          } catch (err) {
+            console.error('Delete objective error:', err);
+            alert('Failed to delete objective');
+            deleteBtn.disabled = false;
+          }
+        });
+        listEl.dataset.listenerAdded = 'true';
+      }
+
+      if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
       console.error('Failed to load objective history:', e);
@@ -187,17 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle "Set your first objective" button
-  const createFirstObjectiveBtn = document.getElementById('create-first-objective');
-  if (createFirstObjectiveBtn) {
-    createFirstObjectiveBtn.addEventListener('click', () => {
-      // Clear form and open modal for new objective
-      editObjectiveCategory.value = '';
-      editObjectiveText.value = '';
-      editObjectiveModal.classList.remove('hidden');
-      editObjectiveModal.style.opacity = '1';
-    });
-  }
 
   // Close modal handlers
   [closeObjectiveModal, cancelObjectiveEdit].forEach(btn => {

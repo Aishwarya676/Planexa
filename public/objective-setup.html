@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,21 +9,33 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @keyframes float {
-      0%,100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
-    .float { animation: float 6s ease-in-out infinite; }
+
+    .float {
+      animation: float 6s ease-in-out infinite;
+    }
 
     @keyframes fadeInUp {
       from {
         opacity: 0;
         transform: translateY(30px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
+
     .fade-in-up {
       animation: fadeInUp 0.8s ease-out;
     }
@@ -30,7 +43,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background-color: #e0f2ff;
+      background-color: #cbd5e1;
       position: relative;
     }
 
@@ -39,6 +52,7 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3);
     }
+
     .btn-premium:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
@@ -47,15 +61,16 @@
     .form-input {
       transition: all 0.2s ease;
     }
+
     .form-input:focus {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102,126,234,0.15);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
     }
 
     .glass-card {
-      background: rgba(255,255,255,0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     /* Subtle pattern overlay */
@@ -66,25 +81,28 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: radial-gradient(circle at 1px 1px, rgba(99,102,241,0.1) 1px, transparent 0);
+      background-image: radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.1) 1px, transparent 0);
       background-size: 20px 20px;
       pointer-events: none;
     }
   </style>
 </head>
+
 <body class="min-h-screen pattern-bg">
   <div class="min-h-screen flex items-center justify-center p-4 relative">
     <!-- Back to Home -->
-    <a href="/landing.html" class="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-indigo-600 transition-colors z-10">
+    <a href="/landing.html"
+      class="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl text-gray-700 hover:text-indigo-600 hover:bg-white hover:shadow-md transition-all z-10 shadow-sm">
       <i data-lucide="arrow-left" class="w-4 h-4"></i>
-      <span class="text-sm font-medium">Back to Home</span>
+      <span class="text-sm font-bold">Back to Home</span>
     </a>
 
     <div class="w-full max-w-3xl fade-in-up">
       <!-- Header Section -->
       <div class="text-center mb-12">
         <h1 class="text-5xl font-black text-gray-800 mb-4 leading-tight">What's your objective?</h1>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Tell us what you want to achieve and we'll help you get there. Your goals matter to us.</p>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Tell us what you want to achieve and we'll
+          help you get there. Your goals matter to us.</p>
       </div>
 
       <!-- Form Card -->
@@ -105,7 +123,8 @@
               Choose your focus area
             </label>
             <div class="relative group max-w-md mx-auto">
-              <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+              <div
+                class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
                 <i data-lucide="tag" class="h-5 w-5"></i>
               </div>
               <select id="objective-category" required
@@ -144,7 +163,8 @@
 
           <!-- Submit -->
           <div class="pt-6 text-center">
-            <button type="submit" class="btn-premium px-12 py-5 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 transition-all mx-auto">
+            <button type="submit"
+              class="btn-premium px-12 py-5 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 transition-all mx-auto">
               <i data-lucide="check-circle" class="w-5 h-5"></i>
               <span>Start My Journey</span>
             </button>
@@ -208,4 +228,5 @@
     });
   </script>
 </body>
+
 </html>
