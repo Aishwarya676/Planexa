@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const data = await api.get('/api/session');
         if (data && data.isAuthenticated) {
-          // Pre-populate form with current values
+          // Pre-populate form with current values (empty if no objective exists)
           editObjectiveCategory.value = data.objective_category || '';
           editObjectiveText.value = data.objective_text || '';
 
@@ -178,7 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (e) {
         console.error('Failed to load objective data:', e);
-        alert('Failed to load objective data. Please try again.');
+        // Even if we can't load existing data, allow user to set a new objective
+        editObjectiveCategory.value = '';
+        editObjectiveText.value = '';
+        editObjectiveModal.classList.remove('hidden');
+        editObjectiveModal.style.opacity = '1';
       }
     });
   }
