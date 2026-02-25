@@ -187,6 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Handle "Set your first objective" button
+  const createFirstObjectiveBtn = document.getElementById('create-first-objective');
+  if (createFirstObjectiveBtn) {
+    createFirstObjectiveBtn.addEventListener('click', () => {
+      // Clear form and open modal for new objective
+      editObjectiveCategory.value = '';
+      editObjectiveText.value = '';
+      editObjectiveModal.classList.remove('hidden');
+      editObjectiveModal.style.opacity = '1';
+    });
+  }
+
   // Close modal handlers
   [closeObjectiveModal, cancelObjectiveEdit].forEach(btn => {
     if (btn) {

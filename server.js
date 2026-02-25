@@ -2152,6 +2152,26 @@ app.post("/api/user/objective", async (req, res) => {
   try {
     console.log("Saving objective for user:", req.session.userId);
     console.log("Objective data:", { objectiveCategory, objectiveText });
+
+    // Ensure objectives table exists (fallback)
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS objectives (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          objective_category VARCHAR(255) NOT NULL,
+          objective_text TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          is_active BOOLEAN DEFAULT TRUE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          INDEX idx_user_active (user_id, is_active),
+          INDEX idx_created_at (created_at DESC)
+        )
+      `);
+      console.log("✓ Objectives table ensured");
+    } catch (tableErr) {
+      console.error("Table creation error:", tableErr);
+    }
     
     // Set all previous objectives for this user to inactive
     await db.query(
