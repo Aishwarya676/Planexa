@@ -331,6 +331,7 @@ async function migrateAnnouncementType() {
   }
 }
 migrateAnnouncementType();
+ensureObjectivesTable();
 
 async function ensureAnnouncementsTable() {
   try {
@@ -2172,7 +2173,7 @@ app.post("/api/user/objective", async (req, res) => {
     } catch (tableErr) {
       console.error("Table creation error:", tableErr);
     }
-    
+
     // Set all previous objectives for this user to inactive
     await db.query(
       "UPDATE objectives SET is_active = FALSE WHERE user_id = ? AND is_active = TRUE",
