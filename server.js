@@ -117,7 +117,9 @@ const siteAccessMiddleware = (req, res, next) => {
   const isAccessPage = reqPath === '/site-access.html';
   const isCheckApi = reqPath === '/api/check-site-password' || reqPath === '/api/verify-site-token';
 
-  if (isPublicAsset || isAccessPage || isCheckApi) {
+  const isShareRoute = reqPath.startsWith('/shared-shopping/') || reqPath.startsWith('/api/shared-shopping/');
+
+  if (isPublicAsset || isAccessPage || isCheckApi || isShareRoute) {
     return next();
   }
 
@@ -2614,6 +2616,14 @@ async function migrateUserObjectivesSchema() {
   try {
     await db.query("ALTER TABLE users ADD COLUMN objective_text TEXT NULL");
   } catch (e) { }
+  // Shopping List Sharing - separate migration
+  try {
+    await db.query("ALTER TABLE users ADD COLUMN shopping_share_token VARCHAR(255) UNIQUE");
+  } catch (e) {
+    if (!e.message.includes('Duplicate column name')) {
+      console.log("Users migration notice (shopping_share_token):", e.message);
+    }
+  }
 }
 migrateUserObjectivesSchema();
 
@@ -2747,6 +2757,111 @@ app.delete("/api/shopping/:id", requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+/* --- SHOPPING SHARE --- */
+
+// Get (or create) share link for logged-in user
+app.get("/api/shopping/share-link", requireAuth, async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT shopping_share_token FROM users WHERE id = ?", [req.userId]);
+    let token = rows[0]?.shopping_share_token;
+
+    if (!token) {
+      token = crypto.randomBytes(20).toString('hex');
+      await db.query("UPDATE users SET shopping_share_token = ? WHERE id = ?", [token, req.userId]);
+    }
+
+    const shareUrl = `${req.protocol}://${req.get('host')}/shared-shopping/${token}`;
+    res.json({ success: true, url: shareUrl, token });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Entry route: redirect guest to app with shared context
+app.get("/shared-shopping/:token", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT id, username FROM users WHERE shopping_share_token = ?", [req.params.token]);
+    if (!rows.length) return res.status(404).send("Invalid or expired share link.");
+
+    const ownerId = rows[0].id;
+
+    // If the current user IS the owner, just go to their own shopping tab
+    if (req.session?.userId && req.session.userId === ownerId) {
+      return res.redirect("/app.html#shopping");
+    }
+
+    // Store token & owner info in guest session so the app can use it
+    req.session.sharedShoppingToken = req.params.token;
+    req.session.sharedShoppingUserId = ownerId;
+    req.session.sharedShoppingOwnerName = rows[0].username;
+    req.session.hasSiteAccess = true; // Allow guest through site access wall
+    req.session.save(() => {
+      res.redirect("/app.html#shopping");
+    });
+  } catch (e) {
+    console.error("Shared shopping link error:", e);
+    res.status(500).send("Error: " + e.message);
+  }
+});
+
+// Public: get items for shared list (guests use session token)
+app.get("/api/shared-shopping/items", async (req, res) => {
+  try {
+    const sharedUserId = req.session?.sharedShoppingUserId;
+    if (!sharedUserId) return res.status(401).json({ error: "No active shared session" });
+
+    const [rows] = await db.query("SELECT * FROM shopping_items WHERE user_id = ? ORDER BY created_at DESC", [sharedUserId]);
+    res.json({
+      items: rows,
+      ownerName: req.session.sharedShoppingOwnerName || null,
+      isShared: true
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Copy shared items to logged in user's list
+app.post("/api/shared-shopping/copy", requireAuth, async (req, res) => {
+  try {
+    const sharedUserId = req.session?.sharedShoppingUserId;
+    if (!sharedUserId) return res.status(400).json({ error: "No active shared session" });
+
+    // Get items from shared list
+    const [rows] = await db.query("SELECT text FROM shopping_items WHERE user_id = ? ORDER BY created_at ASC", [sharedUserId]);
+
+    // Insert into user's own list
+    for (const row of rows) {
+      await db.query(
+        "INSERT INTO shopping_items (user_id, text) VALUES (?, ?)",
+        [req.userId, row.text]
+      );
+    }
+
+    // Clear the shared session to return to normal mode
+    req.session.sharedShoppingToken = null;
+    req.session.sharedShoppingUserId = null;
+    req.session.sharedShoppingOwnerName = null;
+    req.session.save();
+
+    res.json({ success: true, count: rows.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Clear shared session
+app.post("/api/shared-shopping/clear", async (req, res) => {
+  if (req.session) {
+    req.session.sharedShoppingToken = null;
+    req.session.sharedShoppingUserId = null;
+    req.session.sharedShoppingOwnerName = null;
+    req.session.save(() => res.json({ success: true }));
+  } else {
+    res.json({ success: true });
   }
 });
 

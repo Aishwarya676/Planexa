@@ -406,7 +406,50 @@ document.addEventListener('DOMContentLoaded', () => {
   const shopInput = document.getElementById('shop-input');
   const shopAdd = document.getElementById('shop-add');
   const shopList = document.getElementById('shop-list');
+  const shopShareBtn = document.getElementById('shop-share-btn');
+  const shareModal = document.getElementById('share-link-modal');
+  const shareLinkInput = document.getElementById('share-link-input');
+  const copyShareLink = document.getElementById('copy-share-link');
+  const closeShareModal = document.getElementById('close-share-modal');
+  const copySuccessMsg = document.getElementById('copy-success-msg');
+  const sharedBanner = document.getElementById('shared-list-banner');
+  const sharedOwnerName = document.getElementById('shared-owner-name');
+
   let shopping = [];
+  let isSharedMode = false; // true when guest accessed via share link
+
+  // Determine if this is a shared or normal session
+  const initShopping = async () => {
+    try {
+      const data = await fetch('/api/shared-shopping/items', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
+      if (data && data.isShared) {
+        shopping = data.items || [];
+        isSharedMode = true;
+
+        const inputArea = document.getElementById('shop-input-area');
+
+        if (sharedBanner) {
+          sharedBanner.classList.remove('hidden');
+          if (sharedOwnerName) sharedOwnerName.textContent = data.ownerName || 'someone';
+        }
+        if (inputArea) inputArea.classList.add('hidden');
+        if (shopShareBtn) shopShareBtn.classList.add('hidden');
+
+        renderShopping();
+      } else {
+        // Fallback to normal mode
+        throw new Error("No shared session");
+      }
+    } catch (e) {
+      // Normal loaded via standard endpoint
+      isSharedMode = false;
+      const inputArea = document.getElementById('shop-input-area');
+      if (sharedBanner) sharedBanner.classList.add('hidden');
+      if (inputArea) inputArea.classList.remove('hidden');
+      if (shopShareBtn) shopShareBtn.classList.remove('hidden');
+      await loadShopping();
+    }
+  };
 
   const renderShopping = () => {
     if (!shopList) return;
@@ -414,14 +457,23 @@ document.addEventListener('DOMContentLoaded', () => {
     shopping.forEach(item => {
       const li = document.createElement('li');
       li.className = 'notepad-item py-1 px-2 hover:bg-black/5 transition-colors rounded-lg group';
-      li.innerHTML = `
-        <div class="flex items-center gap-3 flex-1">
-          <input type="checkbox" ${item.bought ? 'checked' : ''} class="w-5 h-5 cursor-pointer rounded-full border-2 border-indigo-400 text-indigo-600 focus:ring-indigo-500" data-action="toggle" data-id="${item.id}">
-          <span class="text-xl font-medium transition-all ${item.bought ? 'line-through text-gray-400 italic' : 'text-gray-800'}">${item.text}</span>
-        </div>
-        <button class="icon-btn text-red-500 hover:text-white hover:bg-red-500 transition-all border border-red-200 bg-red-50 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 shadow-sm" title="Delete" data-action="remove" data-id="${item.id}">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>`;
+
+      if (isSharedMode) {
+        li.innerHTML = `
+          <div class="flex items-center gap-3 flex-1">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span class="text-xl font-medium text-gray-800">${item.text}</span>
+          </div>`;
+      } else {
+        li.innerHTML = `
+          <div class="flex items-center gap-3 flex-1">
+            <input type="checkbox" ${item.bought ? 'checked' : ''} class="w-5 h-5 cursor-pointer rounded-full border-2 border-indigo-400 text-indigo-600 focus:ring-indigo-500" data-action="toggle" data-id="${item.id}">
+            <span class="text-xl font-medium transition-all ${item.bought ? 'line-through text-gray-400 italic' : 'text-gray-800'}">${item.text}</span>
+          </div>
+          <button class="icon-btn text-red-500 hover:text-white hover:bg-red-500 transition-all border border-red-200 bg-red-50 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 shadow-sm" title="Delete" data-action="remove" data-id="${item.id}">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>`;
+      }
       shopList.appendChild(li);
     });
     if (window.lucide) window.lucide.createIcons();
@@ -443,6 +495,29 @@ document.addEventListener('DOMContentLoaded', () => {
       shopInput.value = '';
       renderShopping();
     } catch (e) { console.error(e); }
+  });
+
+  const shopSharedCancelBtn = document.getElementById('shop-shared-cancel');
+  const shopSharedCopyBtn = document.getElementById('shop-shared-copy');
+
+  shopSharedCancelBtn?.addEventListener('click', async () => {
+    try {
+      await api.post('/api/shared-shopping/clear');
+      isSharedMode = false;
+      await initShopping();
+    } catch (e) { console.error(e); }
+  });
+
+  shopSharedCopyBtn?.addEventListener('click', async () => {
+    try {
+      const res = await api.post('/api/shared-shopping/copy');
+      isSharedMode = false;
+      alert(`Successfully added ${res.count} items to your shopping list!`);
+      await initShopping();
+    } catch (e) {
+      console.error(e);
+      alert('Failed to copy items. Please make sure you are logged in.');
+    }
   });
 
   shopList?.addEventListener('click', async (e) => {
@@ -469,9 +544,32 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) { console.error(e); }
     }
   });
+  // Share button logic (owner only)
+  shopShareBtn?.addEventListener('click', async () => {
+    try {
+      const data = await api.get('/api/shopping/share-link');
+      if (shareLinkInput) shareLinkInput.value = data.url;
+      if (shareModal) shareModal.classList.remove('hidden');
+      if (copySuccessMsg) copySuccessMsg.classList.add('hidden');
+    } catch (e) { console.error(e); }
+  });
 
+  closeShareModal?.addEventListener('click', () => shareModal?.classList.add('hidden'));
+  shareModal?.addEventListener('click', (e) => { if (e.target === shareModal) shareModal.classList.add('hidden'); });
 
-  // -------------------- Goals --------------------
+  copyShareLink?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shareLinkInput.value);
+      if (copySuccessMsg) {
+        copySuccessMsg.classList.remove('hidden');
+        setTimeout(() => copySuccessMsg.classList.add('hidden'), 3000);
+      }
+    } catch (e) {
+      shareLinkInput.select();
+      document.execCommand('copy');
+    }
+  });
+
   const goalTitle = document.getElementById('goal-title');
   const goalCategory = document.getElementById('goal-category');
   const goalTotal = document.getElementById('goal-total');
@@ -791,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial loads
   loadTodos();
-  loadShopping();
+  initShopping();
   loadGoals();
 
   // Load analytics when Profile tab is clicked or initially
