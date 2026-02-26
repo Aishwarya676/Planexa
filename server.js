@@ -661,7 +661,7 @@ app.post("/api/check-site-password", (req, res) => {
   const password = req.body ? req.body.password : null;
   const submitted = (password || "").toString().trim();
 
-  const primary = "51}Thl51[Nj";
+  const primary = "12342026";
   const secondary = "@3Avi8ethL=i";
 
   const isPrimary = submitted === primary;
